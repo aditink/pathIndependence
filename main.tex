@@ -11,4 +11,33 @@
 
 \section{Introduction}
 
+\section{Definitions}
+\begin{enumerate}
+    \item Path graph:
+    \item Conflicting paths: Paths with same source and destination node
+    \item Path independence:
+\end{enumerate}
+
+\section{Identifying the set of new conflictiong paths on addition of edge}
+\subsection{Theorem 1: The result of the two-flip tolerant path search algorithm corresponds bijectively to the set of new conflicting paths that arise in the graph dues to the addition of an edge.}
+
+Proof:\\
+Let the new edge added to the graph be (s,t).
+The two flip tolerant path algorithm returns all paths from s to t with upto two direction flips.
+
+*This proof is straightforward*
+
+\subsection{Implementation of two-flip tolerant path search}
+Normal recursive DFS but with direction and number of flips parameters to maintain state.
+
+\subsection{Verification using the new paths}
+The appropriate function and inverse compositions.
+
+\subsubsection{If any of the paths don't check out then the graph cannot be path independent. If all the paths do check out and the graph was originally path independent then the new graph is path independent.}
+
+\subsection{Theorem 2: If the two flip tolerant path search returns two paths P and Q that have the same flipping points then they provide the same information and one can be removed as redundant}
+
+\subsubsection{Theorem: If two paths have one flip-point in common and there exist some path connecting the second flip points, then there exists a partial ordering between the two paths}
+
+
 \end{document}
