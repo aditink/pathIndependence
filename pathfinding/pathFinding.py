@@ -4,8 +4,8 @@
 from itertools import combinations
 
 _GRAPH = \
-[[0, 1, 1],
- [0, 0, 0],
+[[0, 1, 0],
+ [1, 0, 0],
  [0, 0, 0]]
 
 # Find and return all paths from s to t in the given graph
@@ -46,21 +46,22 @@ def findNewConflicts(edge, graph = _GRAPH):
 
 # ---------- Helper functions ----------
 
-def getList(s, t, graph, visited):
-    """Return a list of paths from s to t."""
-    if s==t:
+def getList(s, t, graph, visited, first_node=True):
+    """Return a list of paths from s to t
+       Note that first_node allows us to get loops"""
+    if s==t and not first_node:
         return [[t]]
     neighbours = getNeighbours(s, graph, visited)
     ans = []
     for neighbour in neighbours:
-        visited.add(s)
-        ans += [[s]+lst for lst in getList(neighbour, t, graph, visited)]
+        if not first_node:
+            visited.add(s)
+        ans += [[s]+lst for lst in getList(neighbour, t, graph, visited, False)]
         visited.discard(neighbour)
-    return ans
+    return ans + ([[t]] if s==t else [])
 
 # Return a list of the neighbours of s that haven't been visited
 def getNeighbours(s, graph, visited):
-    """"""
     lst = filter(lambda x : x not in visited and graph[s][x]==1, range(len(graph[s])))
     return lst
 
