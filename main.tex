@@ -14,32 +14,284 @@
 
 Many systems can be understood as a a category, or a collection of sets, with some transformation functions between the sets- for example, in programming languages, type systems with coercion. If a graph is constructed with the sets as nodes and functions as edges between the nodes, then by construction the new graph has the property of "path independence", the idea being that each object has a unique representation in a given set in the system.
 
+Much like conservative fields in physics, path independent graphs may arise in many systems. It might be useful to be able to perform some basic verification and ensure the graphs in question are indeed path independent. As a case study, gator, a domain specific graphics language that allows automatic conversion between geometric spaces internally creates a graph with he transformations between the spaces. 
+In order for the compiler to give predictable results, gator requires that this space transformation graph be path independent.
+
+Naively checking if all paths in a given graph are path independent could require a number of function equality checks as bad as factorial in the number of nodes, since a path consists of an ordering of nodes. As comparing function equalities can be expensive, we seek a more refined approach to verifying path independence, specifically over the course of online addition to a graph, as would be useful in cases like the gator compiler.
+
+
 \section{Definitions}
 \begin{enumerate}
     \item Path graph: A graph with vertices representing sets, and directed edges representing transformations functions between the sets. A path represents the composition of the transformation functions in the nodes.
-    \item Conflicting paths: Paths with same source and destination node.
+    \item Conflicting paths: Paths with same source and destination node. (Note that in this definition of the term we don not require paths to actually disagree, but only have the potential to give different results).
     \item Path independence: The property that all conflicting paths in a graph are equal. Equality can be thought of as evaluated by some function equality checking oracle.
 \end{enumerate}
 
-\section{Identifying the set of new conflictiong paths on addition of edge}
-\subsection{Theorem 1: The result of the two-flip tolerant path search algorithm corresponds bijectively to the set of new conflicting paths that arise in the graph dues to the addition of an edge.}
+\section{Identifying the set of new conflicting paths on addition of edge}
 
-Proof:\\
-Let the new edge added to the graph be (s,t).
-The two flip tolerant path algorithm returns all paths from s to t with upto two direction flips.
+The naive approach to verifying path independence would be to compare all conflicting paths pairwise and thus ensure that there are no instances of violation of the property. Over the course of online addition of an edge, given that the graph before adding the edge was path independent, it would only be necessary to check conflicting pairs involving a new path that were created as a consequence of adding the new edge to the path.
+To identify all such conflicting pairs, we present the \textit{two-flip tolerant path search}.
 
-*This proof is straightforward*
+\subsection{Two flip tolerant path search}
+In a normal directed graph path, only forward edges, i.e. edges that go outward from the current node, are considered. 
+On the other hand, the \textit{two flip path} goes through up to three phases: in the first phase, only backward edges- pointing inward to the current node- are accepted. In the second phase, only forward edges are accepted, and in the third phase, again only backward edges are accepted. As a consequence, there is a node in the path for which both path edges are oriented outwards, that lies between the first and second phase. This will be referred to as the \textit{first flipping point}. Similarly, there is a \textit{second flipping point} between the second and third phase, for which both path edges point inwards.
+
+Consider the situation where a new edge from source node S to sink T is being added to a graph.
+A two flip tolerant path from S to T would correspond to a new pair of conflicting paths- flipping point 1 would be the source of both paths, and flipping point 2, the sink. The first path would correspond to the second phase of the flip tolerant path search, and the second path, involving the new edge, would correspond to composing the first phase of the two flip path, the new edge, and the third phase.
+
+To present this idea diagrammatically, we represent path phases with arrows (note that these are the composition of many edges, not a single edge). The new edge is represented with a dashed arrow.
+
+
+\begin{center}
+\begin{tikzpicture}[scale=0.2]
+\tikzstyle{every node}+=[inner sep=0pt]
+\draw [black] (18.1,-36.1) circle (3);
+\draw (18.1,-36.1) node {$S$};
+\draw [black] (50.2,-36.1) circle (3);
+\draw (50.2,-36.1) node {$T$};
+\draw [black] (26,-22.9) circle (3);
+\draw (26,-22.9) node {$F_1$};
+\draw [black] (41.3,-22.9) circle (3);
+\draw (41.3,-22.9) node {$F_2$};
+\draw [dashed] (21.1,-36.1) -- (47.2,-36.1);
+\fill [black] (47.2,-36.1) -- (46.4,-35.6) -- (46.4,-36.6);
+\draw (34.15,-35.6) node [above] {new edge};
+\draw [black] (24.46,-25.47) -- (19.64,-33.53);
+\fill [black] (19.64,-33.53) -- (20.48,-33.1) -- (19.62,-32.58);
+\draw [black] (29,-22.9) -- (38.3,-22.9);
+\fill [black] (38.3,-22.9) -- (37.5,-22.4) -- (37.5,-23.4);
+\draw [black] (48.52,-33.61) -- (42.98,-25.39);
+\fill [black] (42.98,-25.39) -- (43.01,-26.33) -- (43.84,-25.77);
+\end{tikzpicture}
+\end{center}
+Here, (S, $F_1$, $F_2$, T) is a two flip tolerant path. ($F_1$, S, T, $F_2$) is a new path, created because of the addition of (S,T), that conflicts with ($F_1$, $F_2$).
+
+The two flip tolerant path search returns the set of all paths between a given source and sink that have upto two flips (paths that omit one or more of the three phases are also accepted).
+
+\paragraph{Theorem} The result of the two-flip tolerant path search from the source to the sink node of an edge that is to be newly added has a one-to-one* correspondence to the set of new pairs of conflicting paths that arise in the graph due to its addition.
+
+*= This excludes paths whose "area of difference" does not include the new edge since they should remain path independent.
+
+\paragraph{Proof}
+Let the new edge added to the graph be (S, T).
+It has already been shown how each path corresponds to a conflicting pair in the case where a path has two flips. When a path has only the first flip (which is to say, the third phase of the path is missing), but not the second flip, sink node T can be treated as the sink of the two conflicting path, while the first flipping point remains the source. Similarly when only the second flipping point is present then it is the sink, and S is the source. Finally when no flipping points are present, there are two possibilities. 
+Either the path is oriented from S to T, in which case the conflicting paths are simply the edge (S, T) and the entire flip-less path.
+Or, the path is oriented from T to S. In this case, the conflicting paths are the identity on S (that implicitly exists) and the cycle obtained from composing the new edge with the path.
+
+It remains to show that every new conflicting pair corresponds to a two flip tolerant path. Let the common source be $F_1$ and common sink be $F_2$. 
+Note that we are excluding pair where both paths include the new edge, since such paths are equal from $F_1$ to S because of the path independence of the original graph, identical from S to T, and again equal from T to $F_2$ because of original path independence. Being the composition of equal parts, these paths must always be equal.
+
+Now, it is the case that only one path passes through (S, T), which we will name path 1. We construct a two flip tolerant path from S to T: phase 1 is the segment of path 1 from $F_1$ to S, phase 2 is path 2, and phase 3 is the segment of path 1 from T to $F_2$. It is possible that some of $F_1, F_2, S$ and $T$ coincide, in which case the corresponding segments between them disappear, and the resultant path has fewer than two flips.
+
 
 \subsection{Implementation of two-flip tolerant path search}
-Normal recursive DFS with visited set also getting popped on backtrack (to get \textit{all} paths) but with direction and number of flips parameters to maintain state.
+A modified DFS with visited set also getting popped on backtrack (to get \textit{all} paths) and additionally, variables to maintain number of flips and flip state.
 
 \subsection{Verification using the new paths}
-The appropriate function and function inverse compositions.
+The flip tolerant paths search returns pairs of conflicting paths. Verification is performed by composing edge functions to derive path functions, and then performing an equality check to verify if the path functions are equal.
 
-\subsubsection{If any of the paths don't check out then the graph cannot be path independent. If all the paths do check out and the graph was originally path independent then the new graph is path independent.}
+If any of the paths don't check out then the graph, by definition, cannot be path independent. If all the paths do check out and the graph was originally path independent then the new graph is path independent, since new pairs have been verified and old pairs remain unchanged.
 
-\subsection{Theorem: If the two flip tolerant path search returns two paths P and Q that have the same flipping points then they provide the same information and one can be removed as redundant}
+% \subsubsection{Theorem: If two paths have one flip-point in common and there exist some path connecting the second flip points, then there exists a partial ordering between the two paths}
 
+% Two possible cases:
+
+
+% \begin{center}
+% \begin{tikzpicture}[scale=0.2]
+% \tikzstyle{every node}+=[inner sep=0pt]
+% \draw [black] (25,-31.9) circle (3);
+% \draw (25,-31.9) node {$S$};
+% \draw [black] (48,-31.9) circle (3);
+% \draw (48,-31.9) node {$T$};
+% \draw [black] (26.6,-13.6) circle (3);
+% \draw (26.6,-13.6) node {$F_1$};
+% \draw [black] (39,-21) circle (3);
+% \draw (39,-21) node {$F_2$};
+% \draw [black] (45.1,-12.9) circle (3);
+% \draw (45.1,-12.9) node {$F_3$};
+% \draw [black] (29.18,-15.14) -- (36.42,-19.46);
+% \fill [black] (36.42,-19.46) -- (35.99,-18.62) -- (35.48,-19.48);
+% \draw (31.38,-17.8) node [below] {$g_2$};
+% \draw [black] (23.529,-29.292) arc (-156.64712:-213.3464:14.141);
+% \fill [black] (23.53,-29.29) -- (23.67,-28.36) -- (22.75,-28.76);
+% \draw (21.8,-22.39) node [left] {$f_1$};
+% \draw [black] (27.889,-16.304) arc (19.98764:-29.98116:15.634);
+% \fill [black] (26.74,-29.46) -- (27.57,-29.02) -- (26.71,-28.52);
+% \draw (29.4,-23.08) node [right] {$f_2$};
+% \draw [black] (46.09,-29.59) -- (40.91,-23.31);
+% \fill [black] (40.91,-23.31) -- (41.03,-24.25) -- (41.81,-23.61);
+% \draw (42.95,-27.88) node [left] {$h_2$};
+% \draw [black] (29.6,-13.49) -- (42.1,-13.01);
+% \fill [black] (42.1,-13.01) -- (41.28,-12.54) -- (41.32,-13.54);
+% \draw (35.81,-12.7) node [above] {$g_1$};
+% \draw [black] (47.55,-28.93) -- (45.55,-15.87);
+% \fill [black] (45.55,-15.87) -- (45.18,-16.73) -- (46.17,-16.58);
+% \draw (47.25,-22.21) node [right] {$h_1$};
+% \draw [black] (40.8,-18.6) -- (43.3,-15.3);
+% \fill [black] (43.3,-15.3) -- (42.41,-15.63) -- (43.21,-16.24);
+% \draw (42.63,-18.35) node [right] {$l$};
+% \end{tikzpicture}
+% \end{center}
+
+% $P_2$ is better, intuitively because l can only lose- not add information.
+
+
+% \begin{center}
+% \begin{tikzpicture}[scale=0.2]
+% \tikzstyle{every node}+=[inner sep=0pt]
+% \draw [black] (25,-31.9) circle (3);
+% \draw (25,-31.9) node {$S$};
+% \draw [black] (48,-31.9) circle (3);
+% \draw (48,-31.9) node {$T$};
+% \draw [black] (26.7,-7.7) circle (3);
+% \draw (26.7,-7.7) node {$F_1$};
+% \draw [black] (43.1,-21.8) circle (3);
+% \draw (43.1,-21.8) node {$F_2$};
+% \draw [black] (29.9,-16.8) circle (3);
+% \draw (29.9,-16.8) node {$F_3$};
+% \draw [black] (29.408,-6.43) arc (107.51449:-8.88948:11.282);
+% \fill [black] (43.95,-18.93) -- (44.57,-18.22) -- (43.58,-18.06);
+% \draw (41.59,-8.14) node [above] {$g_1$};
+% \draw [black] (22.914,-29.751) arc (-141.57162:-226.46499:15.013);
+% \fill [black] (22.91,-29.75) -- (22.81,-28.81) -- (22.02,-29.44);
+% \draw (19.1,-19.32) node [left] {$f_1$};
+% \draw [black] (46.06,-22.008) arc (71.20036:-19.43982:5.814);
+% \fill [black] (46.06,-22.01) -- (46.66,-22.74) -- (46.98,-21.79);
+% \draw (50.12,-23.9) node [right] {$h_2$};
+% \draw [black] (45.319,-30.601) arc (-127.57654:-180.66292:7.327);
+% \fill [black] (42.46,-24.71) -- (41.95,-25.5) -- (42.95,-25.52);
+% \draw (42.49,-29.07) node [left] {$h_1$};
+% \draw [black] (28.97,-19.65) -- (25.93,-29.05);
+% \fill [black] (25.93,-29.05) -- (26.65,-28.44) -- (25.7,-28.13);
+% \draw (26.68,-23.67) node [left] {$f_2$};
+% \draw [black] (32.71,-17.86) -- (40.29,-20.74);
+% \fill [black] (40.29,-20.74) -- (39.72,-19.99) -- (39.37,-20.92);
+% \draw (35.16,-19.83) node [below] {$g_2$};
+% \draw [black] (27.7,-10.53) -- (28.9,-13.97);
+% \fill [black] (28.9,-13.97) -- (29.11,-13.05) -- (28.17,-13.38);
+% \end{tikzpicture}
+% \end{center}
+
+% $P_1$ is better for a similar reason.
+
+\section{Optimization}
+
+The naive approach presented above identifies and verifies all conflicting pairs in the graph. However, because of the relationship between the various paths, there is some redundancy. It sometimes possible to conclude from verifying one pair, that a different pair must necessarily also be equal. We leverage such situations, since checking the equality of paths may be an expensive operation and an all-path search can have a bad worst-case run time. 
+
+\subsubsection{Ordering on informativeness of paths}
+
+Given a pair of two flip tolerant paths, we look at situations where there is a path between corresponding flipping points.
+There are two cases.
+
+\paragraph{Case 1} The arrows connecting flip points of path 1 to flip points of path 2 are in opposite directions.
+
+\begin{center}
+\begin{tikzpicture}[scale=0.2]
+\tikzstyle{every node}+=[inner sep=0pt]
+\draw [black] (16.6,-34.1) circle (3);
+\draw (16.6,-34.1) node {$S$};
+\draw [black] (56.8,-33.6) circle (3);
+\draw (56.8,-33.6) node {$T$};
+\draw [black] (28,-20.1) circle (3);
+\draw (28,-20.1) node {$P_1$};
+\draw [black] (44.5,-20.1) circle (3);
+\draw (44.5,-20.1) node {$P_2$};
+\draw [black] (28,-44.9) circle (3);
+\draw (28,-44.9) node {$Q_1$};
+\draw [black] (44.5,-44.9) circle (3);
+\draw (44.5,-44.9) node {$Q_2$};
+\draw [black] (31,-20.1) -- (41.5,-20.1);
+\fill [black] (41.5,-20.1) -- (40.7,-19.6) -- (40.7,-20.6);
+\draw (36.25,-20.6) node [below] {$g_1$};
+\draw [black] (26.11,-22.43) -- (18.49,-31.77);
+\fill [black] (18.49,-31.77) -- (19.39,-31.47) -- (18.61,-30.84);
+\draw (21.74,-25.67) node [left] {$f_1$};
+\draw [black] (25.82,-42.84) -- (18.78,-36.16);
+\fill [black] (18.78,-36.16) -- (19.01,-37.08) -- (19.7,-36.35);
+\draw (23.57,-39.02) node [above] {$f_2$};
+\draw [black] (31,-44.9) -- (41.5,-44.9);
+\fill [black] (41.5,-44.9) -- (40.7,-44.4) -- (40.7,-45.4);
+\draw (36.25,-45.4) node [below] {$g_2$};
+\draw [black] (54.59,-35.63) -- (46.71,-42.87);
+\fill [black] (46.71,-42.87) -- (47.64,-42.7) -- (46.96,-41.96);
+\draw (49.21,-38.76) node [above] {$h_2$};
+\draw [black] (54.78,-31.38) -- (46.52,-22.32);
+\fill [black] (46.52,-22.32) -- (46.69,-23.25) -- (47.43,-22.57);
+\draw (51.19,-25.39) node [right] {$h_1$};
+\draw [black] (28,-23.1) -- (28,-41.9);
+\fill [black] (28,-41.9) -- (28.5,-41.1) -- (27.5,-41.1);
+\draw (27.5,-32.5) node [left] {$l$};
+\draw [black] (19.6,-34.06) -- (53.8,-33.64);
+\fill [black] (53.8,-33.64) -- (52.99,-33.15) -- (53.01,-34.15);
+\draw [black] (44.5,-41.9) -- (44.5,-23.1);
+\fill [black] (44.5,-23.1) -- (44,-23.9) -- (45,-23.9);
+\draw (45,-32.5) node [right] {$m$};
+\end{tikzpicture}
+\end{center}
+Let Path$_1=f_1\circ g_1\circ h_1$ and Path$_2$=$f_2\circ g_2\circ h_2$. We choose Path$_2$.
+\paragraph{Theorem} 
+If conflicting paths $g_2 = f_2 \circ (S,T) \circ h_2$ then it must be that $g_1 = f_1 \circ (S,T) \circ h_1$.
+\paragraph{Proof}
+We use the fact that $f_1$=$l\circ f_2$ and $h_1$=$h_2 \circ m$.
+\[g_2 = f_2 \circ (S,T) \circ h_2 \Rightarrow l \circ g_2 = l \circ f_2 \circ (S,T) \circ h_2 \Rightarrow l \circ g_2 \circ m = l \circ f_2 \circ (S,T) \circ h_2 \circ m \Rightarrow g_1 = f_1 \circ (S,T) \circ h_1\]
+
+% Notice this ordering is like the subtyping rule for a function. What is the relationship?
+
+Notice that this generalization will apply to situations where any of these paths are the identity, such as when the first flipping point of both paths is the same, or when there is no first flipping point- it is identical to S.
+
+\paragraph{Case 2} The arrows connecting flip points of path 1 to flip points of path 2 are in the same directions.
+
+\begin{center}
+\begin{tikzpicture}[scale=0.2]
+\tikzstyle{every node}+=[inner sep=0pt]
+\draw [black] (16.6,-34.1) circle (3);
+\draw (16.6,-34.1) node {$S$};
+\draw [black] (56.8,-33.6) circle (3);
+\draw (56.8,-33.6) node {$T$};
+\draw [black] (28,-20.1) circle (3);
+\draw (28,-20.1) node {$P_1$};
+\draw [black] (44.5,-20.1) circle (3);
+\draw (44.5,-20.1) node {$P_2$};
+\draw [black] (28,-44.9) circle (3);
+\draw (28,-44.9) node {$Q_1$};
+\draw [black] (44.5,-44.9) circle (3);
+\draw (44.5,-44.9) node {$Q_2$};
+\draw [black] (31,-20.1) -- (41.5,-20.1);
+\fill [black] (41.5,-20.1) -- (40.7,-19.6) -- (40.7,-20.6);
+\draw (36.25,-20.6) node [below] {$g_1$};
+\draw [black] (26.11,-22.43) -- (18.49,-31.77);
+\fill [black] (18.49,-31.77) -- (19.39,-31.47) -- (18.61,-30.84);
+\draw (21.74,-25.67) node [left] {$f_1$};
+\draw [black] (25.82,-42.84) -- (18.78,-36.16);
+\fill [black] (18.78,-36.16) -- (19.01,-37.08) -- (19.7,-36.35);
+\draw (23.57,-39.02) node [above] {$f_2$};
+\draw [black] (31,-44.9) -- (41.5,-44.9);
+\fill [black] (41.5,-44.9) -- (40.7,-44.4) -- (40.7,-45.4);
+\draw (36.25,-45.4) node [below] {$g_2$};
+\draw [black] (54.59,-35.63) -- (46.71,-42.87);
+\fill [black] (46.71,-42.87) -- (47.64,-42.7) -- (46.96,-41.96);
+\draw (49.21,-38.76) node [above] {$h_2$};
+\draw [black] (54.78,-31.38) -- (46.52,-22.32);
+\fill [black] (46.52,-22.32) -- (46.69,-23.25) -- (47.43,-22.57);
+\draw (51.19,-25.39) node [right] {$h_1$};
+\draw [black] (28,-23.1) -- (28,-41.9);
+\fill [black] (28,-41.9) -- (28.5,-41.1) -- (27.5,-41.1);
+\draw (27.5,-32.5) node [left] {$l$};
+\draw [black] (19.6,-34.06) -- (53.8,-33.64);
+\fill [black] (53.8,-33.64) -- (52.99,-33.15) -- (53.01,-34.15);
+\draw [black] (44.5,-23.1) -- (44.5,-41.9);
+\fill [black] (44.5,-41.9) -- (45,-41.1) -- (44,-41.1);
+\draw (44,-32.5) node [left] {$m$};
+\end{tikzpicture}
+\end{center}
+
+In this case, nothing can be said. As a counterexample, let $P_1$ contain element a.
+Suppose $g_1(a)=a_{g_1}$. Similarly, $l(a)=a_{l}$.
+*TODO Write. Basically there can be a disagreement at $P_2$.*
+
+\subsection{Polynomial verification bound}
+ This is a special instance of case 1, where l and m are the identity.
 \begin{center}
 \begin{tikzpicture}[scale=0.2]
 \tikzstyle{every node}+=[inner sep=0pt]
@@ -72,141 +324,15 @@ The appropriate function and function inverse compositions.
 \end{tikzpicture}
 \end{center}
 
-Intuitive sketch:
-Let path $P_1$ be $f_1\circ g_1 \circ h_1$. Let path $P_2$ be $f_2\circ g_2 \circ h_2$. Then the equality constraint checking leads to identical results.
+Thus, when flip points of the two paths are identical, they give the same information and it is safe to verify only one and discard the other. This means that after our path search gives us all two flip tolerant paths, we only need to verify one path for each unique choice of flip points, and can discard the rest of the paths.
 
-\subsubsection{Theorem: If two paths have one flip-point in common and there exist some path connecting the second flip points, then there exists a partial ordering between the two paths}
+In an N node graph, there are $^NC_2 = \frac{N(N-1)}{2}$ choices of flip points. Thus we can place a polynomial upper bound on the number of paths that actually need to be verified.
 
-Two possible cases:
+If we allow only Case 1 above as a reducing law, this bound is tight. 
+This can be seen in the case where the graph contains 2N nodes besides S and T. We consider N of the nodes to be in group 1, and the other N to be in group 2. Every node in group 1 has a forward node to every node in group 2, as well as to S. T has a forward edge to every node in group 2. In this graph, on the addition of edge (S, T), $N^2$ paths need to be verified which is polynomial in 2N+2.
 
-
-\begin{center}
-\begin{tikzpicture}[scale=0.2]
-\tikzstyle{every node}+=[inner sep=0pt]
-\draw [black] (25,-31.9) circle (3);
-\draw (25,-31.9) node {$S$};
-\draw [black] (48,-31.9) circle (3);
-\draw (48,-31.9) node {$T$};
-\draw [black] (26.6,-13.6) circle (3);
-\draw (26.6,-13.6) node {$F_1$};
-\draw [black] (39,-21) circle (3);
-\draw (39,-21) node {$F_2$};
-\draw [black] (45.1,-12.9) circle (3);
-\draw (45.1,-12.9) node {$F_3$};
-\draw [black] (29.18,-15.14) -- (36.42,-19.46);
-\fill [black] (36.42,-19.46) -- (35.99,-18.62) -- (35.48,-19.48);
-\draw (31.38,-17.8) node [below] {$g_2$};
-\draw [black] (23.529,-29.292) arc (-156.64712:-213.3464:14.141);
-\fill [black] (23.53,-29.29) -- (23.67,-28.36) -- (22.75,-28.76);
-\draw (21.8,-22.39) node [left] {$f_1$};
-\draw [black] (27.889,-16.304) arc (19.98764:-29.98116:15.634);
-\fill [black] (26.74,-29.46) -- (27.57,-29.02) -- (26.71,-28.52);
-\draw (29.4,-23.08) node [right] {$f_2$};
-\draw [black] (46.09,-29.59) -- (40.91,-23.31);
-\fill [black] (40.91,-23.31) -- (41.03,-24.25) -- (41.81,-23.61);
-\draw (42.95,-27.88) node [left] {$h_2$};
-\draw [black] (29.6,-13.49) -- (42.1,-13.01);
-\fill [black] (42.1,-13.01) -- (41.28,-12.54) -- (41.32,-13.54);
-\draw (35.81,-12.7) node [above] {$g_1$};
-\draw [black] (47.55,-28.93) -- (45.55,-15.87);
-\fill [black] (45.55,-15.87) -- (45.18,-16.73) -- (46.17,-16.58);
-\draw (47.25,-22.21) node [right] {$h_1$};
-\draw [black] (40.8,-18.6) -- (43.3,-15.3);
-\fill [black] (43.3,-15.3) -- (42.41,-15.63) -- (43.21,-16.24);
-\draw (42.63,-18.35) node [right] {$l$};
-\end{tikzpicture}
-\end{center}
-
-$P_2$ is better, intuitively because l can only lose- not add information.
-
-
-\begin{center}
-\begin{tikzpicture}[scale=0.2]
-\tikzstyle{every node}+=[inner sep=0pt]
-\draw [black] (25,-31.9) circle (3);
-\draw (25,-31.9) node {$S$};
-\draw [black] (48,-31.9) circle (3);
-\draw (48,-31.9) node {$T$};
-\draw [black] (26.7,-7.7) circle (3);
-\draw (26.7,-7.7) node {$F_1$};
-\draw [black] (43.1,-21.8) circle (3);
-\draw (43.1,-21.8) node {$F_2$};
-\draw [black] (29.9,-16.8) circle (3);
-\draw (29.9,-16.8) node {$F_3$};
-\draw [black] (29.408,-6.43) arc (107.51449:-8.88948:11.282);
-\fill [black] (43.95,-18.93) -- (44.57,-18.22) -- (43.58,-18.06);
-\draw (41.59,-8.14) node [above] {$g_1$};
-\draw [black] (22.914,-29.751) arc (-141.57162:-226.46499:15.013);
-\fill [black] (22.91,-29.75) -- (22.81,-28.81) -- (22.02,-29.44);
-\draw (19.1,-19.32) node [left] {$f_1$};
-\draw [black] (46.06,-22.008) arc (71.20036:-19.43982:5.814);
-\fill [black] (46.06,-22.01) -- (46.66,-22.74) -- (46.98,-21.79);
-\draw (50.12,-23.9) node [right] {$h_2$};
-\draw [black] (45.319,-30.601) arc (-127.57654:-180.66292:7.327);
-\fill [black] (42.46,-24.71) -- (41.95,-25.5) -- (42.95,-25.52);
-\draw (42.49,-29.07) node [left] {$h_1$};
-\draw [black] (28.97,-19.65) -- (25.93,-29.05);
-\fill [black] (25.93,-29.05) -- (26.65,-28.44) -- (25.7,-28.13);
-\draw (26.68,-23.67) node [left] {$f_2$};
-\draw [black] (32.71,-17.86) -- (40.29,-20.74);
-\fill [black] (40.29,-20.74) -- (39.72,-19.99) -- (39.37,-20.92);
-\draw (35.16,-19.83) node [below] {$g_2$};
-\draw [black] (27.7,-10.53) -- (28.9,-13.97);
-\fill [black] (28.9,-13.97) -- (29.11,-13.05) -- (28.17,-13.38);
-\end{tikzpicture}
-\end{center}
-
-$P_1$ is better for a similar reason.
-
-\subsubsection{Theorem: In general, if there is an ordering to be derived from a paths between both flipping points of two paths, then there might exists a partial ordering between the two paths}
-
-I think the only case we know for sure is this one:
-
-
-\begin{center}
-\begin{tikzpicture}[scale=0.2]
-\tikzstyle{every node}+=[inner sep=0pt]
-\draw [black] (25,-31.9) circle (3);
-\draw (25,-31.9) node {$S$};
-\draw [black] (48,-31.9) circle (3);
-\draw (48,-31.9) node {$T$};
-\draw [black] (26.7,-7.7) circle (3);
-\draw (26.7,-7.7) node {$F_1$};
-\draw [black] (44.9,-17.5) circle (3);
-\draw (44.9,-17.5) node {$F_2$};
-\draw [black] (29.9,-16.8) circle (3);
-\draw (29.9,-16.8) node {$F_3$};
-\draw [black] (46.3,-7.7) circle (3);
-\draw (46.3,-7.7) node {$F_4$};
-\draw [black] (22.914,-29.751) arc (-141.57162:-226.46499:15.013);
-\fill [black] (22.91,-29.75) -- (22.81,-28.81) -- (22.02,-29.44);
-\draw (19.1,-19.32) node [left] {$f_1$};
-\draw [black] (47.37,-28.97) -- (45.53,-20.43);
-\fill [black] (45.53,-20.43) -- (45.21,-21.32) -- (46.19,-21.11);
-\draw (45.7,-25.06) node [left] {$h_2$};
-\draw [black] (28.97,-19.65) -- (25.93,-29.05);
-\fill [black] (25.93,-29.05) -- (26.65,-28.44) -- (25.7,-28.13);
-\draw (26.68,-23.67) node [left] {$f_2$};
-\draw [black] (32.9,-16.94) -- (41.9,-17.36);
-\fill [black] (41.9,-17.36) -- (41.13,-16.82) -- (41.08,-17.82);
-\draw (37.34,-17.71) node [below] {$g_2$};
-\draw [black] (27.7,-10.53) -- (28.9,-13.97);
-\fill [black] (28.9,-13.97) -- (29.11,-13.05) -- (28.17,-13.38);
-\draw [black] (29.471,-6.557) arc (108.53192:71.46808:22.115);
-\fill [black] (43.53,-6.56) -- (42.93,-5.83) -- (42.61,-6.78);
-\draw (36.5,-4.91) node [above] {$g_1$};
-\draw [black] (45.88,-10.67) -- (45.32,-14.53);
-\fill [black] (45.32,-14.53) -- (45.93,-13.81) -- (44.94,-13.67);
-\draw [black] (48.889,-9.204) arc (53.58054:-45.54392:13.727);
-\fill [black] (48.89,-9.2) -- (49.24,-10.08) -- (49.83,-9.28);
-\draw (55.03,-19.24) node [right] {$h_1$};
-\end{tikzpicture}
-\end{center}
-I think $P_1$ is better. Don't yet have a proof sketch in mind yet but this is what the intuition from the previous cases would lead to.
-
-The two other cases arise when you flip each arrow in turn. I think in these cases the result might go either way; TODO come up with the appropriate counterexamples.
-
-\section{Optimized Algorithm}
-Here, present pseudocode to do the path search with the ignoring of useless possibilities baked in. Perform runtime analysis.
+\subsection{Optimized Path Finding Algorithm}
+We utilize this idea of selecting flip points to devise a polynomial time path search. This search does not return all two flip tolerant paths, but rather, a path for every feasible choice of flipping point.
+ *TODO Write algorithm.*
 
 \end{document}
