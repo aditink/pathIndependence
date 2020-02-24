@@ -4,8 +4,10 @@
 from itertools import combinations
 
 _GRAPH = \
-[[0, 1],
- [0, 0]]
+[[0, 1, 1, 0],
+ [0, 0, 1, 0],
+ [1, 0, 0, 0],
+ [0, 0, 0, 0]]
 
 # _GRAPH = \
 # [[0, 1, 1, 1, 0, 1],
@@ -17,34 +19,57 @@ _GRAPH = \
 
 # ----------- Fast functions -----------
 
-def findPaths(s, t, graph = _GRAPH):
-    return [[0]]
+# A list of all pairs of paths that both share a source and sink
+#  and include 'edge' in the path
+# Throws an error if 'edge' is not in the graph
+def findEdgeConflicts(s, t, graph = _GRAPH):
+    if graph[s][t] != 1:
+        raise "Edge to check conflicts with does not exist"
+    return findNewConflicts(s, t, graph)
 
-def findAllConflictingPaths(graph = _GRAPH):
-    return [[(0, 0)]]
-
-def findNewConflicts(edge, graph = _GRAPH):
-    result = [(0, 0)]
-    graph[edge[0]][edge[1]] = 1
+# A list of all pairs of paths that both share a source and sink
+#  and include 'edge' in the path
+# Adds 'edge' if it is not already part of the graph
+def findNewConflicts(s, t, graph = _GRAPH):
+    graph[s][t] = 0
+    result = []
+    for path,flips in findFlippingPoints(t, s, graph, flips_allowed=2):
+        print(path)
+        # It's a cycle, so find all cycle conflicts
+        if len(flips) == 0:
+            for i in range(len(path)):
+                result.append(([path[i]] + path[i+1:] + path[:i+1], [path[i]]))
+        # Common ancestor, so check two meeting paths
+        if len(flips) == 1:
+            new_res = [s]
+            for i in range(len(path)):
+                new_res.append(path[i])
+                if path[i] == flips[0]:
+                    rev_path = path[i:]
+                    rev_path.reverse()
+                    new_res = (new_res, rev_path)
+                    break
+            result.append(new_res)
+        # Two-flip result, so compare paths between flip source and sink
+        if len(flips) == 2:
+            new_res = []
+            next_path = []
+            for i in range(len(path)):
+                next_path.append(path[i])
+                # Note that we assume the order of reported flips
+                # Flips must be ordered to occur in the path _from_ s to t
+                if path[i] == flips[0]:
+                    new_res = next_path
+                    next_path = [path[i]]
+                if path[i] == flips[1]:
+                    next_path.reverse()
+                    new_res = (path[i:] + new_res, next_path)
+                    break
+            result.append(new_res)
+    graph[s][t] = 1
     return result
 
 # -------- Reference functions ---------
-
-# Find and return all paths from s to t in the given graph
-def findPathsReference(s, t, graph = _GRAPH):
-    return getDirectedPaths(s, t, graph)
-
-# A dict of all paths in the graph
-def findAllPaths(graph = _GRAPH):
-    toReturn = {}
-    for i in range(len(graph)):
-        if len(graph[i]) != len(graph):
-            raise "Graph must be a square matrix"
-        for j in range(len(graph[i])):
-            p = findPathsReference(i, j, graph)
-            if len(p) > 0:
-                toReturn["(" + str(i) + ", " + str(j) + ")"] = p
-    return toReturn
 
 # A list of _all_ pairs of paths that share a source and sink
 def findAllConflictingPathsReference(graph = _GRAPH):
@@ -56,26 +81,56 @@ def findAllConflictingPathsReference(graph = _GRAPH):
 
 # A list of all pairs of paths that both share a source and sink
 #  and include 'edge' in the path
-def findNewConflictsReference(edge, graph = _GRAPH):
+# Throws an error if 'edge' is not in the graph
+def findEdgeConflictsReference(s, t, graph = _GRAPH):
+    if graph[s][t] != 1:
+        raise "Edge to check conflicts with does not exist"
     result = []
-    graph[edge[0]][edge[1]] = 1
     for path in findAllConflictingPathsReference(graph):
         for i in range(2):
             for j in range(len(path[i]) - 1):
-                if path[i][j] == edge[0] and path[i][j + 1] == edge[1]:
+                if path[i][j] == s and path[i][j + 1] == t:
                     result.append(path)
     return result
+
+# A list of all pairs of paths that both share a source and sink
+#  and include 'edge' in the path
+# Adds 'edge' if it is not already part of the graph
+def findNewConflictsReference(s, t, graph = _GRAPH):
+    graph[s][t] = 1
+    findEdgeConflictsReference(edge, graph)
+    
+# ---------- Testing functions ---------
+
+# Find and return all paths from s to t in the given graph
+def findPaths(s, t, graph = _GRAPH):
+    return findDirectedPaths(s, t, graph)
+
+# A dict of all paths in the graph
+def findAllPaths(graph = _GRAPH):
+    toReturn = {}
+    for i in range(len(graph)):
+        if len(graph[i]) != len(graph):
+            raise "Graph must be a square matrix"
+        for j in range(len(graph[i])):
+            p = findPaths(i, j, graph)
+            if len(p) > 0:
+                toReturn["(" + str(i) + ", " + str(j) + ")"] = p
+    return toReturn
 
 # ---------- Helper functions ----------
 
 # Returns a list of all directed paths from s to t
 # Directed paths may include up to 'flips_allowed' direction flips
-def getDirectedPaths(s, t, graph, flips_allowed = 0):
-    return getDirectedPathsRec(s, t, graph, set(), -1, True, flips_allowed)
+def findDirectedPaths(s, t, graph, flips_allowed = 0):
+    return list(map(lambda x : x[0], findDirectedPathsRec(s, t, graph, set(), -1, True, flips_allowed)))
 
-def getDirectedPathsRec(s, t, graph, visited, first_node, forward, flips_allowed):
+def findFlippingPoints(s, t, graph, flips_allowed = 0):
+    return findDirectedPathsRec(s, t, graph, set(), -1, True, flips_allowed)
+
+def findDirectedPathsRec(s, t, graph, visited, first_node, forward, flips_allowed):
     if s==t and not first_node == -1:
-        return [[t]]
+        return [([t], [])]
     if first_node == -1:
         first_node = s
     elif s == first_node:
@@ -84,19 +139,17 @@ def getDirectedPathsRec(s, t, graph, visited, first_node, forward, flips_allowed
         visited.add(s)
     neighbours = getNeighbours(s, graph, visited, forward)
     ans = []
-    forwardVisited = visited.copy()
     for neighbour in neighbours:
-        ans += [[s]+lst for lst in \
-            getDirectedPathsRec(neighbour, t, graph, visited.copy(), first_node, forward, flips_allowed)]
-        forwardVisited.add(neighbour)
+        res = findDirectedPathsRec(neighbour, t, graph, visited.copy(), first_node, forward, flips_allowed)
+        ans += [([s]+lst[0], lst[1]) for lst in res]
     if flips_allowed > 0:
         flips_allowed -= 1
         forward = not forward
-        flippedNeighbors = getNeighbours(s, graph, forwardVisited, forward)
+        flippedNeighbors = getNeighbours(s, graph, visited, forward)
         for neighbour in flippedNeighbors:
-            ans += [[s]+lst for lst in \
-                getDirectedPathsRec(neighbour, t, graph, visited.copy(), first_node, forward, flips_allowed)]
-    return ans + ([[t]] if s==t else [])
+            res = findDirectedPathsRec(neighbour, t, graph, visited.copy(), first_node, forward, flips_allowed)
+            ans += [([s]+lst[0], [s] + lst[1]) for lst in res]
+    return ans + ([([t], [])] if s==t else [])
 
 # Return a list of the neighbours of s that haven't been visited
 def getNeighbours(s, graph, visited, forward):
@@ -113,9 +166,10 @@ def printDict(d):
 def main():
     printDict(findAllPaths())
     print("-------------------")
-    print(findAllConflictingPathsReference())
+    s, t = (0, 1)
+    print(findEdgeConflictsReference(s, t))
     print("-------------------")
-    print(findNewConflictsReference((1, 0)))
+    print(findEdgeConflicts(s, t))
 
 if __name__=="__main__":
     main()
