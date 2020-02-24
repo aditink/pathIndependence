@@ -1,6 +1,7 @@
 """Find all paths between two nodes in a directed graph."""
 """Graph is encoded as an adjacency matrix with i,j = 1 indicating that there is an edge from i to j"""
 
+import random
 from itertools import combinations
 
 _GRAPH = \
@@ -25,7 +26,7 @@ _GRAPH = \
 def findEdgeConflicts(s, t, graph = _GRAPH):
     if graph[s][t] != 1:
         raise "Edge to check conflicts with does not exist"
-    return findNewConflicts(s, t, graph)
+    return findNewConflicts(s, t, graph)[0]
 
 # A list of all pairs of paths that both share a source and sink
 #  and include 'edge' in the path
@@ -34,7 +35,6 @@ def findNewConflicts(s, t, graph = _GRAPH):
     graph[s][t] = 0
     result = []
     for path,flips in findFlippingPoints(t, s, graph, flips_allowed=2):
-        print(path)
         # It's a cycle, so find all cycle conflicts
         if len(flips) == 0:
             for i in range(len(path)):
@@ -67,7 +67,7 @@ def findNewConflicts(s, t, graph = _GRAPH):
                     break
             result.append(new_res)
     graph[s][t] = 1
-    return result
+    return (result, graph)
 
 # -------- Reference functions ---------
 
@@ -98,9 +98,30 @@ def findEdgeConflictsReference(s, t, graph = _GRAPH):
 # Adds 'edge' if it is not already part of the graph
 def findNewConflictsReference(s, t, graph = _GRAPH):
     graph[s][t] = 1
-    findEdgeConflictsReference(edge, graph)
+    return (findEdgeConflictsReference(s, t, graph), graph)
     
 # ---------- Testing functions ---------
+
+# Returns a size x size adjacency matrix
+#  with an average of 'density' 0/1 edge ratio
+def generateGraph(size, density=.5):
+    to_return = [[0 for _ in range(size)] for _ in range(size)]
+    for i in range(size):
+        for j in range(size):
+            if random.random() < density:
+                to_return[i][j] = 1
+    return to_return
+
+# Returns a list of edges contained in the given graph
+def graphEdges(graph):
+    to_return = []
+    for i in range(len(graph)):
+        if len(graph[i]) != len(graph):
+            raise "Graph must be a square matrix"
+        for j in range(len(graph[i])):
+            if graph[i][j] == 1:
+                to_return.append([i, j])
+    return to_return
 
 # Find and return all paths from s to t in the given graph
 def findPaths(s, t, graph = _GRAPH):
@@ -164,12 +185,21 @@ def printDict(d):
 
 
 def main():
+    # --- Accuracy Test ---
     printDict(findAllPaths())
     print("-------------------")
     s, t = (0, 1)
     print(findEdgeConflictsReference(s, t))
     print("-------------------")
     print(findEdgeConflicts(s, t))
+
+    # --- Speed Test ---
+    # size = 11
+    # edges = graphEdges(generateGraph(size))
+    # g = generateGraph(size, 0)
+    # for s,t in edges:
+    #     g = findNewConflicts(s, t, g)[1]
+    # print(g)
 
 if __name__=="__main__":
     main()
