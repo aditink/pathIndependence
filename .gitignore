@@ -135,3 +135,8 @@ dmypy.json
 
 # Swap
 *.swp
+
+# Latex
+*.pdf
+*.aux
+*.synctex.gz
