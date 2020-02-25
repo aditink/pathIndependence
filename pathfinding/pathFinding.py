@@ -3,6 +3,7 @@
 
 import random
 from itertools import combinations
+import time
 
 _GRAPH = \
 [[0, 1, 1, 0],
@@ -186,20 +187,26 @@ def printDict(d):
 
 def main():
     # --- Accuracy Test ---
-    printDict(findAllPaths())
-    print("-------------------")
-    s, t = (0, 1)
-    print(findEdgeConflictsReference(s, t))
-    print("-------------------")
-    print(findEdgeConflicts(s, t))
+    # printDict(findAllPaths())
+    # print("-------------------")
+    # s, t = (0, 1)
+    # print(findEdgeConflictsReference(s, t))
+    # print("-------------------")
+    # print(findEdgeConflicts(s, t))
 
     # --- Speed Test ---
-    # size = 11
-    # edges = graphEdges(generateGraph(size))
-    # g = generateGraph(size, 0)
-    # for s,t in edges:
-    #     g = findNewConflicts(s, t, g)[1]
-    # print(g)
+    total = 0
+    size = 7
+    density = .35
+    iterations = 100
+    for _ in range(iterations):
+        edges = graphEdges(generateGraph(size, density))
+        g = generateGraph(size, 0)
+        tm = time.time()
+        for s,t in edges:
+            g = findNewConflictsReference(s, t, g)[1]
+        total += time.time() - tm
+    print(total / iterations)
 
 if __name__=="__main__":
     main()
