@@ -4,11 +4,12 @@
 import random
 from itertools import combinations
 import time
+import queue
 
 _GRAPH = \
 [[0, 1, 1, 0],
  [0, 0, 1, 0],
- [1, 0, 0, 0],
+ [0, 0, 0, 0],
  [0, 0, 0, 0]]
 
 # _GRAPH = \
@@ -69,6 +70,31 @@ def findNewConflicts(s, t, graph = _GRAPH):
             result.append(new_res)
     graph[s][t] = 1
     return (result, graph)
+
+# Finds a useful subset of conflicts in polynomial time
+def findEdgeConflictsPolynomial(s, t, graph = _GRAPH):
+    if graph[s][t] != 1:
+        raise "Edge to check conflicts with does not exist"
+    return findNewConflictsPolynomial(s, t, graph)[0]
+
+# Finds a useful subset of conflicts in polynomial time
+def findNewConflictsPolynomial(s, t, graph = _GRAPH):
+    graph[s][t] = 0
+    result = []
+    for i in range(len(graph)):
+        if len(graph[i]) != len(graph):
+            raise "Graph must be a square matrix"
+        for j in range(len(graph[i])):
+            p1 = findPath(i, s, graph)
+            p2 = findPath(t, j, graph)
+            p = p1 + p2
+            q = findPath(i, j, graph)
+            if p1 == [] or p2 == [] or q == []:
+                continue
+            result.append((p, q))
+    graph[s][t] = 1
+    return (result, graph)
+    
 
 # -------- Reference functions ---------
 
@@ -173,6 +199,29 @@ def findDirectedPathsRec(s, t, graph, visited, first_node, forward, flips_allowe
             ans += [([s]+lst[0], [s] + lst[1]) for lst in res]
     return ans + ([([t], [])] if s==t else [])
 
+# Finds a path from s to t
+def findPath(s, t, graph):
+    if s == t:
+        return [s]
+    visited = set()
+    visited.add(s)
+    toVisit = queue.Queue()
+    for neighbour in getNeighbours(s, graph, visited, True):
+        visited.add(neighbour)
+        path = [s, neighbour]
+        if neighbour == t:
+            return path
+        toVisit.put(path)
+    while toVisit.qsize() != 0:
+        next_path = toVisit.get()
+        for neighbour in getNeighbours(next_path[-1], graph, visited, True):
+            visited.add(neighbour)
+            path = next_path + [neighbour]
+            if neighbour == t:
+                return path
+            toVisit.put(path)
+    return []
+
 # Return a list of the neighbours of s that haven't been visited
 def getNeighbours(s, graph, visited, forward):
     graph_check = (lambda x : graph[s][x]==1) if forward else (lambda x : graph[x][s]==1)
@@ -192,12 +241,12 @@ def main():
     # s, t = (0, 1)
     # print(findEdgeConflictsReference(s, t))
     # print("-------------------")
-    # print(findEdgeConflicts(s, t))
+    # print(findEdgeConflictsPolynomial(s, t))
 
     # --- Speed Test ---
     total = 0
     size = 7
-    density = .35
+    density = .5
     iterations = 100
     for _ in range(iterations):
         edges = graphEdges(generateGraph(size, density))
