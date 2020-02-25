@@ -30,7 +30,7 @@ Naively checking if all paths in a given graph are path independent could requir
 \section{Identifying the set of new conflicting paths on addition of edge}
 
 The naive approach to verifying path independence would be to compare all conflicting paths pairwise and thus ensure that there are no instances of violation of the property. Over the course of online addition of an edge, given that the graph before adding the edge was path independent, it would only be necessary to check conflicting pairs involving a new path that were created as a consequence of adding the new edge to the path.
-To identify all such conflicting pairs, we present the \textit{two-flip tolerant path search}.
+To identify all such conflicting pairs, we present the \textit{two-flip tolerant path search}. This naive approach may be considered a baseline solution.
 
 \subsection{Two flip tolerant path search}
 In a normal directed graph path, only forward edges, i.e. edges that go outward from the current node, are considered. 
@@ -68,15 +68,26 @@ Here, (S, $F_1$, $F_2$, T) is a two flip tolerant path. ($F_1$, S, T, $F_2$) is 
 
 The two flip tolerant path search returns the set of all paths between a given source and sink that have upto two flips (paths that omit one or more of the three phases are also accepted).
 
-\paragraph{Theorem} The result of the two-flip tolerant path search from the source to the sink node of an edge that is to be newly added has a one-to-one* correspondence to the set of new pairs of conflicting paths that arise in the graph due to its addition.
+The \textit{path extraction algorithm} then transforms the output of the two flip path search to the set of new pairs of conflicting paths that arise in the graph due to its addition.
 
-*= This excludes paths whose "area of difference" does not include the new edge since they should remain path independent.
+*= This excludes paths whose "area of difference" does not include the new edge since they should remain path independent. It also excludes paths that in their course contain cycles that exclude the new edge, since these paths must, again by path independence of the original graph, be equal to the path resulting from removing their cycles.
 
-\paragraph{Proof}
+\paragraph{Path extraction algorithm}
+The purpose of this algorithm is to derive the conflicting pairs that a given two-flip tolerant path corresponds to.
+
 Let the new edge added to the graph be (S, T).
 It has already been shown how each path corresponds to a conflicting pair in the case where a path has two flips. When a path has only the first flip (which is to say, the third phase of the path is missing), but not the second flip, sink node T can be treated as the sink of the two conflicting path, while the first flipping point remains the source. Similarly when only the second flipping point is present then it is the sink, and S is the source. Finally when no flipping points are present, there are two possibilities. 
 Either the path is oriented from S to T, in which case the conflicting paths are simply the edge (S, T) and the entire flip-less path.
-Or, the path is oriented from T to S. In this case, the conflicting paths are the identity on S (that implicitly exists) and the cycle obtained from composing the new edge with the path.
+Or, the path is oriented from T to S. In this case, the conflicting paths are the identity on S (that implicitly exists) and the cycle obtained from composing the new edge with the path. The cycle conflicts with all other cycles starting from each node in the cycle. Notice that a single cycle can give rise to multiple conflicting pairs.
+
+
+\paragraph{Theorem} The result of the two-flip tolerant path search from the source to the sink node of an edge that is to be newly added, followed with the path extraction algorithm has a one-to-one* correspondence to the set of new pairs of conflicting paths that arise in the graph due to its addition.
+
+*= Same conditions as above.
+
+\paragraph{Proof}
+
+Every element in the output of the path extraction algorithm was by definition a conflicting pair.
 
 It remains to show that every new conflicting pair corresponds to a two flip tolerant path. Let the common source be $F_1$ and common sink be $F_2$. 
 Note that we are excluding pair where both paths include the new edge, since such paths are equal from $F_1$ to S because of the path independence of the original graph, identical from S to T, and again equal from T to $F_2$ because of original path independence. Being the composition of equal parts, these paths must always be equal.
@@ -87,95 +98,17 @@ Now, it is the case that only one path passes through (S, T), which we will name
 \subsection{Implementation of two-flip tolerant path search}
 A modified DFS with visited set also getting popped on backtrack (to get \textit{all} paths) and additionally, variables to maintain number of flips and flip state.
 
+*Insert python code here*
+
+\subsection{Implementation of path extraction}
+ *Again, insert code*
+
 \subsection{Verification using the new paths}
-The flip tolerant paths search returns pairs of conflicting paths. Verification is performed by composing edge functions to derive path functions, and then performing an equality check to verify if the path functions are equal.
+The algorithm returns pairs of conflicting paths. Verification is performed by composing edge functions to derive path functions, and then performing an equality check to verify if the path functions are equal.
 
 If any of the paths don't check out then the graph, by definition, cannot be path independent. If all the paths do check out and the graph was originally path independent then the new graph is path independent, since new pairs have been verified and old pairs remain unchanged.
 
-% \subsubsection{Theorem: If two paths have one flip-point in common and there exist some path connecting the second flip points, then there exists a partial ordering between the two paths}
-
-% Two possible cases:
-
-
-% \begin{center}
-% \begin{tikzpicture}[scale=0.2]
-% \tikzstyle{every node}+=[inner sep=0pt]
-% \draw [black] (25,-31.9) circle (3);
-% \draw (25,-31.9) node {$S$};
-% \draw [black] (48,-31.9) circle (3);
-% \draw (48,-31.9) node {$T$};
-% \draw [black] (26.6,-13.6) circle (3);
-% \draw (26.6,-13.6) node {$F_1$};
-% \draw [black] (39,-21) circle (3);
-% \draw (39,-21) node {$F_2$};
-% \draw [black] (45.1,-12.9) circle (3);
-% \draw (45.1,-12.9) node {$F_3$};
-% \draw [black] (29.18,-15.14) -- (36.42,-19.46);
-% \fill [black] (36.42,-19.46) -- (35.99,-18.62) -- (35.48,-19.48);
-% \draw (31.38,-17.8) node [below] {$g_2$};
-% \draw [black] (23.529,-29.292) arc (-156.64712:-213.3464:14.141);
-% \fill [black] (23.53,-29.29) -- (23.67,-28.36) -- (22.75,-28.76);
-% \draw (21.8,-22.39) node [left] {$f_1$};
-% \draw [black] (27.889,-16.304) arc (19.98764:-29.98116:15.634);
-% \fill [black] (26.74,-29.46) -- (27.57,-29.02) -- (26.71,-28.52);
-% \draw (29.4,-23.08) node [right] {$f_2$};
-% \draw [black] (46.09,-29.59) -- (40.91,-23.31);
-% \fill [black] (40.91,-23.31) -- (41.03,-24.25) -- (41.81,-23.61);
-% \draw (42.95,-27.88) node [left] {$h_2$};
-% \draw [black] (29.6,-13.49) -- (42.1,-13.01);
-% \fill [black] (42.1,-13.01) -- (41.28,-12.54) -- (41.32,-13.54);
-% \draw (35.81,-12.7) node [above] {$g_1$};
-% \draw [black] (47.55,-28.93) -- (45.55,-15.87);
-% \fill [black] (45.55,-15.87) -- (45.18,-16.73) -- (46.17,-16.58);
-% \draw (47.25,-22.21) node [right] {$h_1$};
-% \draw [black] (40.8,-18.6) -- (43.3,-15.3);
-% \fill [black] (43.3,-15.3) -- (42.41,-15.63) -- (43.21,-16.24);
-% \draw (42.63,-18.35) node [right] {$l$};
-% \end{tikzpicture}
-% \end{center}
-
-% $P_2$ is better, intuitively because l can only lose- not add information.
-
-
-% \begin{center}
-% \begin{tikzpicture}[scale=0.2]
-% \tikzstyle{every node}+=[inner sep=0pt]
-% \draw [black] (25,-31.9) circle (3);
-% \draw (25,-31.9) node {$S$};
-% \draw [black] (48,-31.9) circle (3);
-% \draw (48,-31.9) node {$T$};
-% \draw [black] (26.7,-7.7) circle (3);
-% \draw (26.7,-7.7) node {$F_1$};
-% \draw [black] (43.1,-21.8) circle (3);
-% \draw (43.1,-21.8) node {$F_2$};
-% \draw [black] (29.9,-16.8) circle (3);
-% \draw (29.9,-16.8) node {$F_3$};
-% \draw [black] (29.408,-6.43) arc (107.51449:-8.88948:11.282);
-% \fill [black] (43.95,-18.93) -- (44.57,-18.22) -- (43.58,-18.06);
-% \draw (41.59,-8.14) node [above] {$g_1$};
-% \draw [black] (22.914,-29.751) arc (-141.57162:-226.46499:15.013);
-% \fill [black] (22.91,-29.75) -- (22.81,-28.81) -- (22.02,-29.44);
-% \draw (19.1,-19.32) node [left] {$f_1$};
-% \draw [black] (46.06,-22.008) arc (71.20036:-19.43982:5.814);
-% \fill [black] (46.06,-22.01) -- (46.66,-22.74) -- (46.98,-21.79);
-% \draw (50.12,-23.9) node [right] {$h_2$};
-% \draw [black] (45.319,-30.601) arc (-127.57654:-180.66292:7.327);
-% \fill [black] (42.46,-24.71) -- (41.95,-25.5) -- (42.95,-25.52);
-% \draw (42.49,-29.07) node [left] {$h_1$};
-% \draw [black] (28.97,-19.65) -- (25.93,-29.05);
-% \fill [black] (25.93,-29.05) -- (26.65,-28.44) -- (25.7,-28.13);
-% \draw (26.68,-23.67) node [left] {$f_2$};
-% \draw [black] (32.71,-17.86) -- (40.29,-20.74);
-% \fill [black] (40.29,-20.74) -- (39.72,-19.99) -- (39.37,-20.92);
-% \draw (35.16,-19.83) node [below] {$g_2$};
-% \draw [black] (27.7,-10.53) -- (28.9,-13.97);
-% \fill [black] (28.9,-13.97) -- (29.11,-13.05) -- (28.17,-13.38);
-% \end{tikzpicture}
-% \end{center}
-
-% $P_1$ is better for a similar reason.
-
-\section{Optimization}
+\subsection{Optimization of two-flip search}
 
 The naive approach presented above identifies and verifies all conflicting pairs in the graph. However, because of the relationship between the various paths, there is some redundancy. It sometimes possible to conclude from verifying one pair, that a different pair must necessarily also be equal. We leverage such situations, since checking the equality of paths may be an expensive operation and an all-path search can have a bad worst-case run time. 
 
@@ -290,8 +223,10 @@ In this case, nothing can be said. As a counterexample, let $P_1$ contain elemen
 Suppose $g_1(a)=a_{g_1}$. Similarly, $l(a)=a_{l}$.
 *TODO Write. Basically there can be a disagreement at $P_2$.*
 
-\subsection{Polynomial verification bound}
- This is a special instance of case 1, where l and m are the identity.
+\section{Optimization}
+We now present a polynomial time algorithm, that is based on the observation that all conflicting paths that have the same source and same sink, but do not include the new edge, must be equal because of path independence in the pre-existing graph. Therefore, it suffices to check for one path for a given source and sink, and it follows that all the rest will check out.
+
+In terms of flip points, this is a special instance of case 1, where l and m are the identity.
 \begin{center}
 \begin{tikzpicture}[scale=0.2]
 \tikzstyle{every node}+=[inner sep=0pt]
@@ -326,13 +261,48 @@ Suppose $g_1(a)=a_{g_1}$. Similarly, $l(a)=a_{l}$.
 
 Thus, when flip points of the two paths are identical, they give the same information and it is safe to verify only one and discard the other. This means that after our path search gives us all two flip tolerant paths, we only need to verify one path for each unique choice of flip points, and can discard the rest of the paths.
 
-In an N node graph, there are $^NC_2 = \frac{N(N-1)}{2}$ choices of flip points. Thus we can place a polynomial upper bound on the number of paths that actually need to be verified.
+In an N node graph, there are $^NP_2 = N(N-1)$ choices of flip points. Thus we can place a polynomial upper bound on the number of paths that actually need to be verified.
 
 If we allow only Case 1 above as a reducing law, this bound is tight. 
 This can be seen in the case where the graph contains 2N nodes besides S and T. We consider N of the nodes to be in group 1, and the other N to be in group 2. Every node in group 1 has a forward node to every node in group 2, as well as to S. T has a forward edge to every node in group 2. In this graph, on the addition of edge (S, T), $N^2$ paths need to be verified which is polynomial in 2N+2.
 
 \subsection{Optimized Path Finding Algorithm}
-We utilize this idea of selecting flip points to devise a polynomial time path search. This search does not return all two flip tolerant paths, but rather, a path for every feasible choice of flipping point.
- *TODO Write algorithm.*
+We utilize this idea of selecting flip points to devise a polynomial time path search. This search does not return all flip tolerant paths, but rather, a path for every feasible choice of flipping point.
+
+\begin{verbatim}
+let (s,t) be the new edge.
+The graph being used for path search does not contain (s,t).
+
+# set of tuples storing conflicting pairs of paths
+set_of_pairs = {}
+
+for every node f_1 in the graph:
+    for every node f_2 in the graph:
+        try:
+            find a path p_1 from f_1 to s.
+            find a path p_2 from t to f_2.
+            let path p= p_1 + (s,t) + p_2.
+            find a path q from f_1 to f_2.
+            add (p,q) to set_of_pairs    
+        catch(path search failed):
+            print('There is no conflicting pair from f_1 and f_2 such that
+            one of the paths contains the new edge')
+
+equality_check_verify(set_of_pairs)
+            
+\end{verbatim}
+
+As observed earlier, the number of paths that this algorithm returns is asymptotically tight.
+
+\subsection{Proof of correctness}
+
+*TODO fill out*
+
+- Ignoring cycle containing paths is ok
+
+- No point in doing a pair unless exactly one has new edge
+
+- Excepting the cases already dismissed, there is no conflicting pair such that its information is not covered by one of the paths in the final set (best way to write might be by cases).
+
 
 \end{document}
