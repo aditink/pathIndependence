@@ -223,6 +223,10 @@ In this case, nothing can be said. As a counterexample, let $P_1$ contain elemen
 Suppose $g_1(a)=a_{g_1}$. Similarly, $l(a)=a_{l}$.
 *TODO Write. Basically there can be a disagreement at $P_2$.*
 
+
+\paragraph{Theorem} This reduction rule is the most general possible.
+\paragraph{Proof} TODO write. Basically we create an axiom set where the only allowed action is composing with functions. This leads to only one inference rule to show implication between path equalities. We show that to derive p1>p2 using the inference rule some number of times, it is necessarily true that p1 and p2 have the relationship described in this case.
+
 \section{Optimization}
 We now present a polynomial time algorithm, that is based on the observation that all conflicting paths that have the same source and same sink, but do not include the new edge, must be equal because of path independence in the pre-existing graph. Therefore, it suffices to check for one path for a given source and sink, and it follows that all the rest will check out.
 
@@ -294,6 +298,8 @@ equality_check_verify(set_of_pairs)
 
 As observed earlier, the number of paths that this algorithm returns is asymptotically tight.
 
+Also notice that if trying to optimize for path length (say, if composing functions is expensive) then "find any path" can be replaced with "find shortest path".
+
 \subsection{Proof of correctness}
 
 *TODO fill out*
@@ -304,5 +310,46 @@ As observed earlier, the number of paths that this algorithm returns is asymptot
 
 - Excepting the cases already dismissed, there is no conflicting pair such that its information is not covered by one of the paths in the final set (best way to write might be by cases).
 
+\subsection{Minimal path set}
+While the algorithm above eliminates a large amount of redundancy, there is still potential for reducing the number of path checks. This is something we would want to do in situations in which equality checking is very expensive. By paying a cost in run-time, it is possible to derive a minimal set of paths to verify.
+
+We create a flip-point graph where each node represents a choice of flip point, so that there are $|V|^2$ nodes in all for every choice of flip point pair.
+An algorithm is run on the original graph to mark ever node with the set of its predecessors and successors.
+If node $n_1$ has a set of successors S and $n_2$ has a set of predecessors P then on the new flip-point graph we group together all the points in $S\times P$ in a set corresponding to the choice of adding $n_1, n_2$ to the minimal flipping point set. This is done for every node pair.
+Now the set cover problem is solved on the flip-point graph, and a minimal flip point set is obtained.
+
+The path finding algorithm is then performed with the minimal set as follows:
+
+\begin{verbatim}
+let (s,t) be the new edge.
+The graph being used for path search does not contain (s,t).
+
+# set of tuples storing conflicting pairs of paths
+set_of_pairs = {}
+
+for every node (f_1, f_2) in minimal_flipping_point_set:
+    try:
+        find a path p_1 from f_1 to s.
+        find a path p_2 from t to f_2.
+        let path p= p_1 + (s,t) + p_2.
+        find a path q from f_1 to f_2.
+        add (p,q) to set_of_pairs    
+    catch(path search failed):
+        print('There is no conflicting pair from f_1 and f_2 such that
+        one of the paths contains the new edge')
+
+equality_check_verify(set_of_pairs)
+            
+\end{verbatim}
+
+\subsection{Proof of correctness}
+TODO: Write. Basically just say you're applying the reduction rule.
+
+\subsection{Proof of optimality}
+TODO: Write. Really just use the definition of the set cover problem.
+
+\section{Applications}
+
+TODO. Gator and Scala?
 
 \end{document}
