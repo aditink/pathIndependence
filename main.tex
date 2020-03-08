@@ -87,13 +87,18 @@ Or, the path is oriented from T to S. In this case, the conflicting paths are th
 
 \paragraph{Proof}
 
-Every element in the output of the path extraction algorithm was by definition a conflicting pair.
+Every element in the output of the path extraction algorithm was by construction a conflicting pair.
 
 It remains to show that every new conflicting pair corresponds to a two flip tolerant path. Let the common source be $F_1$ and common sink be $F_2$. 
 Note that we are excluding pair where both paths include the new edge, since such paths are equal from $F_1$ to S because of the path independence of the original graph, identical from S to T, and again equal from T to $F_2$ because of original path independence. Being the composition of equal parts, these paths must always be equal.
+Further, we are excluding pairs where one of the paths contains a cycle that excludes the new edge, because again the path independence of the original graph implies that the path with the cycle must be equal to the path with the cycle removed.
 
 Now, it is the case that only one path passes through (S, T), which we will name path 1. We construct a two flip tolerant path from S to T: phase 1 is the segment of path 1 from $F_1$ to S, phase 2 is path 2, and phase 3 is the segment of path 1 from T to $F_2$. It is possible that some of $F_1, F_2, S$ and $T$ coincide, in which case the corresponding segments between them disappear, and the resultant path has fewer than two flips.
 
+The special case is that of cycles, where path 1 corresponds to some cycle in the graph that excludes the new edge and path 2 is a cycle that includes the new edge.
+Path 2 corresponds to a path with 0 flips that is caught by the two-flip tolerant algorithm. Subsequently the path extraction algorithm finds path 1 and generates the pair of path 1 and path 2.
+
+We have shown that all paths that need verification are caught by the two flip tolerant search followed with path extraction.
 
 \subsection{Implementation of two-flip tolerant path search}
 A modified DFS with visited set also getting popped on backtrack (to get \textit{all} paths) and additionally, variables to maintain number of flips and flip state.
@@ -225,7 +230,7 @@ Suppose $g_1(a)=a_{g_1}$. Similarly, $l(a)=a_{l}$.
 
 
 \paragraph{Theorem} This reduction rule is the most general possible.
-\paragraph{Proof} TODO write. Basically we create an axiom set where the only allowed action is composing with functions. This leads to only one inference rule to show implication between path equalities. We show that to derive p1>p2 using the inference rule some number of times, it is necessarily true that p1 and p2 have the relationship described in this case.
+\paragraph{Proof} TODO write. Basically we create an axiom set where the only allowed action is composing with functions. This leads to only one inference rule to show implication between path equalities. We show that to derive p1$>$p2 using the inference rule some number of times, it is necessarily true that p1 and p2 have the relationship described in this case.
 
 \section{Optimization}
 We now present a polynomial time algorithm, that is based on the observation that all conflicting paths that have the same source and same sink, but do not include the new edge, must be equal because of path independence in the pre-existing graph. Therefore, it suffices to check for one path for a given source and sink, and it follows that all the rest will check out.
