@@ -1,0 +1,391 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsthm}
+\usepackage{soul}
+\usepackage{tikz}
+\usepackage{amssymb}
+\usepackage[options ]{algorithm2e}
+\usepackage{listings}
+\usepackage{xparse}
+\usepackage{xcolor}
+
+\newtheorem{lemma}{Lemma}
+\newtheorem{theorem}{Theorem}
+\newtheorem{definition}{Definition}
+
+\title{Online verification of Commutativity}
+
+\author{ }
+\date{April 2020}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+
+Many systems can be understood as a category, with a collection of sets, and some transformation functions between the sets- for example, in programming languages, type systems with coercion. If a graph is constructed with the sets as nodes and functions as edges between the nodes, then by construction the new graph is commutative. The idea is that each object has a unique representation in a given set in the system, so the transformation mapping between any two nodes should not depend on choice of path used to obtain the transformation.
+
+Since commutative graphs arise in many systems, it is often useful to be able to perform verification and ensure the graphs in question are indeed path independent. 
+% As a case study, gator, a domain specific graphics language that allows automatic conversion between geometric spaces internally creates a graph with he transformations between the spaces. 
+Naively checking if all paths in a given graph are path independent could require a number of function equality checks as bad as factorial in the number of nodes, since a path consists of an ordering of nodes. 
+We present a polynomial time algorithm to verify that commutativity of a graph is maintained over the course of online addition. It uses the minimal possible number of equality checks, since these checks can be expensive. 
+To evaluate our results we use two case studies.
+First, in the domain specific geometry type language \textit{Gator}, our algorithm is used to ensure that user defined transformations between spaces stay consistent, and the compiler, deterministic as it makes automatic conversion choices. As a second case study, the the algorithm is used to identify inefficiencies in a currency conversion graph.
+
+\section{Problem setup and Terminology}
+The closely related problem of identifying the minimal subset of paths to check in order to verify whether a given acyclic graph is commutative, is solved in \cite{commutative}. 
+I reproduce relevant terminology and propositions from the paper here for convenience.
+
+First, we formalize the notion of a graph that represents transformations.
+
+We start with a directed graph G=(V,E) with spaces attached to vertices and maps to arcs. Each edge (u, v) in E corresponds to a function that maps elements of u to elements in v. 
+This correspondence is stored as a mapping f:$E\rightarrow F$, where F is the semi-group that contains all the functions in the graph, with associative multiplication denoted by $\circ$. f maps each edge to the function it represents.
+
+$P_{all}$ is the set of all paths in G. Since there may be cycles, it may be infinite.
+
+A path is a sequence of edges. The edge-to-function mapping f can be naturally extended to paths. If path p=$e_1\circ e_2 ... e_n$ then $f(p)=f(e_1) \circ f(e_2) ... f(e_n)$.
+
+The notation $\partial^{+}(p)$ is used to indicate that start node pf path p, and similarly $\partial^-(p)$ is the end node of path p. $\partial(p)$ maps to the tuple (start node of p, end node of p).
+
+A pair of paths p and q is called \textit{parallel} iff their terminal nodes are the same, i.e. $\partial(p)=\partial(q)$.
+
+$R_{all}$ is the set of all parallel paths in the graph.
+
+The graph commutes iff f(p)=f(q) $\forall (p,q)\in R_{all}$, which is to say, the compositions of the maps along any path connecting u to v is independent of choice of path.
+
+A bilinking is a parallel pair that is disjoint but for their terminal nodes. The set of all bilinkings is $R_0$.
+
+
+The main result of \cite{commutative} can be used to verify a graph commutes in the acyclic case. The paper describes the following algorithm to find the ($V^2E$ bounded) minimal set of pairs that needs to be checked.
+
+Define $r_1>r_2$ for bilinkings $r_1$ = $\{p_l,q_l\}$, $r_2$= $\{p_2, q_2)$ $\in$ $R_0$, if there exists a path p such that $\partial p=\partial r_1$ and p contains $p_2$.
+The $\langle\rangle$ function is defined as:
+$\langle r \rangle = \{ s\in R_0| r>s\}$.
+
+For bilinking s, let F(s) be the vector in $\mathbb{F_2}^{|E|}$ representing the edges present in s (there is a dimension corresponding to each edge, the $n^{th}$ dimension of F(s) is 1 if the corresponding edge is in s, and 0 otherwise). Let this function be extended to sets, so that for some set of bilinkings S, F(S) = $\{ F(s) | s\in S \}$.
+
+for a set of bilinkings r, the cl function is defined as:
+cl(r) = $\{ s\in R_0|$ s is linearly dependent on $F(r) \}$.
+
+Using these two function we finally define the function $\sigma$ on a set of bilinkings r as
+$\sigma(r) = \{s \in R_0 | s\in cl(R\cap \langle s \rangle) \}$
+
+Finally, an implementation of the described algorithm is
+
+\begin{verbatim}
+Find a spanning set Rs, = [r_1, ... ,r_k].
+
+R := Rs,
+    for i:=l to K do
+        if r_i in sigma(R - r_i) then R:=R - r_i;
+return R.
+
+sigma(inputSet S, codomain = Rs):
+    output = {}
+    for bilinking in Rs:
+        smallerPairs = {}
+        for candidateBilinking in Rs:
+            if exists path(source: bilinking.source, sink:candidateBilinking.source) and
+            exists path(source: candidateBilinking.sink, sink: bilinking.sink):
+                smallerPairs.add(candidateBilinking)
+        # Check if there's a linear dependence between the bilinking and smallerPairs
+        # vectorize(pair) returns a vector with a dimension for each edge in the graph,
+        # with a 1 if pair includes that edge and 0 if it doesn't.
+        matrix = [vectorize(pair) for pair in smallerPair]
+        matrix = matrix+[vectorize(bilinking)]
+        # if there is a linear dependence
+        if determinant(matrix)%2==0:
+            output.add(bilinking)
+    return output
+                
+\end{verbatim}
+
+and to initially set Rs,
+
+\begin{verbatim}
+Graph existingGraph;
+R_s = {}
+for each node v in V:
+    # Let the subsection of the graph reachable from v be S.
+    S = existingGraph.extractReachableSection(v)
+    # Create a minimum spanning tree of S
+    T = createMinimumSpanningTree(S)
+    # Find the excluded edges
+    excludedEdges = S.edges - T.edges
+    # Use these edges to create bilinkings
+    for each edge e in excludedEdges:
+        firstPath = T.findPath(source: e.source, sink: e.sink)
+        R_s.addElement(new Bilinking(firstPath, e)
+return R_s
+\end{verbatim}
+
+The proof of why this works is complex and the subject of \cite{commutative}, 
+% Actually I may be wrong about this
+% but at a very high level the cl function captures the redundancy one gets from how "gluing together" bilinkings. For example in the graph below verifying any two of the bilinkings commute implies that the third must too. So cl(any two)=all three bilinkings.
+
+% \begin{center}
+% \begin{tikzpicture}[scale=0.2]
+% \tikzstyle{every node}+=[inner sep=0pt]
+% \draw [black] (15.1,-25.8) circle (3);
+% \draw (15.1,-25.8) node {$A$};
+% \draw [black] (31.6,-34.7) circle (3);
+% \draw (31.6,-34.7) node {$C$};
+% \draw [black] (31.6,-18.9) circle (3);
+% \draw (31.6,-18.9) node {$B$};
+% \draw [black] (47.7,-26.5) circle (3);
+% \draw (47.7,-26.5) node {$D$};
+% \draw [black] (17.87,-24.64) -- (28.83,-20.06);
+% \fill [black] (28.83,-20.06) -- (27.9,-19.9) -- (28.29,-20.83);
+% \draw [black] (31.6,-21.9) -- (31.6,-31.7);
+% \fill [black] (31.6,-31.7) -- (32.1,-30.9) -- (31.1,-30.9);
+% \draw [black] (17.74,-27.22) -- (28.96,-33.28);
+% \fill [black] (28.96,-33.28) -- (28.49,-32.46) -- (28.02,-33.34);
+% \draw [black] (34.27,-33.34) -- (45.03,-27.86);
+% \fill [black] (45.03,-27.86) -- (44.09,-27.78) -- (44.54,-28.67);
+% \draw [black] (34.31,-20.18) -- (44.99,-25.22);
+% \fill [black] (44.99,-25.22) -- (44.48,-24.43) -- (44.05,-25.33);
+% \end{tikzpicture}
+% \end{center}
+
+% The $\langle \rangle$ function captures structures like this one, which display the redundancy above. Here, for p=($p_1, p_2), q=(q_1, q_2)$, we have that $p>q$.
+
+% \begin{center}
+% \begin{tikzpicture}[scale=0.2]
+% \tikzstyle{every node}+=[inner sep=0pt]
+% \draw [black] (20.7,-15.7) circle (3);
+% \draw (20.7,-15.7) node {$A$};
+% \draw [black] (44,-15.7) circle (3);
+% \draw (44,-15.7) node {$B$};
+% \draw [black] (20.7,-33) circle (3);
+% \draw (20.7,-33) node {$A'$};
+% \draw [black] (44,-33) circle (3);
+% \draw (44,-33) node {$B'$};
+% \draw [black] (22.498,-13.306) arc (136.73613:43.26387:13.529);
+% \fill [black] (42.2,-13.31) -- (42.02,-12.38) -- (41.29,-13.07);
+% \draw (32.35,-8.55) node [above] {$p_1$};
+% \draw [black] (41.785,-17.717) arc (-53.13545:-126.86455:15.728);
+% \fill [black] (41.79,-17.72) -- (40.85,-17.8) -- (41.45,-18.6);
+% \draw (32.35,-21.36) node [below] {$p_2$};
+% \draw [black] (23.143,-31.264) arc (120.64183:59.35817:18.065);
+% \fill [black] (41.56,-31.26) -- (41.12,-30.43) -- (40.61,-31.29);
+% \draw (32.35,-28.24) node [above] {$q_1$};
+% \draw [black] (41.52,-34.683) arc (-60.46289:-119.53711:18.601);
+% \fill [black] (41.52,-34.68) -- (40.58,-34.64) -- (41.07,-35.51);
+% \draw (32.35,-37.6) node [below] {$q_2$};
+% \draw [black] (20.7,-18.7) -- (20.7,-30);
+% \fill [black] (20.7,-30) -- (21.2,-29.2) -- (20.2,-29.2);
+% \draw (20.2,-24.35) node [left] {$\alpha$};
+% \draw [black] (44,-30) -- (44,-18.7);
+% \fill [black] (44,-18.7) -- (43.5,-19.5) -- (44.5,-19.5);
+% \draw (44.5,-24.35) node [right] {$\beta$};
+% \end{tikzpicture}
+% \end{center}
+% $\sigma$ weaves these together to identify, given an input subset, the set of bilinkings that would be commutative should the input subset be verified. 
+$\sigma$ identifies reduncancies arising from the structure of the graph and then the approach is to greedily eliminate redundancies.
+\cite{commutative} solves the problem of verifying whether a given acyclic diagram is commutative.
+
+In the next section, the distinct problem of verification that a diagram (that may contain cycles) commutes on addition of a new edge is solved. The polynomial time algorithm is found to entail at worst O($|V|^2$) checks and also can be extended to identify the minimum possible set of checks. If the algorithm is run over the course of construction of the graph, it has the same worst case asymptotic runtime O($|V|^2|E|)$ as the one already described.
+
+\section{Solving the online addition problem}
+
+The first step is to identify all bilinkings that involve the new edge.
+Bilinkings that do not involve the new edge must already commute by assumption.
+Bilinkings where both paths involve the new edge cannot exist since bilinkings are node-disjoint.
+Further, for a given (source, sink) pair only a single bilinking needs to be verified. This is an implication of Theorem \ref{reductionRule}.
+This fact, along with the equivalent proposition 1.1 from \cite{commutative} for graphs with cycles means that should our selected set of bilinkings along with cycles passing through the new edge be verified commutative, the entire graph must commute. %TODO prove this equivalent?
+% \begin{theorem}
+% Verifying that all bilinkings in the graph commute implies that the entire graph must commute.
+% \end{theorem}
+
+
+\begin{verbatim}
+Graph existingGraph;
+Edge newEdge;
+
+Set bilinkings = new Set();
+for S in existingGraph.Nodes():
+    for T in existingGraph.Nodes():
+        try:
+            Path pathWithNewEdge = 
+                FindPath(
+                    graph: existingGraph, 
+                    sourceNode: S,
+                    sinkNode: newEdge.Source()) +
+                newEdge as Path +
+                FindPath(
+                    graph: existingGraph, 
+                    sourceNode: newEdge.Sink(), 
+                    sinkNode: T)
+            if (S==T):
+                // Cycles are a speacial case.
+                pathInOldGraph = pathWithNewEdge + pathWithNewEdge
+            else:
+                Path pathInOldGraph = FindPath(
+                    graph: existingGraph, 
+                    sourceNode: S, 
+                    sinkNode: T);
+            bilinkings.add((pathInOldGraph, pathWithNewEdge));
+        catch (pathFindingFailed Exception):
+            print(
+                $"No comparable pairs from node {S} to node {T} 
+                that need to be checked");
+
+output bilinkings;
+\end{verbatim}
+
+The try block is executed at most n(n-1)/2 = $O(n^2)$ times where n is the number of nodes.
+
+The bound is asymptotically tight.
+This can be seen in the case where the graph contains 2N nodes besides S and T. We consider N of the nodes to be in group 1, and the other N to be in group 2. Every node in group 1 has a forward node to every node in group 2, as well as to S. T has a forward edge to every node in group 2. In this graph, on the addition of edge (S, T), $N^2$ paths need to be verified which is polynomial in 2N+2.
+
+Also notice that if trying to optimize for path length (say, if composing functions is expensive) then "find any path" can be replaced with "find shortest path".
+
+\subsection{(Optional) Optimization Step}
+
+In the case where equality checks are very expensive, we begin by finding the minimal set of (source, sink) pairs such that checking for these pairs logically implies having checked the full graph.
+
+We observe that there are some redundancies in the graph.
+
+Consider the following situation:
+
+\begin{center}
+\begin{tikzpicture}[scale=0.2]
+\tikzstyle{every node}+=[inner sep=0pt]
+\draw [black] (16.6,-34.1) circle (3);
+\draw (16.6,-34.1) node {$S$};
+\draw [black] (56.8,-33.6) circle (3);
+\draw (56.8,-33.6) node {$T$};
+\draw [black] (28,-20.1) circle (3);
+\draw (28,-20.1) node {$P_1$};
+\draw [black] (44.5,-20.1) circle (3);
+\draw (44.5,-20.1) node {$P_2$};
+\draw [black] (28,-44.9) circle (3);
+\draw (28,-44.9) node {$Q_1$};
+\draw [black] (44.5,-44.9) circle (3);
+\draw (44.5,-44.9) node {$Q_2$};
+\draw [black] (31,-20.1) -- (41.5,-20.1);
+\fill [black] (41.5,-20.1) -- (40.7,-19.6) -- (40.7,-20.6);
+\draw (36.25,-20.6) node [below] {$g_1$};
+\draw [black] (26.11,-22.43) -- (18.49,-31.77);
+\fill [black] (18.49,-31.77) -- (19.39,-31.47) -- (18.61,-30.84);
+\draw (21.74,-25.67) node [left] {$f_1$};
+\draw [black] (25.82,-42.84) -- (18.78,-36.16);
+\fill [black] (18.78,-36.16) -- (19.01,-37.08) -- (19.7,-36.35);
+\draw (23.57,-39.02) node [above] {$f_2$};
+\draw [black] (31,-44.9) -- (41.5,-44.9);
+\fill [black] (41.5,-44.9) -- (40.7,-44.4) -- (40.7,-45.4);
+\draw (36.25,-45.4) node [below] {$g_2$};
+\draw [black] (54.59,-35.63) -- (46.71,-42.87);
+\fill [black] (46.71,-42.87) -- (47.64,-42.7) -- (46.96,-41.96);
+\draw (49.21,-38.76) node [above] {$h_2$};
+\draw [black] (54.78,-31.38) -- (46.52,-22.32);
+\fill [black] (46.52,-22.32) -- (46.69,-23.25) -- (47.43,-22.57);
+\draw (51.19,-25.39) node [right] {$h_1$};
+\draw [black] (28,-23.1) -- (28,-41.9);
+\fill [black] (28,-41.9) -- (28.5,-41.1) -- (27.5,-41.1);
+\draw (27.5,-32.5) node [left] {$l$};
+\draw [black] (19.6,-34.06) -- (53.8,-33.64);
+\fill [black] (53.8,-33.64) -- (52.99,-33.15) -- (53.01,-34.15);
+\draw [black] (44.5,-41.9) -- (44.5,-23.1);
+\fill [black] (44.5,-23.1) -- (44,-23.9) -- (45,-23.9);
+\draw (45,-32.5) node [right] {$m$};
+\end{tikzpicture}
+Each arrow represents a path, and (S,T) is the new edge being added.
+\end{center}
+\paragraph{Theorem} 
+\label{reductionRule}
+If conflicting paths $g_2 = f_2; (S,T); h_2$ then it must be that $g_1 = f_1; (S,T); h_1$.
+
+% monomorphisms
+
+\paragraph{Proof}
+We use the fact that $f_1$=$l; f_2$ and $h_1$=$h_2; m$.
+\[g_2 = f_2; (S,T); h_2 \Rightarrow l; g_2 = l; f_2; (S,T) ; h_2 \]
+\[\Rightarrow l ; g_2 ; m = l ; f_2 ; (S,T) ; h_2 ; m \Rightarrow g_1 = f_1 ; (S,T) ; h_1\]
+
+Note that the proof is not affected if an of these paths is the identity, eg. if $f_1$ is the identity and S and $P_1$ are actually the same node.
+
+We conclude that verifying a comparable pair of paths with end points ($P_1$, $P_2$) implies the verification of all path pairs ($Q_1$, $Q_2$) such that $Q_1$ is a successor of $P_1$ and $P_2$ is a successor of $Q_2$. A successor S to node N is any node such that there exists a path from N to S. Nodes are also their own successors and predecessors.
+
+Under the assumption that the only path operations allowed are composition and replacement of one path by a different, equal path, as would be true when edges are generic functions and no other information is available, this reduction rule is also the only reduction rule.
+
+That is to say, if verifying a comparable pair of paths with end points ($P_1$, $P_2$) implies the verification of a pair with endpoints ($Q_1$, $Q_2$), then it must be that $Q_1$ is a successor of $P_1$ and $P_2$ is a successor of $Q_2$. %TODO proof required?
+
+Using this information it is possible to choose a minimal subset of path pairs to verify.
+
+We construct a graph with a node for each possible (source, sink) pair in the graph- each node then represents a possible choice for bilinking endpoint pairs.
+
+\begin{verbatim}
+# Existng graph
+Graph existingGraph;
+# New edge
+Edge (S, T);
+
+predecessors = S.predecessors(existingGraph)
+successors = T.successors(existingGraph)
+
+# Construct the graph
+Graph terminalPairGraph;
+for q in successors:
+    for p in predecessors:
+        terminalPairGraph.addNode(q, p)
+        # addEdge function should handle addition of edges between nodes that 
+        # haven't been defined yet
+        for q_pred in q.predecessors(existingGraph):
+            for p_succ in p.successors(existingGraph):
+                terminalPairGraph.addEdge((q_pred, p_succ))
+
+# Now we reduce the graph.
+verificationSet = {}
+while (len(terminalPairGraph.nodes) > 0):
+    # Choose a random node to start reduction from.
+    current_node = terminalPairGraph.nodes[0]
+    visited_nodes = set()
+    # Climb up the graph till a "root" node is found
+    while (len(currentNode.parents()) > 0):
+        visited_nodes.add(currentNode)
+        # Choose a parent at random.
+        currentNode = currentNode.parents()[0]
+        # Deal with cycles by reducing them
+        if currentNode in visited_nodes:
+            edges = getAllEdges(visited_nodes, terminalPairGraph)
+            terminalPairGraph.removeNodes(visitedNodes)
+            # All the incoming and outgoing edges from the entire visited set are now 
+            # transferred to a single node that represents the class
+            terminalPairGraph.addNode(currentNode, edges)
+    # No predecessor! We should have reached a root!
+    verificationSet.add(currentNode)
+    terminalPairGraph.removeNodes(currentNode.successors(terminalPairGraph)
+
+# This contains the minimal set of (source, sink) pairs whose verification 
+# implies verification of the entire graph. 
+return verificationSet
+
+\end{verbatim}
+
+The result of the algorithm cannot be further reduced. Further, the verification of the bilinkings returned in the algorithm implies that the output of the previous algorithm must commute, and transitively, that the graph must commute.
+% Here is a naive implemenetation. Note that an important optimization in sparse graphs can be made: Source-sink pairs with no viable adjacent pair should never be added to the graph (as verified by the try-catch block from the first algorithm).
+
+\subsection{Verification}
+Ultimately verification is performed simply by calling an equality oracle for every comparable pair returned by the previous stage.
+
+\begin{verbatim}
+for (path_1, path_2) in bilinkings:
+    if (path_1 != path_2):
+        print($"Edge addition does not maintain path independence. 
+        Counterexample: {path_1}, {path_2}")
+        return False
+print("Edge addition maintains path independence.")
+return True
+\end{verbatim}
+
+
+\begin{thebibliography}{9}
+\bibitem{commutative} 
+Kazuo Murota. 
+\textit{HOMOTOPY BASE OF ACYCLIC GRAPHS - A COMBINATORIAL ANALYSIS OF COMMUTATIVE BY MEANS OF PREORDERED MATROID}. 
+Discrete Applied Mathematics, 1987.
+
+\end{thebibliography}
+\end{document}
