@@ -59,19 +59,36 @@ A bilinking is a parallel pair that is disjoint but for their terminal nodes. Th
 
 The main result of \cite{commutative} can be used to verify a graph commutes in the acyclic case. The paper describes the following algorithm to find the ($V^2E$ bounded) minimal set of pairs that needs to be checked.
 
-Define $r_1>r_2$ for bilinkings $r_1$ = $\{p_l,q_l\}$, $r_2$= $\{p_2, q_2)$ $\in$ $R_0$, if there exists a path p such that $\partial p=\partial r_1$ and p contains $p_2$.
-The $\langle\rangle$ function is defined as:
-$\langle r \rangle = \{ s\in R_0| r>s\}$.
+% Define $r_1>r_2$ for bilinkings $r_1$ = $\{p_l,q_l\}$, $r_2$= $\{p_2, q_2)$ $\in$ $R_0$, if there exists a path p such that $\partial p=\partial r_1$ and p contains $p_2$.
+% The $\langle\rangle$ function is defined as:
+% $\langle r \rangle = \{ s\in R_0| r>s\}$.
 
-For bilinking s, let F(s) be the vector in $\mathbb{F_2}^{|E|}$ representing the edges present in s (there is a dimension corresponding to each edge, the $n^{th}$ dimension of F(s) is 1 if the corresponding edge is in s, and 0 otherwise). Let this function be extended to sets, so that for some set of bilinkings S, F(S) = $\{ F(s) | s\in S \}$.
+% For bilinking s, let F(s) be the vector in $\mathbb{F}2^{|E|}$ representing the edges present in s (there is a dimension corresponding to each edge, the $n^{th}$ dimension of F(s) is 1 if the corresponding edge is in s, and 0 otherwise). Let this function be extended to sets, so that for some set of bilinkings S, F(S) = $\{ F(s) | s\in S \}$.
 
-for a set of bilinkings r, the cl function is defined as:
+% for a set of bilinkings r, the cl function is defined as:
 cl(r) = $\{ s\in R_0|$ s is linearly dependent on $F(r) \}$.
 
-Using these two function we finally define the function $\sigma$ on a set of bilinkings r as
-$\sigma(r) = \{s \in R_0 | s\in cl(R\cap \langle s \rangle) \}$
+% Using these two function we finally define the function $\sigma$ on a set of bilinkings r as
+% $\sigma(r) = \{s \in R_0 | s\in cl(R\cap \langle s \rangle) \}$
 
-Finally, an implementation of the described algorithm is
+An implementation of the described algorithm is
+
+\begin{verbatim}
+Graph existingGraph;
+R_s = {}
+for each node v in V:
+    # Let the subsection of the graph reachable from v be S.
+    S = existingGraph.extractReachableSection(v)
+    # Create a minimum spanning tree of S
+    T = createMinimumSpanningTree(S)
+    # Find the excluded edges
+    excludedEdges = S.edges - T.edges
+    # Use these edges to create bilinkings
+    for each edge e in excludedEdges:
+        firstPath = T.findPath(source: e.source, sink: e.sink)
+        R_s.addElement(new Bilinking(firstPath, e)
+return R_s
+\end{verbatim}
 
 \begin{verbatim}
 Find a spanning set Rs, = [r_1, ... ,r_k].
@@ -99,25 +116,6 @@ sigma(inputSet S, codomain = Rs):
             output.add(bilinking)
     return output
                 
-\end{verbatim}
-
-and to initially set Rs,
-
-\begin{verbatim}
-Graph existingGraph;
-R_s = {}
-for each node v in V:
-    # Let the subsection of the graph reachable from v be S.
-    S = existingGraph.extractReachableSection(v)
-    # Create a minimum spanning tree of S
-    T = createMinimumSpanningTree(S)
-    # Find the excluded edges
-    excludedEdges = S.edges - T.edges
-    # Use these edges to create bilinkings
-    for each edge e in excludedEdges:
-        firstPath = T.findPath(source: e.source, sink: e.sink)
-        R_s.addElement(new Bilinking(firstPath, e)
-return R_s
 \end{verbatim}
 
 The proof of why this works is complex and the subject of \cite{commutative}, 
@@ -182,20 +180,21 @@ The proof of why this works is complex and the subject of \cite{commutative},
 % \end{tikzpicture}
 % \end{center}
 % $\sigma$ weaves these together to identify, given an input subset, the set of bilinkings that would be commutative should the input subset be verified. 
-$\sigma$ identifies reduncancies arising from the structure of the graph and then the approach is to greedily eliminate redundancies.
+But at a high level, $\sigma$ identifies reduncancies arising from the structure of the graph and then the approach is to greedily eliminate redundancies.
 \cite{commutative} solves the problem of verifying whether a given acyclic diagram is commutative.
 
 In the next section, the distinct problem of verification that a diagram (that may contain cycles) commutes on addition of a new edge is solved. The polynomial time algorithm is found to entail at worst O($|V|^2$) checks and also can be extended to identify the minimum possible set of checks. If the algorithm is run over the course of construction of the graph, it has the same worst case asymptotic runtime O($|V|^2|E|)$ as the one already described.
 
 \section{Solving the online addition problem}
 
-The first step is to identify all bilinkings that involve the new edge.
-Bilinkings that do not involve the new edge must already commute by assumption.
-Bilinkings where both paths involve the new edge cannot exist since bilinkings are node-disjoint.
-Further, for a given (source, sink) pair only a single bilinking needs to be verified. This is an implication of Theorem \ref{reductionRule}.
-This fact, along with the equivalent proposition 1.1 from \cite{commutative} for graphs with cycles means that should our selected set of bilinkings along with cycles passing through the new edge be verified commutative, the entire graph must commute. %TODO prove this equivalent?
+The solution presented here assumes that there is an implicit identity function on every node, as would be the case in most applications. However, a modified version of the algorithm for graphs without this assumption is presented in the appendix.
+
+The first step is to identify all pairs that involve the new edge.
+Pairs that do not involve the new edge must already commute by assumption.
+Further, for a given (source, sink) pair only a single parallel pair needs to be verified. This is an implication of Theorem \ref{reductionRule}.
+Theorem \ref{verifyingSet} shows that should our selected set of pairs along with cycles passing through the new edge be verified commutative, the entire graph must commute. %TODO prove this equivalent?
 % \begin{theorem}
-% Verifying that all bilinkings in the graph commute implies that the entire graph must commute.
+% Verifying that all parallel pairs in the graph commute implies that the entire graph must commute.
 % \end{theorem}
 
 
@@ -203,7 +202,7 @@ This fact, along with the equivalent proposition 1.1 from \cite{commutative} for
 Graph existingGraph;
 Edge newEdge;
 
-Set bilinkings = new Set();
+Set parallelPairs = new Set();
 for S in existingGraph.Nodes():
     for T in existingGraph.Nodes():
         try:
@@ -219,19 +218,19 @@ for S in existingGraph.Nodes():
                     sinkNode: T)
             if (S==T):
                 // Cycles are a speacial case.
-                pathInOldGraph = pathWithNewEdge + pathWithNewEdge
+                pathInOldGraph = identity(S)
             else:
                 Path pathInOldGraph = FindPath(
                     graph: existingGraph, 
                     sourceNode: S, 
                     sinkNode: T);
-            bilinkings.add((pathInOldGraph, pathWithNewEdge));
+            parallelPairs.add((pathInOldGraph, pathWithNewEdge));
         catch (pathFindingFailed Exception):
-            print(
-                $"No comparable pairs from node {S} to node {T} 
-                that need to be checked");
+            // No comparable pairs from node {S} to node {T} 
+            // that need to be checked
+            continue
 
-output bilinkings;
+output parallelPairs;
 \end{verbatim}
 
 The try block is executed at most n(n-1)/2 = $O(n^2)$ times where n is the number of nodes.
@@ -293,28 +292,30 @@ Consider the following situation:
 \end{tikzpicture}
 Each arrow represents a path, and (S,T) is the new edge being added.
 \end{center}
-\paragraph{Theorem} 
+\begin{theorem}
 \label{reductionRule}
 If conflicting paths $g_2 = f_2; (S,T); h_2$ then it must be that $g_1 = f_1; (S,T); h_1$.
+\end{theorem} 
 
 % monomorphisms
 
-\paragraph{Proof}
+\begin{proof}
 We use the fact that $f_1$=$l; f_2$ and $h_1$=$h_2; m$.
 \[g_2 = f_2; (S,T); h_2 \Rightarrow l; g_2 = l; f_2; (S,T) ; h_2 \]
 \[\Rightarrow l ; g_2 ; m = l ; f_2 ; (S,T) ; h_2 ; m \Rightarrow g_1 = f_1 ; (S,T) ; h_1\]
+\end{proof}
 
 Note that the proof is not affected if an of these paths is the identity, eg. if $f_1$ is the identity and S and $P_1$ are actually the same node.
 
 We conclude that verifying a comparable pair of paths with end points ($P_1$, $P_2$) implies the verification of all path pairs ($Q_1$, $Q_2$) such that $Q_1$ is a successor of $P_1$ and $P_2$ is a successor of $Q_2$. A successor S to node N is any node such that there exists a path from N to S. Nodes are also their own successors and predecessors.
 
-Under the assumption that the only path operations allowed are composition and replacement of one path by a different, equal path, as would be true when edges are generic functions and no other information is available, this reduction rule is also the only reduction rule.
+Under the assumption that the only path operations allowed are composition and replacement of one path by a different, equal path, as would be true when edges are generic functions, and no other information is available, so that F is a semi-group, this "reduction" rule is also the only rule to reduce the set of path pairs to check by finding implications.
 
 That is to say, if verifying a comparable pair of paths with end points ($P_1$, $P_2$) implies the verification of a pair with endpoints ($Q_1$, $Q_2$), then it must be that $Q_1$ is a successor of $P_1$ and $P_2$ is a successor of $Q_2$. %TODO proof required?
 
 Using this information it is possible to choose a minimal subset of path pairs to verify.
 
-We construct a graph with a node for each possible (source, sink) pair in the graph- each node then represents a possible choice for bilinking endpoint pairs.
+We construct a graph with a node for each possible (source, sink) pair in the graph- each node then represents a possible choice for parallel pair endpoint pairs, and greedily search for the smallest set of nodes from which the entire graph would be reachable.
 
 \begin{verbatim}
 # Existng graph
@@ -364,14 +365,14 @@ return verificationSet
 
 \end{verbatim}
 
-The result of the algorithm cannot be further reduced. Further, the verification of the bilinkings returned in the algorithm implies that the output of the previous algorithm must commute, and transitively, that the graph must commute.
+The result of the algorithm cannot be further reduced. Also, the verification of the parallel pairs returned in the algorithm implies that the output of the previous algorithm must commute, and transitively, that the entire graph must commute.
 % Here is a naive implemenetation. Note that an important optimization in sparse graphs can be made: Source-sink pairs with no viable adjacent pair should never be added to the graph (as verified by the try-catch block from the first algorithm).
 
 \subsection{Verification}
-Ultimately verification is performed simply by calling an equality oracle for every comparable pair returned by the previous stage.
+Ultimately verification is performed by calling an equality oracle (that is beyond the scope of this work) for every comparable pair returned by the previous stage.
 
 \begin{verbatim}
-for (path_1, path_2) in bilinkings:
+for (path_1, path_2) in parallelPairs:
     if (path_1 != path_2):
         print($"Edge addition does not maintain path independence. 
         Counterexample: {path_1}, {path_2}")
@@ -380,6 +381,97 @@ print("Edge addition maintains path independence.")
 return True
 \end{verbatim}
 
+\section{Applications}
+TODO.
+\subsection{Gator}
+\subsection{Currency Graph}
+
+\section{Appendix: Theorems and additional cases}
+This should be read as a continuation of the notation section, the definitions there will be used.
+
+%Define a cycle-pair to mean the pair (c, c;c) where c is a cycle, which is to say the pair whose first element is a cycle and second element is the cycle traversed twice. *tempted to name this bi-cycle*.
+
+%Let i be the identity function. Define a cycle-identity pair for cycle c to be (c, i). *should I call this unicycle?*
+
+Consider all the cycles in the graph that pass through the new edge, unique to their terminal point.
+Define a cycle-pair corresponding to cycle c to mean the pair of paths (c, identity on terminal node of c).
+Let $C$ be the set of all cycle-pairs (unique to their terminal point) corresponding to cycles that pass through the new edge.
+
+Let V, the set of pairs to verify, be $C \cup R_0$.
+
+\begin{lemma}
+A path that involves the new edge more than once is equal to a path without multiple occurrences of the edge, under the assumption that the pairs in C are verified.
+\end{lemma}
+\begin{proof}
+Consider the part of the path between the first occurrence of the new edge and the second. This forms a cycle, which has a corresponding check in $C$ and must be verified to be equal to the identity.
+This means that the loops containing the multiple occurrences of the new edge may be ignored and the path with a single occurrence of the new edge with the cycles removed is equal to this path.
+\end{proof}
+
+\begin{theorem}
+\label{verifyingSet}
+Verifying that all pairs in V commute implies that all pairs in $R_{all}$ commute.
+\end{theorem}
+\begin{proof}
+% We do a kind of "structural induction" to show that verification every pair in $R_{all}$ that aren't in V can wither be reduced down to the verification of smaller components or can be shown to be implied by the verification of V.
+
+Each pair in $R_{all}$ that is not in V would fall into one of these categories:
+
+Case A: pairs that do not involve the new edge: By assumption that the original graph commutes, these pairs must commute.
+
+Case B: Cases where there is a different pair corresponding to this choice of (source, sink) in V already.
+There are four paths to be considered, two from each pair. Those paths which do not include the new edge must already be equal by the assumption that the original graph commutes.
+Those paths which do include the new edge (S,T) can be reduced, by the case for multiple occurrences of a new edge, to a path with a single occurrence of the new edge as described in the preceding lemma. These new paths can be divided into three segments: the segment from the source to S, the new edge, and the segment from the last occurrence of T to the sink. The first segments of all paths are equal by assumption that the original graph commutes. This is also true of the third segment of all the paths. The second segment consists of only the new edge and is the same for all graphs. The composition of equal functions is equal, so all the paths passing through the new edge must be equal.
+Therefore it is sufficient to check one path that passes through the new edge and one that doesn't. Such a pair belongs to V by construction.
+\end{proof}
+
+Modified algorithm for graphs without the identity:
+
+\begin{verbatim}
+Graph existingGraph;
+Edge newEdge;
+
+Set parallelPairs = new Set();
+for S in existingGraph.Nodes():
+    for T in existingGraph.Nodes():
+        try:
+            Path pathWithNewEdge = 
+                FindPath(
+                    graph: existingGraph, 
+                    sourceNode: S,
+                    sinkNode: newEdge.Source()) +
+                newEdge as Path +
+                FindPath(
+                    graph: existingGraph, 
+                    sourceNode: newEdge.Sink(), 
+                    sinkNode: T)
+            if (S==T):
+                // Cycles are a special case.
+                parallelPairs.add(pathWithNewEdge, pathWithNewEdge+pathWithNewEdge)
+                for edge in (S.forwardEdges - pathWithNewEdge[0]):
+                    parallelPairs.add(edge, edge+pathWithNewEdge)
+                for edge in (S.backwardEdges - pathWithNewEdge[-1]):
+                    parallelPairs.add(edge, pathWithNewEdge+edge)
+            else:
+                Path pathInOldGraph = FindPath(
+                    graph: existingGraph, 
+                    sourceNode: S, 
+                    sinkNode: T);
+                parallelPairs.add((pathInOldGraph, pathWithNewEdge));
+        catch (pathFindingFailed Exception):
+            // No comparable pairs from node {S} to node {T} 
+            // that need to be checked
+            continue
+    for cycle in findCyclesWithTerminatNode(newEdge.Source()):
+        parallelPairs.add(newEdge, cycle+newEdge)
+    for cycle in findCyclesWithTerminatNode(newEdge.Source()):
+        parallelPairs.add(newEdge, newEdge+cycle)
+output parallelPairs;
+\end{verbatim}
+
+The optional minimization algorithm is modified to exclude nodes representing cycles, since the reduction case no longer will apply in the absence of an implicit identity on the terminal node of the cycle.
+*I think the minimality of minimized subset still holds, but not 100\% sure*
+
+\section{Case Studies}
 
 \begin{thebibliography}{9}
 \bibitem{commutative} 
