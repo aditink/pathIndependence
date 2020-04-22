@@ -1,3 +1,20 @@
+# Tex intermediate files
+*.aux
+*.lof
+*.log
+*.lot
+*.fls
+*.out
+*.toc
+*.fmt
+*.fot
+*.cb
+*.cb2
+.*.lb
+*.dvi
+*.xdv
+*-converted-to.*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -137,6 +154,5 @@ dmypy.json
 *.swp
 
 # Latex
-*.pdf
 *.aux
 *.synctex.gz
