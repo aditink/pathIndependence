@@ -167,6 +167,7 @@ There are two cases.
 \draw (45,-32.5) node [right] {$m$};
 \end{tikzpicture}
 \end{center}
+
 Let Path$_1=f_1\circ g_1\circ h_1$ and Path$_2$=$f_2\circ g_2\circ h_2$. We choose Path$_2$.
 \paragraph{Theorem} 
 If conflicting paths $g_2 = f_2 \circ (S,T) \circ h_2$ then it must be that $g_1 = f_1 \circ (S,T) \circ h_1$.
@@ -356,5 +357,16 @@ TODO: Write. Really just use the definition of the set cover problem.
 \section{Applications}
 
 TODO. Gator and Scala?
+
+\section{Ordering}
+We can try answering a similar question in partial function territory, where instead of asking whether adding an edge will introduce comparable paths that are not equal, we ask if adding a new edge introduces comparable paths that disagree, i.e. there is some element in the domain for which both functions are defined and give equal results? Further we can also ask if the addition of a new edge introduces a path that is less informative than all the other paths in the graph.
+
+TODO add the whole two flip tolerant schpeal.
+
+TOTHINK figure out if there's a way to prove two flip is asymptotically optimal.
+
+\section{Future Work}
+Cant think of any theory questions we haven't tried to answer.
+Think of how to apply in other areas like reflexive programming, formal verification.
 
 \end{document}

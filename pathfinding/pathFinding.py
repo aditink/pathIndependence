@@ -7,9 +7,9 @@ import time
 import queue
 
 _GRAPH = \
-[[0, 1, 0, 0],
- [1, 0, 0, 0],
- [0, 0, 0, 0],
+[[0, 1, 1, 0],
+ [1, 0, 1, 0],
+ [1, 1, 0, 0],
  [0, 0, 0, 0]]
 
 # _GRAPH = \
@@ -94,7 +94,6 @@ def findNewConflictsPolynomial(s, t, graph = _GRAPH):
             result.append((p, q))
     graph[s][t] = 1
     return (result, graph)
-    
 
 # -------- Reference functions ---------
 
@@ -236,26 +235,28 @@ def printDict(d):
 
 def main():
     # --- Accuracy Test ---
-    printDict(findAllPaths())
-    print("-------------------")
-    s, t = (0, 1)
-    print(findEdgeConflictsReference(s, t))
-    print("-------------------")
-    print(findEdgeConflictsPolynomial(s, t))
+    # printDict(findAllPaths())
+    # print("-------------------")
+    # s, t = (0, 1)
+    # ref = findEdgeConflictsReference(s, t)
+    # print(ref)
+    # print("-------------------")
+    # res = findEdgeConflictsPolynomial(s, t)
+    # print(res)
 
     # --- Speed Test ---
-    # total = 0
-    # size = 7
-    # density = .5
-    # iterations = 100
-    # for _ in range(iterations):
-    #     edges = graphEdges(generateGraph(size, density))
-    #     g = generateGraph(size, 0)
-    #     tm = time.time()
-    #     for s,t in edges:
-    #         g = findNewConflictsReference(s, t, g)[1]
-    #     total += time.time() - tm
-    # print(total / iterations)
+    total = 0
+    size = 8
+    density = .8
+    iterations = 100
+    for _ in range(iterations):
+        edges = graphEdges(generateGraph(size, density))
+        g = generateGraph(size, 0)
+        tm = time.time()
+        for s,t in edges:
+            g = findNewConflictsPolynomial(s, t, g)[1]
+        total += time.time() - tm
+    print(total / iterations)
 
 if __name__=="__main__":
     main()
