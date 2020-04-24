@@ -11,3 +11,8 @@ https://exchangeratesapi.io/
 ### Comparable Path finding algorithm implementation
 
 ### Equality checking
+
+# Dependencies
+written for python 2.7
+Requests library: pip install requests
+Numpy
