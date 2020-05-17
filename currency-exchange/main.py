@@ -108,9 +108,38 @@ test_new_edge = (2, 3)
 
 # Version for *a* path as opposed to shortest path
 
-# graphPathsToS[v] = path from v to s.
-graphPathsToS = []
-graphPathsFromT = []
+# Run in O((E+V)V) instead of V^2(V+E) at a memory cost of O(V^3)
+
+# Dense representations of graph to make 
+# neighbor retrieval constant time
+compactFwdGraph = []
+compactBkdGraph = []
+
+# 3d array: Graph paths from each node
+# {v -> u -> path from v to u}
+graphPathsFromEachNode = []
+
+def setup():
+    buildCompactFwdGraph()
+    buildCompactBkdGraph()
+    populatePathsFromEachNode()
+
+def populatePathsFromEachNode():
+    global graphPathsFromEachNode
+    for node in range(len(GRAPH)):
+        graphPathsFromEachNode += [populatePathsFromT(node)]
+
+def buildCompactFwdGraph():
+    global compactFwdGraph
+    compactFwdGraph = getEmptyPathList()
+    for node in range(len(GRAPH)):
+        compactFwdGraph[node] = getForwardEdges(node)
+
+def buildCompactBkdGraph():
+    global compactBkdGraph
+    compactBkdGraph = getEmptyPathList()
+    for node in range(len(GRAPH)):
+        compactBkdGraph[node] = getBackwardEdges(node)
 
 # Get an empty path list
 def getEmptyPathList():
@@ -120,30 +149,83 @@ def getEmptyPathList():
     return paths
 
 def getForwardEdges(source):
-    return [i for i in range(len(GRAPH)) if GRAPH[source][i] != NO_EDGE]
+    return [i for i in range(len(GRAPH)) if GRAPH[source][i] != NO_EDGE and i != source]
 
 def getBackwardEdges(sink):
-    return [i for i in range(len(GRAPH)) if GRAPH[i][source] != NO_EDGE]
+    return [i for i in range(len(GRAPH)) if GRAPH[i][sink] != NO_EDGE and i != sink]
 
 def populatePathsFromT(t):
-    global graphPathsFromT
     graphPathsFromT = getEmptyPathList()
     visited = set()
     currentNode = t
     stack = [t]
     path = []
     while (len(stack) > 0):
-        currentNode = stack[-1]
-        stack.pop()
-        if (currentNode in visited):
+        currentNode = stack.pop()
+        if currentNode == NO_EDGE:
             path.pop()
-        else:
+        elif currentNode not in visited:
             visited.add(currentNode)
             path += [currentNode]
             graphPathsFromT[currentNode] = copy.deepcopy(path)
-            stack += [currentNode]+[edge for edge in getForwardEdges(currentNode) if edge not in visited]
+            stack += [NO_EDGE] + compactFwdGraph[currentNode]
     if DEBUG or DEV_DEBUG:
-        print("graphPathsFromT: {}".format(graphPathsFromT))
+        print("t = {} and graphPathsFromT: {}".format(t, graphPathsFromT))
+    return graphPathsFromT
+
+def populatePathsToS(s):
+    graphPathsToS = getEmptyPathList()
+    visited = set()
+    currentNode = s
+    stack = [s]
+    path = []
+    while (len(stack) > 0):
+        currentNode = stack.pop()
+        if currentNode == NO_EDGE:
+            path = path[1:]
+        elif currentNode not in visited:
+            visited.add(currentNode)
+            path = [currentNode] + path
+            graphPathsToS[currentNode] = copy.deepcopy(path)
+            stack += [NO_EDGE] + compactBkdGraph[currentNode]
+    if DEBUG or DEV_DEBUG:
+        print("s = {} and graphPathsToS: {}".format(s, graphPathsToS))
+    return graphPathsToS
+
+# Just a quick DFS.
+# Assumes compactFwdGraph is already built.
+def findPath(source, sink):
+    path = []
+    visited = set()
+    stack = [source]
+    while (len(stack)>0):
+        currentNode = stack.pop()
+        if currentNode == NO_EDGE:
+            path.pop()
+        elif currentNode not in visited():
+            path = path+[currentNode]
+            if currentNode == sink:
+                return path
+            visited.add(currentNode)
+            stack += [NO_EDGE] + compactFwdGraph[currentNode]
+            
+
+# Returns pairs of paths to verify.
+def getPathPairs(newEdge):
+    setup()
+    (s, t) = newEdge
+    graphPathsFromT = graphPathsFromEachNode[t]
+    graphPathsToS = populatePathsToS(s)
+    populatePathsToS(s)
+    pathsToCheck = []
+    for source in range(len(GRAPH)):
+        for sink in range(len(GRAPH)):
+            firstSegment = graphPathsToS[source]
+            lastSegment = graphPathsFromT[sink]
+            secondPath = graphPathsFromEachNode[source][sink]
+            if (len(firstSegment)>0 and len(lastSegment)>0 and len(secondPath)>0):
+                pathsToCheck += [(firstSegment+lastSegment, secondPath)]
+    return pathsToCheck
 
 
 ##############################################
@@ -206,24 +288,26 @@ def updateNewGraphPaths(newEdge):
 
 np.set_printoptions(formatter={'float': lambda x: "{0:0.4f}".format(x)}, threshold=10000)
 
-Setting up graph
-base = 'USD'
-# Eventually want to be able to parse this from commandline.
-symbols = []
+# Setting up graph
+# base = 'USD'
+# # Eventually want to be able to parse this from commandline.
+# symbols = []
 
-rates = makeRequest(base=base)
-constructGraph(rates.keys())
-addRow(base, rates)
-if DEBUG:
-    print(np.matrix(GRAPH))
+# rates = makeRequest(base=base)
+# constructGraph(rates.keys())
+# addRow(base, rates)
+# if DEBUG:
+#     print(np.matrix(GRAPH))
 
-for currency in CURRENCY_LIST:
-    rates = makeRequest(base=currency)
-    addRow(base=currency, rates=rates, checkIndependence=True)
+# for currency in CURRENCY_LIST:
+#     rates = makeRequest(base=currency)
+#     addRow(base=currency, rates=rates, checkIndependence=True)
 
-print(np.matrix(GRAPH))
-print()
+# print(np.matrix(GRAPH))
+# print()
 
 
-# GRAPH = test_graph
-# populatePathsFromT(test_t)
+GRAPH = test_graph
+pairsToCheck = getPathPairs((test_s, test_t))
+print("pairs to check: {}".format(pairsToCheck))
+print("number of pairs: {}".format(len(pairsToCheck)))
