@@ -1,7 +1,7 @@
 from baseOnlineChecker import BaseOnlineChecker
 from colorama import Fore
 import copy
-from testUtilities import assertEqual, test_graph, test_s, test_t, NO_EDGE,\
+from testUtilities import assertEqual, test_graph, test_s, test_t,\
     expected_solution
 import time
 import traceback
@@ -57,20 +57,6 @@ class OptimalSetPathChecker(BaseOnlineChecker):
                         potentialPairs.remove(redundantPair)
                     acceptedPairs.add((source, sink))
         return acceptedPairs        
-        
-    def findPair(self, source: int, sink: int) -> Tuple[List[int], List[int]]:
-        """Finds a pair of paths from the given source to sink, the first 
-        includes the new edge, and the second one doesn't.
-        In case of a cycle the second path is just the single node,
-        representing the identity on the node."""
-        if not bool(self.pathsFromNewEdgeSink):
-            self.getAllSuccessors(self.newEdgeSink)
-        if not bool(self.pathsToNewEdgeSource):
-            self.getAllPredecessors(self.newEdgeSource)
-        firstSegment = self.pathsToNewEdgeSource[source]
-        lastSegment = self.pathsFromNewEdgeSink[sink]
-        (_, secondPath) = self.findPath(source, sink)
-        return(firstSegment+lastSegment, secondPath)
 
     def getPathsToCheck(self) ->  List[Tuple[List[int], List[int]]]:
         """Return the pairs of path whose equality implies path independence of 
@@ -98,15 +84,6 @@ def testGetRootPairs():
     checker.setGraph(test_graph)
     checker.setEdge(test_s, test_t)
     assertEqual({(2, 2), (3, 3), (6, 6), (7, 7)}, checker.getRootPairs())
-
-def testFindPair():
-    checker = OptimalSetPathChecker()
-    test_graph[1][4] = 1
-    checker.setGraph(test_graph)
-    checker.setEdge(test_s, test_t)
-    assertEqual(([3, 6, 7, 2, 3], [3]), checker.findPair(3, 3))
-    assertEqual(([1, 2, 3, 4], [1, 4]), checker.findPair(1, 4))
-    test_graph[1][4] = NO_EDGE
     
 def testGetPathsToCheck():
     checker = OptimalSetPathChecker()
@@ -119,7 +96,6 @@ def runAllTests():
     print('\033[0m' + "Running optimalSetPathChecker Tests")
     testGetSuccessors()
     testGetRootPairs()
-    testFindPair()
     testGetPathsToCheck()
     print(Fore.GREEN + 'Run Completed')    
 

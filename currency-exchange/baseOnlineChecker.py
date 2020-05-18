@@ -3,7 +3,7 @@ import copy
 from iPathChecker import IPathChecker
 from testUtilities import assertEqual, test_graph, test_s, test_t,\
     expected_paths_to_s, expected_paths_from_t, expected_fwd_graph,\
-        expected_bkd_graph
+        expected_bkd_graph, NO_EDGE
 from typing import List
 from typing import Tuple
 
@@ -111,6 +111,20 @@ class BaseOnlineChecker(IPathChecker):
                 stack += [self._invalid_node] + self.compactFwdGraph[currentNode]
         return (False, [])
 
+    def findPair(self, source: int, sink: int) -> Tuple[List[int], List[int]]:
+        """Finds a pair of paths from the given source to sink, the first 
+        includes the new edge, and the second one doesn't.
+        In case of a cycle the second path is just the single node,
+        representing the identity on the node."""
+        if not bool(self.pathsFromNewEdgeSink):
+            self.getAllSuccessors(self.newEdgeSink)
+        if not bool(self.pathsToNewEdgeSource):
+            self.getAllPredecessors(self.newEdgeSource)
+        firstSegment = self.pathsToNewEdgeSource[source]
+        lastSegment = self.pathsFromNewEdgeSink[sink]
+        (_, secondPath) = self.findPath(source, sink)
+        return(firstSegment+lastSegment, secondPath)
+
     #### Public interface ####
 
     def __init__(self):
@@ -203,6 +217,15 @@ def testFindPath():
     assertEqual((False, []), checker.findPath(0, 3))
     assertEqual((True, [3, 6, 7, 2]), checker.findPath(3, 2))
 
+def testFindPair():
+    checker = BaseOnlineChecker()
+    test_graph[1][4] = 1
+    checker.setGraph(test_graph)
+    checker.setEdge(test_s, test_t)
+    assertEqual(([3, 6, 7, 2, 3], [3]), checker.findPair(3, 3))
+    assertEqual(([1, 2, 3, 4], [1, 4]), checker.findPair(1, 4))
+    test_graph[1][4] = NO_EDGE
+
 def testComputeTime():
     checker = BaseOnlineChecker()
     checker.timeTaken = 123
@@ -217,6 +240,7 @@ def runAllTests():
     testGetAllPredecessors()
     testGetAllSuccessors()
     testFindPath()
+    testFindPair()
     testComputeTime()
     print(Fore.GREEN + 'Run Completed')
 
