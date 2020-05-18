@@ -4,8 +4,7 @@ from iPathChecker import IPathChecker
 from testUtilities import assertEqual, test_graph, test_s, test_t,\
     expected_paths_to_s, expected_paths_from_t, expected_fwd_graph,\
         expected_bkd_graph, NO_EDGE
-from typing import List
-from typing import Tuple
+from typing import List, Set, Tuple
 
 _default_no_edge = -1
 
@@ -41,11 +40,14 @@ class BaseOnlineChecker(IPathChecker):
         for node in range(len(self.graph)):
             self.compactBkdGraph[node] = self.getBackwardEdges(node)
     
-    def getAllPredecessors(self, node) -> List[int]:
+    def getAllPredecessors(self, node, memoize = False) -> List[int]:
         """Returns a list of nodes that are predecessors of this one.
         Memoize if source of new edge."""
+        memoize = memoize or node == self.newEdgeSource
+        if memoize:
+            pathDict = dict()
         visited = set()
-        # To store visitedNodes in an ordered closest to new edge first.
+        # To store visitedNodes ordered closest to new edge first.
         visitedList = []
         currentNode = node
         stack = [currentNode]
@@ -58,13 +60,46 @@ class BaseOnlineChecker(IPathChecker):
                 visited.add(currentNode)
                 visitedList += [currentNode]
                 path = [currentNode] + path
-                if (node == self.newEdgeSource):
-                    self.pathsToNewEdgeSource[currentNode] = copy.deepcopy(path)
+                if (memoize):
+                    pathDict[currentNode] = copy.deepcopy(path)
                 stack += [self._invalid_node] + self.compactBkdGraph[currentNode]
         if __debug__ and self._debug:
             print("getAllPredecessors: node: {} and visitedList: {}".format(
                 node, visitedList))
+        if node == self.newEdgeSource:
+            self.pathsToNewEdgeSource = pathDict
+        if memoize:
+            self.pathsToNode[node] = pathDict
         return visitedList
+    
+    def getAllPredecessorsUnordered(self, node, memoize = True) -> Set[int]:
+        """Returns a list of nodes that are predecessors of this one.
+        Memoize if source of new edge."""
+        memoize = memoize or node == self.newEdgeSource
+        if memoize:
+            pathDict = dict()
+        visited = set()
+        currentNode = node
+        stack = [currentNode]
+        path = []
+        while (len(stack) > 0):
+            currentNode = stack.pop()
+            if currentNode == self._invalid_node:
+                path = path[1:]
+            elif currentNode not in visited:
+                visited.add(currentNode)
+                path = [currentNode] + path
+                if (memoize):
+                    pathDict[currentNode] = copy.deepcopy(path)
+                stack += [self._invalid_node] + self.compactBkdGraph[currentNode]
+        if __debug__ and self._debug:
+            print("getAllPredecessors: node: {} and visitedList: {}".format(
+                node, visited))
+        if node == self.newEdgeSource:
+            self.pathsToNewEdgeSource = pathDict
+        if memoize:
+            self.pathsToNode[node] = pathDict
+        return visited
 
     def getAllSuccessors(self, node) -> List[int]:
         """Returns a list of nodes that are successors of this one.
@@ -123,7 +158,7 @@ class BaseOnlineChecker(IPathChecker):
         firstSegment = self.pathsToNewEdgeSource[source]
         lastSegment = self.pathsFromNewEdgeSink[sink]
         (_, secondPath) = self.findPath(source, sink)
-        return(firstSegment+lastSegment, secondPath)
+        return(firstSegment + lastSegment, secondPath)
 
     #### Public interface ####
 
@@ -136,6 +171,8 @@ class BaseOnlineChecker(IPathChecker):
         self.compactBkdGraph = []
         self.pathsToNewEdgeSource = dict()
         self.pathsFromNewEdgeSink = dict()
+        # sink node -> {source node -> path}
+        self.pathsToNode = dict()
         self._no_edge = _default_no_edge
     
     def setGraph(
@@ -204,6 +241,14 @@ def testGetAllPredecessors():
     checker.getAllPredecessors(test_s)
     assertEqual(expected_paths_to_s, checker.pathsToNewEdgeSource)
 
+def testGetAllPredecessorsUnordered():
+    checker = BaseOnlineChecker()
+    checker.setGraph(test_graph)
+    checker.setEdge(test_s, test_t)
+    assertEqual({0, 1, 2, 3, 6, 7}, checker.getAllPredecessorsUnordered(test_s))
+    assertEqual(expected_paths_to_s, checker.pathsToNewEdgeSource)
+    assertEqual(expected_paths_to_s, checker.pathsToNode[test_s])
+
 def testGetAllSuccessors():
     checker = BaseOnlineChecker()
     checker.setGraph(test_graph)
@@ -238,6 +283,7 @@ def runAllTests():
     testSetGraph()
     testSetEdge()
     testGetAllPredecessors()
+    testGetAllPredecessorsUnordered()
     testGetAllSuccessors()
     testFindPath()
     testFindPair()

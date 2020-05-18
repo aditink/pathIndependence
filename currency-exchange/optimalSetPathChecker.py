@@ -5,9 +5,7 @@ from testUtilities import assertEqual, test_graph, test_s, test_t,\
     expected_solution
 import time
 import traceback
-from typing import List
-from typing import Set
-from typing import Tuple
+from typing import List, Set, Tuple
 
 class OptimalSetPathChecker(BaseOnlineChecker):
     """Path checker that returns minimal set for verification 

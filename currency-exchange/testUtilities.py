@@ -1,3 +1,5 @@
+from colorama import Fore
+
 NO_EDGE = -1
 
 test_graph = [
@@ -70,12 +72,31 @@ def compareLists(expected, actual):
         return False
     return not actual
 
+def actualListIsSuperset(expected, actual):
+    actual = list(actual)   # make a mutable copy
+    try:
+        for elem in expected:
+            actual.remove(elem)
+    except ValueError:
+        return False
+    return True
+
 def assertEqual(expected, actual):
     try:
         if isinstance(expected, list):
             assert(compareLists(expected, actual))
         else:
             assert(expected == actual)
+    except:
+        print(Fore.RED + "Error")
+        print("Expected: {}".format(expected))
+        print("Actual: {}".format(actual))
+        traceback.print_stack()
+
+def assertActualIsSuperset(expected, actual):
+    try:
+        if isinstance(expected, list):
+            assert(actualListIsSuperset(expected, actual))
     except:
         print(Fore.RED + "Error")
         print("Expected: {}".format(expected))
