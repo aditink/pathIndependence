@@ -29,7 +29,7 @@ class NoIdentityPolynomialPathChecker(NonIdentityPathChecker):
             # Handle cycles.
             if sink in predecessorsForNode:
                 predecessorsForNode.remove(sink)
-                pasthsToCHeck += self.handleCycle(sink)
+                pathsToCheck += self.handleCycle(sink)
             while len(predecessorsForNode) > 0:
                 src = predecessorsForNode.pop()
                 pathsToCheck += [(self.pathsToNewEdgeSource[src] +
@@ -43,7 +43,7 @@ class NoIdentityPolynomialPathChecker(NonIdentityPathChecker):
 #### Quick Tests ####
 
 def testGetPathsToCheck():
-    checker = PolynomialPathChecker()
+    checker = NoIdentityPolynomialPathChecker()
     checker.setGraph(test_graph)
     checker.setEdge(test_s, test_t)
     assertActualIsSuperset(expected_solution_no_identity,\
