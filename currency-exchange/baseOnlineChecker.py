@@ -1,5 +1,9 @@
 from colorama import Fore
+import copy
 from iPathChecker import IPathChecker
+from testUtilities import assertEqual, test_graph, test_s, test_t,\
+    expected_paths_to_s, expected_paths_from_t, expected_fwd_graph,\
+        expected_bkd_graph
 from typing import List
 from typing import Tuple
 
@@ -36,6 +40,76 @@ class BaseOnlineChecker(IPathChecker):
         self.compactBkdGraph = self.getEmptyPathList()
         for node in range(len(self.graph)):
             self.compactBkdGraph[node] = self.getBackwardEdges(node)
+    
+    def getAllPredecessors(self, node) -> List[int]:
+        """Returns a list of nodes that are predecessors of this one.
+        Memoize if source of new edge."""
+        visited = set()
+        # To store visitedNodes in an ordered closest to new edge first.
+        visitedList = []
+        currentNode = node
+        stack = [currentNode]
+        path = []
+        while (len(stack) > 0):
+            currentNode = stack.pop()
+            if currentNode == self._invalid_node:
+                path = path[1:]
+            elif currentNode not in visited:
+                visited.add(currentNode)
+                visitedList += [currentNode]
+                path = [currentNode] + path
+                if (node == self.newEdgeSource):
+                    self.pathsToNewEdgeSource[currentNode] = copy.deepcopy(path)
+                stack += [self._invalid_node] + self.compactBkdGraph[currentNode]
+        if __debug__ and self._debug:
+            print("getAllPredecessors: node: {} and visitedList: {}".format(
+                node, visitedList))
+        return visitedList
+
+    def getAllSuccessors(self, node) -> List[int]:
+        """Returns a list of nodes that are successors of this one.
+        Memoize if sink of new edge."""
+        visited = set()
+        # maintain a separate list to get ordering where closest node is first.
+        visitedList = []
+        currentNode = node
+        stack = [node]
+        path = []
+        # More or less DFS.
+        while (len(stack) > 0):
+            currentNode = stack.pop()
+            if currentNode == self._invalid_node:
+                path.pop()
+            elif currentNode not in visited:
+                visited.add(currentNode)
+                visitedList += [currentNode]
+                path += [currentNode]
+                if (node == self.newEdgeSink):
+                    self.pathsFromNewEdgeSink[currentNode] = copy.deepcopy(path)
+                stack += [self._invalid_node] + self.compactFwdGraph[currentNode]
+        if __debug__ and self._debug:
+            print("getAllSuccessors: node = {} and visited list: {}".format(
+                node, visitedList))
+        return visitedList
+
+    def findPath(self, source: int, sink: int) -> Tuple[bool, List[int]]:
+        """Find path from source ot sink in old graph,
+        without involving new edge."""
+        # DFS.
+        path = []
+        visited = set()
+        stack = [source]
+        while (len(stack)>0):
+            currentNode = stack.pop()
+            if currentNode == self._invalid_node:
+                path.pop()
+            elif currentNode not in visited:
+                path = path+[currentNode]
+                if currentNode == sink:
+                    return (True, path)
+                visited.add(currentNode)
+                stack += [self._invalid_node] + self.compactFwdGraph[currentNode]
+        return (False, [])
 
     #### Public interface ####
 
@@ -46,7 +120,9 @@ class BaseOnlineChecker(IPathChecker):
         self.timeTaken = 0
         self.compactFwdGraph = []
         self.compactBkdGraph = []
-        self._no_edge = -1
+        self.pathsToNewEdgeSource = dict()
+        self.pathsFromNewEdgeSink = dict()
+        self._no_edge = _default_no_edge
     
     def setGraph(
         self,
@@ -73,42 +149,6 @@ class BaseOnlineChecker(IPathChecker):
         return self.timeTaken
 
 #### Quick tests ####
-
-NO_EDGE = -1
-
-test_graph = [
-    [NO_EDGE,       1, NO_EDGE, NO_EDGE, NO_EDGE, NO_EDGE, NO_EDGE, NO_EDGE],
-    [NO_EDGE, NO_EDGE,       1, NO_EDGE, NO_EDGE, NO_EDGE, NO_EDGE, NO_EDGE],
-    [NO_EDGE, NO_EDGE, NO_EDGE, NO_EDGE, NO_EDGE, NO_EDGE, NO_EDGE, NO_EDGE],
-    [NO_EDGE, NO_EDGE, NO_EDGE, NO_EDGE,       1, NO_EDGE,       1, NO_EDGE],
-    [NO_EDGE, NO_EDGE, NO_EDGE, NO_EDGE, NO_EDGE,       1, NO_EDGE, NO_EDGE],
-    [NO_EDGE, NO_EDGE, NO_EDGE, NO_EDGE, NO_EDGE, NO_EDGE, NO_EDGE, NO_EDGE],
-    [NO_EDGE, NO_EDGE, NO_EDGE, NO_EDGE, NO_EDGE, NO_EDGE, NO_EDGE,       1],
-    [NO_EDGE, NO_EDGE,       1, NO_EDGE, NO_EDGE, NO_EDGE, NO_EDGE, NO_EDGE]]
-test_s = 2
-test_t = 3
-test_new_edge = (2, 3)
-expected_fwd_graph = [
-    [1],
-    [2],
-    [],
-    [4, 6],
-    [5],
-    [],
-    [7],
-    [2]
-]
-expected_bkd_graph = [
-    [],
-    [0],
-    [1, 7],
-    [],
-    [3],
-    [4],
-    [3],
-    [6]
-]
-
 
 def testBuildCompactBkdGraph():
     checker = BaseOnlineChecker()
@@ -143,20 +183,43 @@ def testSetEdge():
     assert(checker.newEdgeSource == 0)
     assert(checker.newEdgeSink == 1)
 
+def testGetAllPredecessors():
+    checker = BaseOnlineChecker()
+    checker.setGraph(test_graph)
+    checker.setEdge(test_s, test_t)
+    checker.getAllPredecessors(test_s)
+    assertEqual(expected_paths_to_s, checker.pathsToNewEdgeSource)
+
+def testGetAllSuccessors():
+    checker = BaseOnlineChecker()
+    checker.setGraph(test_graph)
+    checker.setEdge(test_s, test_t)
+    checker.getAllSuccessors(test_t)
+    assertEqual(expected_paths_from_t, checker.pathsFromNewEdgeSink)
+
+def testFindPath():
+    checker = BaseOnlineChecker()
+    checker.setGraph(test_graph)
+    assertEqual((False, []), checker.findPath(0, 3))
+    assertEqual((True, [3, 6, 7, 2]), checker.findPath(3, 2))
+
 def testComputeTime():
     checker = BaseOnlineChecker()
     checker.timeTaken = 123
     assert(checker.getComputeTime() == 123)
 
 def runAllTests():
-    print("Running baseOnlinePathChecker Tests")
+    print('\033[0m' + "Running baseOnlinePathChecker Tests")
     testBuildCompactBkdGraph()
     testBuildCompactFwdGraph()
     testSetGraph()
     testSetEdge()
+    testGetAllPredecessors()
+    testGetAllSuccessors()
+    testFindPath()
     testComputeTime()
-    print(Fore.GREEN + 'OK')
+    print(Fore.GREEN + 'Run Completed')
 
 #### Execute ####
 
-# runAllTests()
+runAllTests()
