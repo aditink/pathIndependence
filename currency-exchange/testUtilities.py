@@ -62,6 +62,15 @@ expected_solution = [
     ([7, 2, 3, 6, 7], [7])
 ]
 
+expected_solution_no_identity = [
+    ([2, 3, 6, 7, 2], [2, 3, 6, 7, 2, 3, 6, 7, 2]),
+    ([3, 6, 7, 2, 3], [3, 6, 7, 2, 3, 6, 7, 2, 3]),
+    ([6, 7, 2, 3, 6], [6, 7, 2, 3, 6, 7, 2, 3, 6]),
+    ([7, 2, 3, 6, 7], [7, 2, 3, 6, 7, 2, 3, 6, 7]),
+    ([2, 3, 6, 7, 2], [1, 2, 3, 6, 7, 2]),
+    ([3, 6, 7, 2, 3], [3, 6, 7, 2, 3, 4])
+]
+
 # This method is from stack overflow.
 def compareLists(expected, actual):
     actual = list(actual)   # make a mutable copy
