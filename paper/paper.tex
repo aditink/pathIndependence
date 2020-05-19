@@ -38,31 +38,33 @@ Third Author\inst{1}\orcidID{2222--3333-4444-5555}}
 %
 \begin{abstract}
 Commutative diagrams arise in many systems, such as an implicit type conversion graph in some programming languages.
-It can be useful in program analysis to verify that a diagram representing conversions remains commutative.
-A naive approach to solving the problem would take factorial time, and previous work provides an algorithm for the special case of acyclic diagrams that runs in $O(|V|^4|E|^2)$ time, where V is the set of vertices in the diagram, and E, the set of edges. 
-We present an algorithm that runs in $O(|V|^2|E| + |V|^3)$ time. We evaluate the algorithm gainst baselines, and see its practical application in the compiler of a domain specific language for geometry types.
+It can be useful in program analysis to verify that a diagram representing conversions remains commutative over the course of its construction.
+A naive approach to solving the problem would take factorial time, and the presence of cycles could potentially lead to an infinite number of paths to check. Previous work provides an algorithm for the special case of acyclic diagrams that verifies that a given diagram commutes in $O(|V|^4|E|^2)$ time, where V is the set of vertices in the diagram, and E, the set of edges. 
+We present an algorithm that given a diagram and an edge to add to it, verifies that the resultant diagram commutes in $O(|V|(|E| + |V|)$ time. For the case when checking the equality of paths is expensive, we present a second algorithm that runs in $O(V^4)$ time but uses the minimum possible number of equality checks. We evaluate the algorithms against baselines, and see its practical application in the compiler of a domain specific language for geometry types. As a demonstration of the more general applicability of the algorithm, we use it to identify discrepancies in a  currency conversion graph.
 
 \end{abstract}
 %
 %
 %
-Many systems can be understood as a category, with a collection of sets, and some transformation functions between the sets- for example, in programming languages, type systems with coercion. If a directed graph is constructed with the sets as nodes and functions as edges between the nodes, then by construction, in the new graph, choice of path should not matter- any choice of path should yield the same transformation between any two nodes. The idea is that each object has a unique representation in a given set in the system, so the transformation mapping between any two nodes should not depend on choice of path used to obtain the transformation. We will use the term "diagram" to refer to such graphs with their associated sets (vertices) and transformations (edges).
+Many systems can be understood as a category, with a collection of sets, and some transformation functions between the sets- for example, in programming languages, type systems with coercion. If a directed graph is constructed with the sets as nodes and functions as edges between the nodes, then by construction, in the new graph, choice of path should not matter- any choice of path should yield the same transformation between any two nodes. Each object has a unique representation in a given set in the system, so the transformation mapping between any two nodes should not depend on choice of path used to obtain the transformation. We will use the term "diagram" to refer to such graphs with their associated sets (vertices) and transformations (edges).
 
 Since such commutative diagrams arise in many systems, it is often useful to be able to perform verification and ensure the graphs in question are indeed path independent. 
 We formalize the problem as checking the commutativity of a diagram incrementally.
 A diagram is said to commute when on selecting any two vertices, any directed path leads to the same result by composition.
-Naively checking if all paths in a given graph are path independent could require a number of function equality checks as bad as factorial in the number of nodes, since a path consists of an ordering of nodes. Previous work has identified an $O(|E|^2|V|^4)$ algorithm to verify that an acyclic diagram commutes.
+Naively checking if all paths in a given graph are path independent could require a number of function equality checks as bad as factorial in the number of nodes, since a path consists of an ordering of nodes. Further, the presence of cycles implies a potentially infinite number of paths. Previous work ~\cite{commutative} has identified an $O(|E|^2|V|^4)$ algorithm to verify that an acyclic diagram commutes.
 
-We present a polynomial time $O(|E||V|^2+|V|^3)$ algorithm to verify that commutativity of a graph is maintained over the course of online addition, assuming an oracle to check the abstract notion of equality of functions. The number of calls to the equality checking oracle required by the algorithm is asymptotically tight. With an additional $O(|V|^4)$ optimization step, is is possible to use instead the minimal possible number of equality checks, should these checks be expensive. We compare our solution to three baselines: a naive checking of all path pairs, with only special handling for cycles, a check for all path pairs that involve the new edge, and with an algorithm suggested by previous work to solve the batch version of the problem for acyclic diagrams.
+We present a polynomial time $O(|V|(|E|+|V|)$ algorithm to verify that commutativity of a graph is maintained over the course of online addition, assuming an oracle to check the abstract notion of equality of functions. The number of calls to the equality checking oracle required by the algorithm is asymptotically tight. With an additional $O(|V|^4)$ optimization step, is is possible to use instead the minimal possible number of equality checks, should these checks be expensive. We compare our solution to three baselines: a naive checking of all path pairs, with only special handling for cycles, a check for all path pairs that involve the new edge, and with an algorithm suggested by previous work to solve the batch version of the problem for acyclic diagrams.
 
 To evaluate our results we use two case studies.
 First, in the domain specific geometry type language \textit{Gator}, our algorithm is used to ensure that user defined transformations between spaces stay consistent, and the compiler, deterministic as it makes automatic conversion choices. As a second case study, the the algorithm is used to identify inefficiencies in a currency conversion graph.
 
 \section{Formal Problem Setup and Terminology}
 
-First, we formalize the notion of a diagram, drawing inspiration from Murota\cite{commutative}.
+First, we formalize the notion of a diagram, drawing inspiration from Murota ~\cite{commutative}.
 
-We start with a directed graph G=(V,E) with sets attached to vertices and maps to arcs. Each edge (u, v) in E corresponds to a function that maps elements of u to elements in v.
+% A lot of this exposition is from the cited paper, I feel like I need to make this clearer to give proper credit, but not sure how.
+
+We start with a directed graph G=(V,E) with sets attached to vertices and maps, to arcs. Each edge (u, v) in E corresponds to a function that maps elements of u to elements in v.
 All the functions form a semigroup F, with multiplication denoted by $\circ$.
 A semigroup is an algebraic structure with a set and an associative binary operation. We use it to represent functions in order to capture the one allowed operation- function composition.
 
@@ -86,12 +88,11 @@ The diagram commutes iff f(p)=f(q) $\forall (p,q)\in R_{all}$, which is to say, 
 \subsection{Naive all-path check}
 The naive solution is to verify that in every parallel pair in the diagram, the two paths are equal. However since cycles potentially introduce an infinite number of pairs, they must be dealt with separately.
 
-Two situation can be imagined- the first, where the existence of the identity function from every node to itself is assumed, and the second, where no such identity needs to exist.
+Two situation can be imagined- the first, where the existence of the identity function from every node to itself is assumed as would describe most real world situations, and the second, where no such identity needs to exist.
 
 When the identity is assumed, every cycle forms a parallel pair with an identity function on the terminal node. Therefore, the cycle must be verified to be equal to the identity on every node in the cycle. If this check succeeds for every elementary cycle in the diagram, then paths with multiple instance of the cycle must be equal to the version of the path without the cycle. It is therefore then enough to perform verification for all pairs where none of the path involves cycles. This is a finite set, bounded by $^{|E|!}C_2$. All elementary cycles in a diagram can be found in $O((|V|+|E|)(C+1))$ using Johnson's algorithm where C is the number of cycles, that can be greater than $2^{|V|}$. Thus the baseline is a factorial time algorithm that is nevertheless guaranteed to terminate.
 
-Without the identity assumed, a cycle c forms a parallel pair with itself repeated twice- the pair (c, c;c). This verification needs to be performed for all elementary cycles. Further, if there is any "exit" or "entrance" into an elementary cycle- an edge that is not a part of the cycle whose one end is a node that belongs to the cycle- then it must be verified that the transformation represented by the edge is equal to the transformation represented by the edge and cycle composed (the cycle is pre-pended in the case of an edge directed away from the cycle and appended in the case of an edge directed into the cycle). Should this verification succeed, by logic similar to the previous case, it must be that 
-all paths (including complex cycles) that include the elementary cycle must be equal to version of the paths without the cycle (since a segment of the path with the cycle has already been verified to be equal to a version of that segment without the cycle). Once again this is a factorial time, terminating algorithm.
+Without the identity assumed, a cycle c forms a parallel pair with itself repeated twice- the pair (c, c;c). This verification needs to be performed for all elementary cycles. Further, if there is any "exit" or "entrance" into an elementary cycle- an edge that is not a part of the cycle whose one end is a node that belongs to the cycle- then it must be verified that the transformation represented by the edge is equal to the transformation represented by the edge and cycle composed (the cycle is pre-pended in the case of an edge directed away from the cycle and appended in the case of an edge directed into the cycle). Should this verification succeed, by logic similar to the previous case, it must be that all paths (including complex cycles) that include the elementary cycle must be equal to version of the paths without the cycle (since a segment of the path with the cycle has already been verified to be equal to a version of that segment without the cycle). Once again this is a factorial time, terminating algorithm.
 
 \subsection{Naive algorithm for online addition}
 
@@ -162,12 +163,12 @@ Only one path passes through (S, T), which we will name path 1. We construct a t
 We have shown that all paths that need verification are caught by the two flip tolerant search followed with path extraction.
 
 \paragraph{Implementation}
-*Copy in python code from implementation*
+*Copy in python code from implementation? Appendix?*
 
 This algorithm is also in the worst case as bad as factorial in the number of nodes. However, in the average case, it significantly outperforms the naive batch baseline. For sparse diagrams it is even competitive with our ultimate polynomial solution. Average case heuristic analysis will be presented in the evaluation section.
 
 \subsection{Optimal solution for batch problem}
-Murota's main result \cite{commutative} is a solution to the question of whether a given acyclic diagram commutes that returns the minimal number of equality checks. The paper describes the following algorithm to find the ($V^2E$ bounded) minimal set of pairs that needs to be checked.
+Murota's main result ~\cite{commutative} is a solution to the question of whether a given acyclic diagram commutes that returns the minimal number of equality checks. The paper describes the following algorithm to find the ($V^2E$ bounded) minimal set of pairs that needs to be checked.
 
 A diagram's structure can result in some redundancy, in the sense that verifying a subset of pairs can imply the verification of path pairs that aren't in the subset.
 For example, in the figure below, verifying $p_1$ and $p_2$ implies that the paths in $p_3$ are equal too.
@@ -207,8 +208,8 @@ $p_3$=($f_1;h_1$, $f_1;j_2$)
 
 The approach in the algorithm, at a high level, is to define a function that takes in a subset of pairs and returns the subset of pairs whose verification is implied by the verification of the input set. Then, greedy elimination of redundancies is performed until a minimal set is reached.
 
-A bilinking is a parallel pair that is disjoint but for their terminal nodes. The set of all bilinkings is $R_0$.
-In an acyclic diagram, if all bilinkings are equal, all parallel pairs must also be equal since they any given pair can be expressed as a composition of one or more bilinkings.
+A bilinking is defined to be a parallel pair that is disjoint but for their terminal nodes. The set of all bilinkings is $R_0$.
+In an acyclic diagram, if all bilinkings are equal, all parallel pairs must also be equal since they any given pair can be expressed as a composition of bilinkings.
 
 Define $r_1>r_2$ for bilinkings $r_1$ = $\{p_l,q_l\}$, $r_2$= $\{p_2, q_2)$ $\in$ $R_0$, if there exists a path p such that $\partial p=\partial r_1$ and p contains $p_2$.
 The $\langle\rangle$ function is defined as:
@@ -216,15 +217,17 @@ $\langle r \rangle = \{ s\in R_0| r>s\}$.
 
 For bilinking s, let F(s) be the vector in $\mathbb{F}2^{|E|}$ representing the edges present in s (there is a dimension corresponding to each edge, the $n^{th}$ dimension of F(s) is 1 if the corresponding edge is in s, and 0 otherwise). Let this function be extended to sets, so that for some set of bilinkings S, F(S) = $\{ F(s) | s\in S \}$.
 
-for a set of bilinkings r, the cl function is defined as:
+for a set of bilinkings r, the closure function cl is defined as:
 cl(r) = $\{ s\in R_0|$ s is linearly dependent on $F(r) \}$.
 
-The closure function on r basically captures all the pairs that can be made by made by composing or "gluing together" the bilinkings in r. The $\langle\rangle$ function captures the orientation of paths, and can be used to constrain compositions to be in the right direction. 
+The closure function on r basically captures all the pairs that can be made by made by composing or "gluing together" the bilinkings in r. 
+The aforementioned $\langle\rangle$ function captures the orientation of paths, and can be used to constrain compositions to be in the right direction. 
 
 Using these two function we finally define the function $\sigma$ on a set of bilinkings r as
-$\sigma(r) = \{s \in R_0 | s\in cl(R\cap \langle s \rangle) \}$
+$\sigma(r) = \{s \in R_0 | s\in cl(R\cap \langle s \rangle) \}$.
 This is the function used to capture all the pairs whose verification is implied by the verification of pairs in r.
-It is used to iteratively check if a given pair is redundant. bilinkings are eliminated until a minimum "spanning" subset is reached.
+
+$\sigma$ is used to iteratively check if a given pair is redundant. bilinkings are eliminated until a minimum "spanning" subset is reached.
 
 An implementation of the described algorithm is
 
@@ -278,7 +281,7 @@ The number of checks returned by the algorithm is at worst $O(|V|^2|E|)$. The ov
 
 \section{Solving the online addition problem}
 
-The solution presented here assumes that there is an implicit identity function on every node, as would be the case in most applications. However, a modified version of the algorithm for diagrams without this assumption is presented in the appendix, with modification that is similar in spirit to what was described in the description of the naive baselines.
+The solution presented here assumes that there is an implicit identity function on every node, as would be the case in most applications. However, a modified version of the algorithm for diagrams without this assumption is presented in the appendix. The modification is similar in spirit to what was described in the description of the naive baselines.
 
 Like with the online baseline, we do not concern ourselves with parallel pairs where neither or both paths pass through the new edge.
 The key observation that allows us to improve on the online baseline is that for a given (source, sink) pair only a single parallel pair needs to be verified. This is an implication of Theorem \ref{reductionRule}, expanded on later.
@@ -320,13 +323,13 @@ for S in existingGraph.Nodes():
 output parallelPairs;
 \end{verbatim}
 
-The try block is executed at most $O(|V|^2)$ times.
+The try block is executed at most $O(|V|^2)$ times, so that this is the bound on the number of pairs verified.
 
 The bound is asymptotically tight. This can be seen in the case where the graph contains 2N nodes besides S and T. We consider N of the nodes to be in group 1, and the other N to be in group 2. Every node in group 1 has a forward node to every node in group 2, as well as to S. T has a forward edge to every node in group 2. In this diagram, on the addition of edge (S, T), $N^2$ paths need to be verified which is polynomial in 2N+2.
 
 Also notice that if trying to optimize for path length (say, if composing functions is expensive) then "find any path" can be replaced with "find shortest path".
 
-The overall run time of the algorithm, assuming that path finding is done using depth first search, is $O((|V|+|E|)|V|^2)$.
+An efficient implementation of the algorithm can run in $O(|V|(|V|+|E|))$ time at a $O(|V|^3)$ space cost. In such an implementation, path finding from a given source node to all potential sink nodes would be done in a single $O(|V|+|E|)$ breadth first search and the results memoized in $O(|V|^2)$ space.
 
 \subsection{(Optional) Optimization Step}
 
@@ -453,7 +456,7 @@ return verificationSet
 
 The result of the algorithm cannot be further reduced. Also, the verification of the parallel pairs returned in the algorithm implies that the output of the previous algorithm must commute, and transitively with Theorem \ref{verifyingSet} that the entire diagram must commute.
 
-The run time of the first step is $O(|V|^4)$, and that of the second step is $O(|V|)$, so that the overall bound is $O(|V|^4)$, which is still a gain of a factor of $|E|^2$ over the batch algorithm.
+The run time of the first step is $O(|V|^4)$, and that of the second step is $O(|V|)$, so that the overall bound is $O(|V|^4)$.
 
 \subsection{Verification}
 Ultimately verification is performed by calling an equality oracle (that is beyond the scope of this work) for every comparable pair returned by the previous stage.
@@ -545,15 +548,16 @@ for S in existingGraph.Nodes():
             // No comparable pairs from node {S} to node {T} 
             // that need to be checked
             continue
-    for cycle in findCyclesWithTerminatNode(newEdge.Source()):
+    cycle = findCycleWithTerminalNode(newEdge.Source()):
+    if cycle:    
         parallelPairs.add(newEdge, cycle+newEdge)
-    for cycle in findCyclesWithTerminatNode(newEdge.Source()):
+    cycle = findCycleWithTerminalNode(newEdge.Source()):
+    if cycle:    
         parallelPairs.add(newEdge, newEdge+cycle)
 output parallelPairs;
 \end{verbatim}
 
-The optional minimization algorithm is modified to exclude nodes representing cycles, since the reduction case no longer will apply in the absence of an implicit identity on the terminal node of the cycle.
-*I think the minimality of minimized subset still holds, but not 100\% sure*
+The optional minimization algorithm is modified to exclude nodes representing cycles where the source and sink are equal, since the reduction case no longer will apply in the absence of an implicit identity on the terminal node of the cycle.
 
 \section{Case Studies}
 
