@@ -40,7 +40,7 @@ Third Author\inst{1}\orcidID{2222--3333-4444-5555}}
 Commutative diagrams arise in many systems, such as an implicit type conversion graph in some programming languages.
 It can be useful in program analysis to verify that a diagram representing conversions remains commutative over the course of its construction.
 A naive approach to solving the problem would take factorial time, and the presence of cycles could potentially lead to an infinite number of paths to check. Previous work provides an algorithm for the special case of acyclic diagrams that verifies that a given diagram commutes in $O(|V|^4|E|^2)$ time, where V is the set of vertices in the diagram, and E, the set of edges. 
-We present an algorithm that given a diagram and an edge to add to it, verifies that the resultant diagram commutes in $O(|V|(|E| + |V|)$ time. For the case when checking the equality of paths is expensive, we present a second algorithm that runs in $O(V^4)$ time but uses the minimum possible number of equality checks. We evaluate the algorithms against baselines, and see its practical application in the compiler of a domain specific language for geometry types. As a demonstration of the more general applicability of the algorithm, we use it to identify discrepancies in a  currency conversion graph.
+We present an algorithm that given a diagram and an edge to add to it, verifies that the resultant diagram commutes in $O(|V|(|E| + |V|)$ time. For the case when checking the equality of paths is expensive, we present an optimization that runs in $O(V^4)$ time but reduces to the minimum possible number of equality checks. We evaluate the algorithms against baselines, and see its practical application in the compiler of a domain specific language for geometry types. As a demonstration of the more general applicability of the algorithm, we use it to identify discrepancies in a  currency conversion graph.
 
 \end{abstract}
 %
@@ -331,7 +331,7 @@ Also notice that if trying to optimize for path length (say, if composing functi
 
 An efficient implementation of the algorithm can run in $O(|V|(|V|+|E|))$ time at a $O(|V|^3)$ space cost. In such an implementation, path finding from a given source node to all potential sink nodes would be done in a single $O(|V|+|E|)$ breadth first search and the results memoized in $O(|V|^2)$ space.
 
-\subsection{(Optional) Optimization Step}
+\subsection{Optimization Step}
 
 In the case where equality checks are very expensive, we begin by finding the minimal set of (source, sink) pairs such that checking for these pairs logically implies having checked the full diagram.
 
