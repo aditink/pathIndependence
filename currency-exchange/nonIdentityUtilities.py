@@ -3,7 +3,7 @@ from typing import List, Tuple
 
 class NonIdentityPathChecker(BaseOnlineChecker):
 
-    def handleCycle(self, terminalNode: int) -> List[Tuple[int, int]]:
+    def handleCycle(self, terminalNode: int) -> List[Tuple[List[int], List[int]]]:
         pathsToCheck = []
         cycle = self.pathsToNewEdgeSource[terminalNode] +\
             self.pathsFromNewEdgeSink[terminalNode] 
@@ -14,32 +14,15 @@ class NonIdentityPathChecker(BaseOnlineChecker):
             pathsToCheck += [(cycle, [cycleEntry] + cycle)]
         return pathsToCheck
     
-    def getTerminalCycles(self, node: int) -> List[List[int]]:
-        """Find all the cycles that include node (but not the new edge)."""
-        # Modified DFS.
-        path = []
-        blocked = set()
-        cycles = []
-        stack = [node]
-        while (len(stack)>0):
-            currentNode = stack.pop()
-            if currentNode == self._invalid_node:
-                blocked.add(path.pop())
-            elif currentNode not in blocked and currentNode not in path:
-                path = path+[currentNode]
-                if currentNode == node and len(path)>1:
-                    cycles += [path]
-                stack += [self._invalid_node] + self.compactFwdGraph[currentNode]
-        return cycles
+    def getSinkCycles(self) -> List[Tuple[List[int], List[int]]]:
+        (cycleExists, cycle) = self.findPath(self.newEdgeSink, self.newEdgeSink)
+        if cycleExists:
+            return [(cycle, [self.newEdgeSource] + cycle)]
+        return []
     
-    def getSinkCycles(self) -> List[Tuple[int, int]]:
-        sinkCycles = self.getTerminalCycles(self.newEdgeSink)
-        sinkCyclePairs = [(cycle, [self.newEdgeSource] + cycle) 
-            for cycle in sinkCycles]
-        return sinkCyclePairs
-    
-    def getSourceCycles(self) -> List[Tuple[int, int]]:
-        sourceCycles = self.getTerminalCycles(self.newEdgeSource)
-        sourceCyclePairs = [(cycle, cycle+[self.newEdgeSink]) 
-            for cycle in sourceCycles]
-        return sourceCyclePairs
+    def getSourceCycles(self) -> List[Tuple[List[int], List[int]]]:
+        (cycleExists, cycle) = self.findPath(
+            self.newEdgeSource, self.newEdgeSource)
+        if cycleExists:
+            return [(cycle, cycle+[self.newEdgeSink])]
+        return []

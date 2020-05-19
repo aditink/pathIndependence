@@ -35,6 +35,6 @@ def testGetPathsToCheck():
     assert(checker.timeTaken > 0)
 
 def runAllTests():
-    print('\033[0m' + "Running optimalSetPathChecker Tests")
+    print('\033[0m' + "Running NoIdentityOptimalSetPathChecker Tests")
     testGetPathsToCheck()
     print(Fore.GREEN + 'Run Completed')   
