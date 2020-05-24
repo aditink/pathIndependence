@@ -292,4 +292,8 @@ def runAllTests():
 
 #### Execute ####
 
-runAllTests()
+def main():
+    runAllTests()
+
+if __name__=="__main__":
+    main()

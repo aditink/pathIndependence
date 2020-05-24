@@ -21,7 +21,7 @@ class NoIdentityOptimalSetPathChecker(OptimalSetPathChecker, NonIdentityPathChec
                 pathPairs += self.handleCycle(source)
             else:
                 pathPairs += [self.findPair(source, sink)]
-        pathPairs += self.getSourceCycles + self.getSinkCycles
+        pathPairs += self.getSourceCycles() + self.getSinkCycles()
         endTime = time.time()
         self.timeTaken = endTime - startTime
         return pathPairs
@@ -37,4 +37,10 @@ def testGetPathsToCheck():
 def runAllTests():
     print('\033[0m' + "Running NoIdentityOptimalSetPathChecker Tests")
     testGetPathsToCheck()
-    print(Fore.GREEN + 'Run Completed')   
+    print(Fore.GREEN + 'Run Completed')
+
+def main():
+    runAllTests()
+
+if __name__=="__main__":
+    main()
