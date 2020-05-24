@@ -37,7 +37,6 @@ def constructGraph(currencies):
             row += [NO_EDGE]
         GRAPH += [row]
 
-
 def addRates(base, target, rate, checkIndependence=False):
     global GRAPH
     isValid = True
