@@ -50,5 +50,8 @@ def runAllTests():
     print(Fore.GREEN + 'Run Completed')    
 
 #### Execute ####
+def main():
+    runAllTests()
 
-runAllTests()
+if __name__=="__main__":
+    main()

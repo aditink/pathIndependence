@@ -20,7 +20,7 @@ class PolynomialPathChecker(BaseOnlineChecker):
         pathsToCheck = []
         predecessors = self.getAllPredecessors(self.newEdgeSource)
         successors = self.getAllSuccessors(self.newEdgeSink)
-        predecessorSet = set(predecessors)
+        # predecessorSet = set(predecessors)
         # For each successor, find paths to all valid predecessors.
         for sink in successors:
             for source in predecessors:
@@ -49,4 +49,8 @@ def runAllTests():
 
 #### Execute ####
 
-runAllTests()
+def main():
+    runAllTests()
+
+if __name__=="__main__":
+    main()

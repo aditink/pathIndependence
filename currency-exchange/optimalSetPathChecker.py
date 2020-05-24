@@ -44,7 +44,7 @@ class OptimalSetPathChecker(BaseOnlineChecker):
             (source, sink) = orderedPotentialPairs.pop(0)
             if (source, sink) in potentialPairs:
                 potentialPairs.remove((source, sink))
-                (pathExists, path) = self.findPath(source, sink)
+                (pathExists, _) = self.findPath(source, sink)
                 if pathExists:
                     currentPairSuccessors = self.getSuccessors(source, sink)
                     for redundantPair in acceptedPairs.intersection(
@@ -98,5 +98,8 @@ def runAllTests():
     print(Fore.GREEN + 'Run Completed')    
 
 #### Execute ####
+def main():
+    runAllTests()
 
-runAllTests()
+if __name__=="__main__":
+    main()

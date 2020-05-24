@@ -37,4 +37,10 @@ def testGetPathsToCheck():
 def runAllTests():
     print('\033[0m' + "Running NoIdentityOptimalSetPathChecker Tests")
     testGetPathsToCheck()
-    print(Fore.GREEN + 'Run Completed')   
+    print(Fore.GREEN + 'Run Completed')
+
+def main():
+    runAllTests()
+
+if __name__=="__main__":
+    main()
