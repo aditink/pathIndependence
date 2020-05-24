@@ -21,7 +21,7 @@ class NoIdentityOptimalSetPathChecker(OptimalSetPathChecker, NonIdentityPathChec
                 pathPairs += self.handleCycle(source)
             else:
                 pathPairs += [self.findPair(source, sink)]
-        pathPairs += self.getSourceCycles + self.getSinkCycles
+        pathPairs += self.getSourceCycles() + self.getSinkCycles()
         endTime = time.time()
         self.timeTaken = endTime - startTime
         return pathPairs
