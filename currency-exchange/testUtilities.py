@@ -137,7 +137,8 @@ class TestDefinition():
         self.expected_bkd_graph = expected_bkd_graph
         self.expected_paths_to_s = expected_paths_to_s
         self.expected_paths_from_t = expected_paths_from_t,
-        self.expected_solution = expected_solution
+        self.expected_solution = expected_solution,
+        self.expected_solution_no_identity = expected_solution_no_identity
 
 # Test Definitions
 
@@ -149,7 +150,8 @@ defaultTestDefinition = TestDefinition(
     expected_bkd_graph = expected_bkd_graph,
     expected_paths_to_s = expected_paths_to_s,
     expected_paths_from_t = expected_paths_from_t,
-    expected_solution = expected_solution)
+    expected_solution = expected_solution,
+    expected_solution_no_identity = expected_solution_no_identity)
 
 testCaseOne = TestDefinition(
     test_graph = [
@@ -191,6 +193,11 @@ testCaseOne = TestDefinition(
         # [0, 1, 2] = [0, 2] => [0, 1, 2, 0, 3] = [0, 2, 0, 3].
         # From existing graph [0, 2, 0, 3] = [0, 3] and [1, 2, 0, 3] = [1, 3].
         # Put together, [0, 1, 3] = [0, 3].
+    ],
+    expected_solution_no_identity = [
+        ([0, 1, 2], [0, 2]),
+        ([1, 2, 0, 1], [1, 2, 0, 1, 2, 0, 1])
+        # TODO add missing entries.
     ]
 )
 
