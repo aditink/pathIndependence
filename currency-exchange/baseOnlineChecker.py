@@ -3,7 +3,7 @@ import copy
 from iPathChecker import IPathChecker
 from testUtilities import assertEqual, test_graph, test_s, test_t,\
     expected_paths_to_s, expected_paths_from_t, expected_fwd_graph,\
-        expected_bkd_graph, NO_EDGE
+        expected_bkd_graph, NO_EDGE, TestDefinition, defaultTestSuite
 from typing import List, Set, Tuple
 
 _default_no_edge = -1
@@ -18,7 +18,7 @@ class BaseOnlineChecker(IPathChecker):
 
     def getForwardEdges(self, source: int) -> List[int]:
         return [i for i in range(len(self.graph)) \
-            if self.graph[source][i] != self._no_edge and i != source]
+            if self.graph[source][i] != self._no_edge]
 
     def getBackwardEdges(self, sink: int) -> List[int]:
         return [i for i in range(len(self.graph)) \
@@ -201,45 +201,44 @@ class BaseOnlineChecker(IPathChecker):
 
 #### Quick tests ####
 
-def testBuildCompactBkdGraph():
+def testBuildCompactBkdGraph(testDefinition: TestDefinition):
     checker = BaseOnlineChecker()
-    checker.graph = test_graph
+    checker.graph = testDefinition.test_graph
     checker.buildCompactBkdGraph()
-    assert(checker.graph == test_graph)
+    assertEqual(testDefinition.test_graph, checker.graph)
     if __debug__ and checker._debug:
         # Assumption: lists ordered from smallest to largest element.
         print("expected: {}".format(str(expected_bkd_graph)))
         print("got: {}".format(str(checker.compactBkdGraph)))
-    assert(str(checker.compactBkdGraph) == str(expected_bkd_graph))
+    assertEqual(testDefinition.expected_bkd_graph, checker.compactBkdGraph)
 
-def testBuildCompactFwdGraph():
+def testBuildCompactFwdGraph(testDefinition: TestDefinition):
     checker = BaseOnlineChecker()
-    checker.graph = test_graph
+    checker.graph = testDefinition.test_graph
     checker.buildCompactFwdGraph()
-    assert(checker.graph == test_graph)
-    # Assumption: lists ordered from smallest to largest element.
-    assert(str(checker.compactFwdGraph) == str(expected_fwd_graph))
+    assert(checker.graph == testDefinition.test_graph)
+    assertEqual(testDefinition.expected_fwd_graph, checker.compactFwdGraph)
 
-def testSetGraph():
+def testSetGraph(testDefinition: TestDefinition):
     checker = BaseOnlineChecker()
-    checker.setGraph(test_graph)
-    assert(checker.graph == test_graph)
+    checker.setGraph(testDefinition.test_graph)
+    assertEqual(checker.graph, testDefinition.test_graph)
     # Assumption: lists ordered from smallest to largest element.
-    assert(str(checker.compactFwdGraph) == str(expected_fwd_graph))
-    assert(str(checker.compactBkdGraph) == str(expected_bkd_graph))
+    assertEqual(testDefinition.expected_fwd_graph, checker.compactFwdGraph)
+    assertEqual(testDefinition.expected_bkd_graph, checker.compactBkdGraph)
     
-def testSetEdge():
+def testSetEdge(testDefinition: TestDefinition):
     checker = BaseOnlineChecker()
-    checker.setEdge(0, 1)
-    assert(checker.newEdgeSource == 0)
-    assert(checker.newEdgeSink == 1)
+    checker.setEdge(testDefinition.test_s, testDefinition.test_t)
+    assertEqual(testDefinition.test_s, checker.newEdgeSource)
+    assertEqual(testDefinition.test_t, checker.newEdgeSink)
 
-def testGetAllPredecessors():
+def testGetAllPredecessors(testDefinition: TestDefinition):
     checker = BaseOnlineChecker()
-    checker.setGraph(test_graph)
-    checker.setEdge(test_s, test_t)
-    checker.getAllPredecessors(test_s)
-    assertEqual(expected_paths_to_s, checker.pathsToNewEdgeSource)
+    checker.setGraph(testDefinition.test_graph)
+    checker.setEdge(testDefinition.test_s, testDefinition.test_t)
+    checker.getAllPredecessors(testDefinition.test_s)
+    assertEqual(testDefinition.expected_paths_to_s, checker.pathsToNewEdgeSource)
 
 def testGetAllPredecessorsUnordered():
     checker = BaseOnlineChecker()
@@ -276,24 +275,25 @@ def testComputeTime():
     checker.timeTaken = 123
     assert(checker.getComputeTime() == 123)
 
-def runAllTests():
+def runAllTests(testSuite: List[TestDefinition]):
     print('\033[0m' + "Running baseOnlinePathChecker Tests")
-    testBuildCompactBkdGraph()
-    testBuildCompactFwdGraph()
-    testSetGraph()
-    testSetEdge()
-    testGetAllPredecessors()
     testGetAllPredecessorsUnordered()
     testGetAllSuccessors()
     testFindPath()
     testFindPair()
     testComputeTime()
+    for testDefinition in testSuite:
+        testSetGraph(testDefinition)
+        testBuildCompactBkdGraph(testDefinition)
+        testBuildCompactFwdGraph(testDefinition)
+        testGetAllPredecessors(testDefinition)
+        testSetEdge(testDefinition)
     print(Fore.GREEN + 'Run Completed')
 
 #### Execute ####
 
 def main():
-    runAllTests()
+    runAllTests(defaultTestSuite)
 
 if __name__=="__main__":
     main()
