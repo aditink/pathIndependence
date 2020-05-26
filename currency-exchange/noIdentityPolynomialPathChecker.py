@@ -1,7 +1,7 @@
 from nonIdentityUtilities import NonIdentityPathChecker
 from colorama import Fore
 from testUtilities import assertActualIsSuperset, test_graph, test_s, test_t,\
-    expected_solution_no_identity
+    expected_solution_no_identity, defaultTestSuite, TestDefinition
 import time
 from typing import List, Tuple
 
@@ -42,22 +42,23 @@ class NoIdentityPolynomialPathChecker(NonIdentityPathChecker):
 
 #### Quick Tests ####
 
-def testGetPathsToCheck():
+def testGetPathsToCheck(testDefinition: TestDefinition):
     checker = NoIdentityPolynomialPathChecker()
-    checker.setGraph(test_graph)
-    checker.setEdge(test_s, test_t)
-    assertActualIsSuperset(expected_solution_no_identity,\
+    checker.setGraph(testDefinition.test_graph)
+    checker.setEdge(testDefinition.test_s, testDefinition.test_t)
+    assertActualIsSuperset(testDefinition.expected_solution_no_identity,\
         checker.getPathsToCheck())
     assert(checker.timeTaken > 0)
 
-def runAllTests():
+def runAllTests(testSuite: List[TestDefinition]):
     print('\033[0m' + "Running NoIdentityPolynomialPathChecker Tests")
-    testGetPathsToCheck()
+    for testDefinition in testSuite:
+        testGetPathsToCheck(testDefinition)
     print(Fore.GREEN + 'Run Completed')    
 
 #### Execute ####
 def main():
-    runAllTests()
+    runAllTests(defaultTestSuite)
 
 if __name__=="__main__":
     main()
