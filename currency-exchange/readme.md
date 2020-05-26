@@ -10,6 +10,7 @@ Interface that defines contract for path checkers: iPathChecker.py
 Various implementations of path checkers.
 testUtilities to define test functionality and constants.
 Currency graph and related functionality: currencyGraph.py.
+Main.py creates a currency graph and does checks.
 
 ### Testing
 For quick one-time check and printout of results use tester.py.
@@ -29,4 +30,5 @@ repeatable testing suite for future modifications.
 written for python 3.
 The things I needed to install:
 Requests library: pip install requests
+numpy
 colorama

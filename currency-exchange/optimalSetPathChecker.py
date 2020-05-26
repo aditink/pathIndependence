@@ -12,7 +12,6 @@ class OptimalSetPathChecker(BaseOnlineChecker):
 
     def __init__(self):
         super().__init__()
-        self.noIdentity = False
 
     def getSuccessors(self, source: int, sink: int) -> Set[int]:
         """Returns a set of pairs such that verifying a path between given
