@@ -174,6 +174,7 @@ class BaseOnlineChecker(IPathChecker):
         # sink node -> {source node -> path}
         self.pathsToNode = dict()
         self._no_edge = _default_no_edge
+        self.noIdentity = False
     
     def setGraph(
         self,

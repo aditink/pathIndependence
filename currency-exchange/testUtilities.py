@@ -69,8 +69,11 @@ expected_solution_no_identity = [
     ([3, 6, 7, 2, 3], [3, 6, 7, 2, 3, 6, 7, 2, 3]),
     ([6, 7, 2, 3, 6], [6, 7, 2, 3, 6, 7, 2, 3, 6]),
     ([7, 2, 3, 6, 7], [7, 2, 3, 6, 7, 2, 3, 6, 7]),
-    ([1, 2], [1, 2, 3, 6, 7, 2]),
-    ([3, 4], [3, 6, 7, 2, 3, 4])
+    ([1, 2, 3, 6, 7, 2], [1, 2]),
+    ([3, 6, 7, 2, 3, 4], [3, 4]),
+    ([7, 2, 3, 6, 7, 2], [7, 2]),
+    ([3, 6, 7, 2, 3, 6], [3, 6]),
+    ([6, 7, 2, 3, 6, 7], [6, 7])
 ]
 
 # This method is from stack overflow.
@@ -83,15 +86,21 @@ def compareLists(expected, actual):
         print(Fore.RED + "Missing element")
         traceback.print_stack()
         return False
+    if actual:
+        print(Fore.RED + "Extra element(s) {}".format(actual))
+        traceback.print_stack()
+        return False 
     return not actual
 
 def actualListIsSuperset(expected, actual):
     actual = list(actual)   # make a mutable copy
+    currentElem = None
     try:
         for elem in expected:
+            currentElem = elem
             actual.remove(elem)
     except ValueError:
-        print(Fore.RED + "Missing element")
+        print(Fore.RED + "Missing element {}".format(currentElem))
         traceback.print_stack()
         return False
     return True

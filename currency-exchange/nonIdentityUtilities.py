@@ -6,6 +6,10 @@ from typing import List, Tuple
 
 class NonIdentityPathChecker(BaseOnlineChecker):
 
+    def __init__(self):
+        super().__init__()
+        self.noIdentity = True
+
     def handleCycle(self, terminalNode: int) -> List[Tuple[List[int], List[int]]]:
         pathsToCheck = []
         cycle = self.pathsToNewEdgeSource[terminalNode] +\
@@ -72,7 +76,7 @@ def runAllTests(testSuite: List[TestDefinition]):
     print('\033[0m' + "Running NoIdentityPolynomialPathChecker Tests")
     for testDefinition in testSuite:
         testGetSourceCycles(testDefinition)
-        testGetSinkCycles
+        testGetSinkCycles(testDefinition)
     print(Fore.GREEN + 'Run Completed')    
 
 #### Execute ####
