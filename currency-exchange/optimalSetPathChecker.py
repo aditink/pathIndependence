@@ -12,6 +12,7 @@ class OptimalSetPathChecker(BaseOnlineChecker):
 
     def __init__(self):
         super().__init__()
+        self.noIdentity = False
 
     def getSuccessors(self, source: int, sink: int) -> Set[int]:
         """Returns a set of pairs such that verifying a path between given
@@ -19,6 +20,9 @@ class OptimalSetPathChecker(BaseOnlineChecker):
         equal."""
         predecessors = self.getAllPredecessors(source)
         successors = self.getAllSuccessors(sink)
+        if (self.noIdentity and source == sink):
+            return {(src, snk) for src in predecessors for snk in successors 
+            if src == snk}
         return {(src, snk) for src in predecessors for snk in successors}
 
     def getRootPairs(self) -> List[List[int]]:

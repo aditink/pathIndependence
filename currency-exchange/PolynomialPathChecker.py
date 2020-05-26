@@ -11,6 +11,7 @@ class PolynomialPathChecker(BaseOnlineChecker):
 
     def __init__(self):
         super().__init__()
+        self.noIdentity = True
 
     def getPathsToCheck(self) ->  List[Tuple[List[int], List[int]]]:
         """Return the pairs of path whose equality implies path independence of 
