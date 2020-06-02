@@ -61,7 +61,7 @@ class BaseOnlineChecker(IPathChecker):
                 visitedList += [currentNode]
                 path = [currentNode] + path
                 if (memoize):
-                       pathDict[currentNode] = copy.deepcopy(path)
+                    pathDict[currentNode] = copy.deepcopy(path)
                 stack += [self._invalid_node] + self.compactBkdGraph[currentNode]
         if __debug__ and self._debug:
             print("getAllPredecessors: node: {} and visitedList: {}".format(
@@ -90,7 +90,7 @@ class BaseOnlineChecker(IPathChecker):
                 visited.add(currentNode)
                 path = [currentNode] + path
                 if (memoize):
-                       pathDict[currentNode] = copy.deepcopy(path)
+                    pathDict[currentNode] = copy.deepcopy(path)
                 stack += [self._invalid_node] + self.compactBkdGraph[currentNode]
         if __debug__ and self._debug:
             print("getAllPredecessors: node: {} and visitedList: {}".format(
@@ -150,7 +150,7 @@ class BaseOnlineChecker(IPathChecker):
         """Finds a pair of paths from the given source to sink, the first 
         includes the new edge, and the second one doesn't.
         In case of a cycle the second path is just the single node,
-        representing the identity on the node."""    
+        representing the identity on the node."""
         if not bool(self.pathsFromNewEdgeSink):
             self.getAllSuccessors(self.newEdgeSink)
         if not bool(self.pathsToNewEdgeSource):
@@ -206,6 +206,8 @@ class BaseOnlineChecker(IPathChecker):
     
     def setIdFunction(self, idFunction):
         """Store the special representation of identity function."""
+        # TODO Change Identity constant to be a function on terminal node so as
+        # to make "unit" tests pass again.
         self.identityFunction = idFunction
         
 
