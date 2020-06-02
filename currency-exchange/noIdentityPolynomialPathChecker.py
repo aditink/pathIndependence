@@ -34,7 +34,8 @@ class NoIdentityPolynomialPathChecker(NonIdentityPathChecker):
                 src = predecessorsForNode.pop()
                 pathsToCheck += [(self.pathsToNewEdgeSource[src] +
                     self.pathsFromNewEdgeSink[sink],
-                    self.pathsToNode[sink][src])]
+                    self.pathsToNode[sink][src]) if src != sink 
+                        else self.identityFunction]
         pathsToCheck += self.getSinkCycles() + self.getSourceCycles()
         endTime = time.time()
         self.timeTaken = endTime - startTime

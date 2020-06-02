@@ -26,7 +26,7 @@ class CurrencyGraph():
         """Setup graph with initial row of data from base currency"""
         rates = self.makeRequest(self.base)
         self.initialize(list(rates))
-        self.addRow(self.base, rates)
+        self.saveRow(self.base, rates)
         if self.DEBUG:
             print("Initialized Graph:")
             print(np.matrix(self.currencyList))
@@ -51,21 +51,26 @@ class CurrencyGraph():
     
     def saveEntry(self, base, target, rate, checkIndependence=False):
         isValid = True
+        copyWithNewEdge = self.getCopyWithNewEdge(base, target, rate)
         if (checkIndependence):
-            isValid = self.checkIndependenceFunc(base, target, rate)
+            isValid = self.checkIndependenceFunc(
+                base, 
+                target, 
+                rate, 
+                copyWithNewEdge)
         if (isValid):
-            self.graph[self.indexOf(base)][self.indexOf(target)] = rate    
+            self.graph = copyWithNewEdge    
         return isValid
+
+    def getCopyWithNewEdge(self, base, target, rate):
+        newGraph = copy.deepcopy(self.graph)
+        newGraph[self.indexOf(base)][self.indexOf(target)] = rate
+        return newGraph
     
-    # Does not call addRates for efficiency.
-    def addRow(self, base, rates, checkIndependence=False):
+    def saveRow(self, base, rates, checkIndependence=False):
         for currency, rate in rates.items():
             isValid = True
-            if (checkIndependence):
-                isValid = self.checkIndependenceFunc(base, currency, rate)
-            if (isValid):
-                self.graph[self.indexOf(base)][self.indexOf(currency)] = rate
-            else:
+            if not self.saveEntry(base, currency, rate):
                 return False
         return True
 
@@ -80,6 +85,9 @@ class CurrencyGraph():
         return URL
 
     def makeRequest(self, base, symbols=[]):
+        # Failing on Euro to Euro for some reason, so mocking response for now.
+        if base == 'EUR' and symbols == ['EUR']:
+            return { 'EUR' : 1 }
         # sending get request and saving the response as response object 
         r = requests.get(url = self.makeUrl(base, symbols))   
         # extracting data in json format 
@@ -94,12 +102,18 @@ class CurrencyGraph():
                 print(rate)
         return rates
     
-    def addEntry(self, base, target, check = False):
-        rates = self.makeRequest(base, [target])
+    def addEntry(self, base, target, check = False, retries = 3):
+        try:
+            rates = self.makeRequest(base, [target])
+        except:
+            if retries > 0:
+                self.addEntry(base, target, check, retries-1)
+            else:
+                raise Exception("api call failed")
         return self.saveEntry(base, target, rates[target], check)        
 
     # New edge is (source, target, rate)
-    def checkIndependenceFunc(self, source, target):
+    def checkIndependenceFunc(self, source, target, newGraph):
         """This should be set by caller, much like an observer."""
         raise NotImplementedError
 
@@ -128,6 +142,7 @@ def testSetup():
 
 def runAllTests(testSuite: List[TestDefinition]):
     print('\033[0m' + "Running NoIdentityPolynomialPathChecker Tests")
+    # testMakeRequest() # Only test when necessary to reduce number of requests
     testSetup()
     testAddEntry()
     print(Fore.GREEN + 'Run Completed')    
