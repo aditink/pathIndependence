@@ -121,7 +121,7 @@ class CurrencyGraph():
 
     def printGraph(self):
         for i in range(len(self.graph)):
-            print(i)
+            print("row {}:".format(i))
             print(self.graph[i])
 
 #### Quick Tests ####

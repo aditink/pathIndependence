@@ -17,11 +17,10 @@ ID_FUNCTION = [-1]
 # TODO add:
 # 1. Commandline arguments.
 # 2. Historic rate.
-# 3. Connection to path checking algorithm.
 
 ###############################################
 
-epsilon = 0.000000001 # allowed error multiplier
+epsilon = 1E-7 # allowed error multiplier
 
 checkers = [
     OptimalSetPathChecker(),
@@ -53,7 +52,7 @@ def getIndependenceFromChecker(checker: IPathChecker, graph: CurrencyGraph):
             path1Value = getPathValue(path1, newGraph)
             path2Value = getPathValue(path2, newGraph)
             if abs(path1Value - path2Value) > epsilon * path2Value:
-                return (False, "path 1: {}: {} \n path 2: {}: {} \n difference: {}, new edge: {} -> {}: {}"
+                return (False, "path 1: {}: {} \npath 2: {}: {} \n difference: {}, new edge: {} -> {}: rate: {}"
                 .format(
                 path1Value,
                 path1,
@@ -89,9 +88,11 @@ for checker in checkers:
                             checker.__class__.__name__))
                     print(info)
                     raise StopIteration
-    except:
-        pass    
-    print(Fore.GREEN + "Completed graph for {}"
+        print(Fore.GREEN + "Completed graph for {}"
         .format(checker.__class__.__name__))
+    except:
+        print(Fore.RED + "Aborted building graph for {}"
+        .format(checker.__class__.__name__))  
     print('\033[0m')
+    print('Resultant graph:')
     graph.printGraph()
