@@ -51,16 +51,17 @@ class CurrencyGraph():
     
     def saveEntry(self, base, target, rate, checkIndependence=False):
         isValid = True
+        extraData = ''
         copyWithNewEdge = self.getCopyWithNewEdge(base, target, rate)
         if (checkIndependence):
-            isValid = self.checkIndependenceFunc(
+            (isValid, extraData) = self.checkIndependenceFunc(
                 base, 
                 target, 
                 rate, 
                 copyWithNewEdge)
         if (isValid):
             self.graph = copyWithNewEdge    
-        return isValid
+        return (isValid, extraData)
 
     def getCopyWithNewEdge(self, base, target, rate):
         newGraph = copy.deepcopy(self.graph)
@@ -70,9 +71,10 @@ class CurrencyGraph():
     def saveRow(self, base, rates, checkIndependence=False):
         for currency, rate in rates.items():
             isValid = True
-            if not self.saveEntry(base, currency, rate):
-                return False
-        return True
+            (isValid, extraInfo) = self.saveEntry(base, currency, rate)
+            if not isValid:
+                return (isValid, extraInfo)
+        return (True, 'Succeeded')
 
     def makeUrl(self, base, symbols):
         URL = self.endPoint
@@ -107,7 +109,7 @@ class CurrencyGraph():
             rates = self.makeRequest(base, [target])
         except:
             if retries > 0:
-                self.addEntry(base, target, check, retries-1)
+                return self.addEntry(base, target, check, retries-1)
             else:
                 raise Exception("api call failed")
         return self.saveEntry(base, target, rates[target], check)        
@@ -118,7 +120,9 @@ class CurrencyGraph():
         raise NotImplementedError
 
     def printGraph(self):
-        print(self.graph)
+        for i in range(len(self.graph)):
+            print(i)
+            print(self.graph[i])
 
 #### Quick Tests ####
 

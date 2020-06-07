@@ -1,3 +1,4 @@
+from colorama import Fore
 import copy
 from currencyGraph import CurrencyGraph
 import numpy as np
@@ -20,11 +21,11 @@ ID_FUNCTION = [-1]
 
 ###############################################
 
-epsilon = 0.0001 # allowed error percent
+epsilon = 0.000000001 # allowed error multiplier
 
 checkers = [
-    PolynomialPathChecker(),
-    OptimalSetPathChecker()
+    OptimalSetPathChecker(),
+    PolynomialPathChecker()
 ]
 
 def getPathValue(path: List[int], graph: List[List[int]]):
@@ -51,9 +52,18 @@ def getIndependenceFromChecker(checker: IPathChecker, graph: CurrencyGraph):
         for (path1, path2) in pairsToCheck:
             path1Value = getPathValue(path1, newGraph)
             path2Value = getPathValue(path2, newGraph)
-            if (path1Value - path2Value) > epsilon * path2Value:
-                return False
-        return True
+            if abs(path1Value - path2Value) > epsilon * path2Value:
+                return (False, "path 1: {}: {} \n path 2: {}: {} \n difference: {}, new edge: {} -> {}: {}"
+                .format(
+                path1Value,
+                path1,
+                path2Value,
+                path2,
+                path1Value - path2Value,
+                base,
+                target,
+                rate))
+        return (True, "Success for base {} target {}".format(base, target))
     return IndependenceFunction
             
 
@@ -62,13 +72,26 @@ for checker in checkers:
     graph = CurrencyGraph()
     graph.setup()
     graph.checkIndependenceFunc = getIndependenceFromChecker(checker, graph)
-    for baseCurrency in graph.currencyList:
-        if baseCurrency == graph.base:
-            continue
-        for targetCurrency in graph.currencyList:
-            print("Adding edge from {} to {}"
-                .format(baseCurrency, targetCurrency))
-            success = graph.addEntry(baseCurrency, targetCurrency, True)
-            print(success)
-    print("Completed graph for {}".format(checker.__class__.__name__))
+    try:    
+        for baseCurrency in graph.currencyList:
+            if baseCurrency == graph.base:
+                continue
+            for targetCurrency in graph.currencyList:
+                if (DEBUG):
+                    print("Adding edge from {} to {}"
+                        .format(baseCurrency, targetCurrency))
+                (success, info) = graph.addEntry(baseCurrency, targetCurrency, True)
+                if not success:
+                    print(Fore.RED + "Adding edge from {} to {} failed for checker {}."
+                        .format(
+                            baseCurrency,
+                            targetCurrency,
+                            checker.__class__.__name__))
+                    print(info)
+                    raise StopIteration
+    except:
+        pass    
+    print(Fore.GREEN + "Completed graph for {}"
+        .format(checker.__class__.__name__))
+    print('\033[0m')
     graph.printGraph()
