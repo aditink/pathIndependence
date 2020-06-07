@@ -52,18 +52,14 @@ class CurrencyGraph():
     def saveEntry(self, base, target, rate, checkIndependence=False):
         isValid = True
         extraData = ''
-        copyWithNewEdge = self.getCopyWithNewEdge(base, target, rate)
         if (checkIndependence):
-            (isValid, extraData) = self.checkIndependenceFunc(
-                base, 
-                target, 
-                rate, 
-                copyWithNewEdge)
+            (isValid, extraData) = self.checkIndependenceFunc(base, target, rate)
         if (isValid):
-            self.graph = copyWithNewEdge    
+            self.graph[self.indexOf(base)][self.indexOf(target)] = rate
         return (isValid, extraData)
 
     def getCopyWithNewEdge(self, base, target, rate):
+        """Get a copy of this graph with a new edge from base to target added"""
         newGraph = copy.deepcopy(self.graph)
         newGraph[self.indexOf(base)][self.indexOf(target)] = rate
         return newGraph
@@ -115,7 +111,7 @@ class CurrencyGraph():
         return self.saveEntry(base, target, rates[target], check)        
 
     # New edge is (source, target, rate)
-    def checkIndependenceFunc(self, source, target, newGraph):
+    def checkIndependenceFunc(self, source, target):
         """This should be set by caller, much like an observer."""
         raise NotImplementedError
 

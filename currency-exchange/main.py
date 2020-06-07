@@ -41,13 +41,14 @@ def getPathValue(path: List[int], graph: List[List[int]]):
         result *= graph[path[i]][path[i+1]]
     return result
 
-def getIndependenceFromChecker(checker: IPathChecker, graph: CurrencyGraph):
+def independenceFuncFactory(checker: IPathChecker, graph: CurrencyGraph):
     """Equality check oracle definition."""
     checker.setGraph(graph.graph)
     checker.setIdFunction(ID_FUNCTION)
-    def IndependenceFunction(base, target, rate, newGraph):
+    def IndependenceFunction(base, target, rate):
         checker.setEdge(graph.indexOf(base), graph.indexOf(target))
         pairsToCheck = checker.getPathsToCheck()
+        newGraph = graph.getCopyWithNewEdge(base, target, rate)
         for (path1, path2) in pairsToCheck:
             path1Value = getPathValue(path1, newGraph)
             path2Value = getPathValue(path2, newGraph)
@@ -70,7 +71,7 @@ for checker in checkers:
     print("Working with {}".format(checker.__class__.__name__))
     graph = CurrencyGraph()
     graph.setup()
-    graph.checkIndependenceFunc = getIndependenceFromChecker(checker, graph)
+    graph.checkIndependenceFunc = independenceFuncFactory(checker, graph)
     try:    
         for baseCurrency in graph.currencyList:
             if baseCurrency == graph.base:
