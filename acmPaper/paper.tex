@@ -1,8 +1,10 @@
+\newcount\draft\draft=1 % set to 0 for submission or publication
 \documentclass[sigconf,authordraft]{acmart}
 %
 \usepackage{tikz}
 \usepackage{amssymb}
 \usepackage{algorithm}
+\usepackage{xxx}
 %
 \usepackage{graphicx}
 % Used for displaying a sample figure. If possible, figure files should
@@ -52,68 +54,61 @@ We present an algorithm that given a diagram and an edge to add to it, verifies 
 \maketitle
 
 \section{Introduction}
-Many systems can be understood as a category, with a collection of sets, and some transformation functions between the sets- for example, in programming languages, type systems with coercion. If a directed graph is constructed with the sets as nodes and functions as edges between the nodes, then by construction, in the new graph, choice of path should not matter- any choice of path should yield the same transformation between any two nodes. Each object has a unique representation in a given set in the system, so the transformation mapping between any two nodes should not depend on choice of path used to obtain the transformation. We will use the term "diagram" to refer to such graphs with their associated sets (vertices) and transformations (edges).
+Many systems can be understood as graphs: a set of objects with directed functions between members. With programming, for example, type systems with coercions can be drawn as a graph with type nodes and coercion edges.  A desirable trait of such a type system and many other similar systems is that traversing the graph from a given start and end node results in the same value independent of path chosen; a property equivalent to saying the graph diagram is commutative.  With our type coercion example, it could be problematic if casting to a supposedly equivalent type as an intermediate step resulted in a different answer than a direct cast.
 
-Since such commutative diagrams arise in many systems, it is often useful to be able to perform verification and ensure the graphs in question are indeed path independent. 
-We formalize the problem as checking the commutativity of a diagram incrementally.
-A diagram is said to commute when on selecting any two vertices, any directed path leads to the same result by composition.
-Naively checking if all paths in a given graph are path independent could require a number of function equality checks as bad as factorial in the number of nodes, since a path consists of an ordering of nodes. Further, the presence of cycles implies a potentially infinite number of paths. Previous work ~\cite{commutative} has identified an $O(|E|^2|V|^4)$ algorithm to verify that an acyclic diagram commutes.
+Given the utility of system diagram commutativity, it would be helpful to check that the property holds for real systems.
+Since diagrams may change over time, and verifying the entire system from scratch may be computationally expensive, it would be additionally convenient if new edges could be checked online as they are added.
 
-We present a polynomial time $O(|V|(|E|+|V|)$ algorithm to verify that commutativity of a graph is maintained over the course of online addition, assuming an oracle to check the abstract notion of equality of functions. The number of calls to the equality checking oracle required by the algorithm is asymptotically tight. With an additional $O(|V|^4)$ optimization step, is is possible to use instead the minimal possible number of equality checks, should these checks be expensive. We compare our solution to three baselines: a naive checking of all path pairs, with only special handling for cycles, a check for all path pairs that involve the new edge, and with an algorithm suggested by previous work to solve the batch version of the problem for acyclic diagrams.
+Naively checking if all paths in a given graph are path independent could require a number of function equality checks as bad as factorial in the number of nodes, since a path consists of an ordering of nodes. Previous work ~\cite{commutative} has identified an $O(|E|^2|V|^4)$ algorithm to verify that a complete acyclic diagram commutes; however, this solution neither manages the batch case nor the existence of cycles. Unfortunately, the presence of cycles implies a potentially infinite number of paths. 
+
+We present a polynomial time $O(|V|(|E|+|V|)$ algorithm to verify that commutativity of a graph (potentially with cycles) is maintained over the course of online addition, assuming an oracle to check the abstract notion of equality of functions. We show the number of calls to the equality checking oracle is asymptotically tight. Should the calls to the oracle be expensive, we also show, with an additional $O(|V|^4)$ optimization step, an algorithm to use instead the minimal possible number of equality checks.
 
 To evaluate our results we use two case studies.
-First, in the domain specific geometry type language \textit{Gator}, our algorithm is used to ensure that user defined transformations between spaces stay consistent, and the compiler, deterministic as it makes automatic conversion choices. As a second case study, the the algorithm is used to identify inefficiencies in a currency conversion graph.
+First, our algorithm is used for the domain specific geometry type language \textit{Gator} to ensure that user defined transformations between spaces stay consistent. Second, our algorithm is used to identify inefficiencies in a currency conversion graph.
+
+We compare our solution to three baseline implementations: a naive checking of all path pairs with only special handling for cycles, a check for all path pairs that involve the new edge, and an algorithm suggested by previous work to solve the batch version of the problem for acyclic diagrams.
 
 \section{Formal Problem Setup and Terminology}
 
-First, we formalize the notion of a diagram, drawing inspiration from Murota ~\cite{commutative}.
+We start by formalizing the notion of a diagram, drawing inspiration from the previous acyclic work by Murota ~\cite{commutative}.
 
 % A lot of this exposition is from the cited paper, I feel like I need to make this clearer to give proper credit, but not sure how.
 
-We start with a directed graph G=(V,E) with sets attached to vertices and maps, to arcs. Each edge (u, v) in E corresponds to a function that maps elements of u to elements in v.
-All the functions form a semigroup F, with multiplication denoted by $\circ$.
-A semigroup is an algebraic structure with a set and an associative binary operation. We use it to represent functions in order to capture the one allowed operation- function composition.
+We start with a directed graph G=(V,E), where V consists of sets of elements and edges (u, v) in E correspond to functions that maps elements of u to elements in v.
+All these functions form a semigroup F, where multiplication is function composition.
+A semigroup consists of a set and an associative binary operation, which we use to capture function composition.
 
-The correspondence between edges and functions is stored as a mapping f:$E\rightarrow F$. f maps each edge to the function it represents.
+The correspondence between edges and functions is stored as a mapping f:$E\rightarrow F$, where f maps each edge to the function it represents.
 
-A path is a sequence of edges. The edge-to-function mapping f can be naturally extended to paths. If path p=$e_1\circ e_2 ... e_n$ then $f(p)=f(e_1) \circ f(e_2) ... f(e_n)$.
+A path is a sequence of edges. The edge-to-function mapping f can be naturally extended to paths: if path p=$e_1\circ e_2 ... e_n$ then $f(p)=f(e_1) \circ f(e_2) ... f(e_n)$.
 
-Let $P_{all}$ is the set of all paths in G.
+Let $P_{all}$ be the set of all paths in G.\xxx[dg]{Do we need this notation?  I don't see it anywhere.  Delete stuff that doesn't show up in the rest of the paper}
 
-The notation $\partial^{+}(p)$ is used to indicate the start node of path p, and similarly $\partial^-(p)$ is the end node of path p. $\partial(p)$ maps to the tuple (start node of p, end node of p).
+The notation $\partial^{+}(p)$ is used to indicate the start node of path p, and similarly $\partial^-(p)$ is the end node of path p. \xxx[dg]{Same for this notation.  I see $\partial$ being useful, but not $\partial^-$} $\partial(p)$ maps to the tuple (start node of p, end node of p).
 
 A pair of paths p and q is called \textit{parallel} iff their terminal nodes are the same, i.e., $\partial(p)=\partial(q)$.
-The problem of checking if diagrams commute amounts to checking if the two members of every parallel pair that can be constructed is equal.
-
 Let $R_{all}$ be the set of all parallel pairs of paths in the diagram.
 
-The diagram commutes iff f(p)=f(q) $\forall (p,q)\in R_{all}$, which is to say, the compositions of the maps along any path connecting u to v is independent of choice of path. Here, equality of functions is defined by an equality oracle whose exact specifics will vary with the nature of the functions and the domain to which the diagram belongs.
+The diagram commutes iff f(p)=f(q) $\forall (p,q)\in R_{all}$; that is, the composition of maps along any path connecting u to v is independent of path choice. Here, equality of functions is defined by some oracle whose specifics will vary by target functions and domain.
 
-\section{Baselines}
+\section{Baseline Algorithms}
 
-\subsection{Naive all-path check}
-The naive solution is to verify that in every parallel pair in the diagram, the two paths are equal. However since cycles potentially introduce an infinite number of pairs, they must be dealt with separately.
+To examine the efficacy of our proposed algorithm, we compare it to some potential alternatives.  Specifically, we examine a na\"{i}ve factorial algorithm, which we identify to be a two-flip tolerant path search, and Murota's historical batch solution~\cite{commutative}.
 
-Two situation can be imagined- the first, where the existence of the identity function from every node to itself is assumed as would describe most real world situations, and the second, where no such identity needs to exist.
+\subsection{Na\"{i}ve algorithm for online addition}
 
-When the identity is assumed, every cycle forms a parallel pair with an identity function on the terminal node. Therefore, the cycle must be verified to be equal to the identity on every node in the cycle. If this check succeeds for every elementary cycle in the diagram, then paths with multiple instance of the cycle must be equal to the version of the path without the cycle. It is therefore then enough to perform verification for all pairs where none of the path involves cycles. This is a finite set, bounded by $^{|E|!}C_2$. All elementary cycles in a diagram can be found in $O((|V|+|E|)(C+1))$ using Johnson's algorithm where C is the number of cycles, that can be greater than $2^{|V|}$. Thus the baseline is a factorial time algorithm that is nevertheless guaranteed to terminate.
-
-Without the identity assumed, a cycle c forms a parallel pair with itself repeated twice- the pair (c, c;c). This verification needs to be performed for all elementary cycles. Further, if there is any "exit" or "entrance" into an elementary cycle- an edge that is not a part of the cycle whose one end is a node that belongs to the cycle- then it must be verified that the transformation represented by the edge is equal to the transformation represented by the edge and cycle composed (the cycle is pre-pended in the case of an edge directed away from the cycle and appended in the case of an edge directed into the cycle). Should this verification succeed, by logic similar to the previous case, it must be that all paths (including complex cycles) that include the elementary cycle must be equal to version of the paths without the cycle (since a segment of the path with the cycle has already been verified to be equal to a version of that segment without the cycle). Once again this is a factorial time, terminating algorithm.
-
-\subsection{Naive algorithm for online addition}
-
-Since we solve the question of online addition, where the original diagram is path independent and a new edge is added, the naive baseline can be improved to verify only parallel pairs that have been affected by the addition of the new edge. Pairs that do not involve the new edge must continue to be path independent because they already belonged to the old diagram.
+We solve the question of online addition, where the original diagram is path independent and a new edge is added.  Any implementation can verify only parallel pairs that have been affected by the addition of the new edge. Pairs that do not involve the new edge must continue to be path independent because they already belonged to the old diagram.
 
 The cycle checking steps can also be improved upon. In the case where the identity is assumed, only elementary cycles passing through the new edge need to be verified to be equal to the identity. When the identity is not assumed, cycles that include one of the nodes of the new edge must be checked for the new exit or entry point that the new edge becomes (if the cycle includes the source of the new edge then the cycle followed by the new edge must be equal to the new edge alone and if the cycle include the sink then the new edge followed by the cycle must be equal to the new edge).
 Additionally, all cycles that include the new edge would need full verification like in the batch algorithm- the cycle would have to be equal to itself composed with itself, and would have to be verified for all its entry and exit points.
 
 Now, the commutativity of the original diagram could be used to narrow down the set of pairs to verify. Pairs where both paths do not involve the new edge would remain equal, but also, pairs where both paths involved the new edge would have to be equal. To see why this is true, each path could be thought of as consisting of the composition of three segments, the first segment from the common source to the source of the new edge, the second, the new edge itself, and the third, from the sink of the new edge to the common sink of the parallel pair. The first segment of both pairs would have to be equal because they existed in as parallel pairs in the original diagram, and similarly the third segments would also have to be equal. The second segments, consisting of the same edge, would also have to be equal. Therefore the composition of these three equal components would be equal. Note that the new edge could only appear once because cycles have already been dealt with and none of the paths under consideration hit a node twice. Thus we are left only to verify the pairs where exactly one of the paths includes the new edge.
 
-a "two-flip tolerant" path search could be used to identify the pairs of paths where exactly one path includes the new edge. 
-
 \subsubsection{Two flip tolerant path search}
+We use a "two-flip tolerant" path search to identify the pairs of paths where exactly one path includes the new edge. 
+
 In a normal directed graph path, only forward edges, i.e. edges that go outward from the current node, are considered. 
-On the other hand, the \textit{two flip path} goes through up to three phases: in the first phase, only backward edges- pointing inward to the current node- are accepted. In the second phase, only forward edges are accepted, and in the third phase, again only backward edges are accepted. As a consequence, there is a node in the path for which both path edges are oriented outwards, that lies between the first and second phase. This will be referred to as the \textit{first flipping point}. Similarly, there is a \textit{second flipping point} between the second and third phase, for which both path edges point inwards.
+A \textit{two flip path} consists of up to three phases: in the first phase, only backward edges- pointing inward to the current node- are accepted. In the second phase, only forward edges are accepted, and in the third phase, again only backward edges are accepted. The node between the first two phases we refer to as the \textit{first flipping point}, which has both edges pointing outward; similarly, we refer to the node between the latter two phases as the \textit{second flipping point}, at which both edges point inwards.
 
 Consider the situation where a new edge from source node S to sink T is being added to a diagram.
 A two flip tolerant path from S to T would correspond to a new pair of parallel paths- flipping point 1 would be the source of both paths, and flipping point 2, the sink. The first path would correspond to the second phase of the flip tolerant path search, and the second path, involving the new edge, would correspond to composing the first phase of the two flip path, the new edge, and the third phase.
