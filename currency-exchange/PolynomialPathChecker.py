@@ -30,7 +30,8 @@ class PolynomialPathChecker(BaseOnlineChecker):
                 src = predecessorsForNode.pop()
                 pathsToCheck += [(self.pathsToNewEdgeSource[src] +
                     self.pathsFromNewEdgeSink[sink],
-                    self.pathsToNode[sink][src])]
+                    self.pathsToNode[sink][src] if sink != src 
+                        else self.identityFunction)]
         endTime = time.time()
         self.timeTaken = endTime - startTime
         return pathsToCheck

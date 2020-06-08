@@ -1,5 +1,6 @@
 \newcount\draft\draft=1 % set to 0 for submission or publication
-\documentclass[sigconf,authordraft]{acmart}
+\documentclass[sigplan,review,anonymous]{acmart}
+\setcopyright{none}
 %
 \usepackage{tikz}
 \usepackage{amssymb}
@@ -19,7 +20,7 @@
 
 \begin{document}
 \settopmatter{printacmref=false}
-\title{Online verification of Commutativity}
+\title{Online Verification of Commutativity}
 %
 %\titlerunning{Abbreviated paper title}
 % If the paper title is too long for the running head, you can set
@@ -476,6 +477,29 @@ return True
 TODO.
 \subsection{Gator}
 \subsection{Currency Graph}
+
+To demonstrate our algorithm applied to a real world situation, 
+we found inconsistencies in a diagram of the exchange rate between currencies.
+Consider a diagram with nodes as currencies and a directed edge being the
+conversion rate from its source node's currency to its sink node's currency.
+Since the transformation exchange rate of money from any given base currency to a target currency
+can be expected to be the same regardless of which intermediate currency transformations
+are used, this diagram should commute.
+
+Using an api, https://exchangeratesapi.io, we built a fully connected diagram for 32 currencies.
+To ensure that it indeed commuted, before the addition of each edge, we used the algorithms presented
+to ensure the addition of a new edge did not introduce inconsistencies in the existing diagram.
+If a new edge was, in fact, problematic, the algorithm returned an example inconsistent
+pair that would arise from the addition of the edge.
+The pair would consist of two currency transformation sequences with the 
+same source currency and ultimate destination currency, but with different effective 
+exchange rates values, as computed by taking the product of all the exchange rates
+encountered through the chain.
+
+We allowed an "error tolerance" for floating point error.
+Graphs were generally consistent up to an error tolerance to the order of magnitude $10^{-6}$.
+However, below this threshold we found inconsistencies.
+For both algorithms, computation completed in minutes.
 
 \section{Evaluation}
 

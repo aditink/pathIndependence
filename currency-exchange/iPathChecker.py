@@ -20,3 +20,7 @@ class IPathChecker:
     def getComputeTime(self) -> int:
         """Return time required to compute latest path check"""
         pass
+
+    def setIdFunction(self, idFunction: List[int]):
+        """Store the special representation of the identity function/path."""
+        pass

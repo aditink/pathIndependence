@@ -2,11 +2,15 @@ from colorama import Fore
 from nonIdentityUtilities import NonIdentityPathChecker
 from optimalSetPathChecker import OptimalSetPathChecker
 from testUtilities import assertActualIsSuperset, test_graph, test_s, test_t,\
-    expected_solution_no_identity
+    expected_solution_no_identity, TestDefinition, defaultTestSuite, assertEqual
 import time
 from typing import List, Tuple
 
 class NoIdentityOptimalSetPathChecker(OptimalSetPathChecker, NonIdentityPathChecker):
+
+    def __init__(self):
+        super().__init__()
+        self.noIdentity = True
 
     def getPathsToCheck(self) ->  List[Tuple[List[int], List[int]]]:
         """Return the pairs of path whose equality implies path independence of 
@@ -26,21 +30,22 @@ class NoIdentityOptimalSetPathChecker(OptimalSetPathChecker, NonIdentityPathChec
         self.timeTaken = endTime - startTime
         return pathPairs
 
-def testGetPathsToCheck():
+def testGetPathsToCheck(testDefinition: TestDefinition):
     checker = NoIdentityOptimalSetPathChecker()
-    checker.setGraph(test_graph)
-    checker.setEdge(test_s, test_t)
-    assertActualIsSuperset(expected_solution_no_identity,\
+    checker.setGraph(testDefinition.test_graph)
+    checker.setEdge(testDefinition.test_s, testDefinition.test_t)
+    assertEqual(testDefinition.expected_solution_no_identity,\
         checker.getPathsToCheck())
     assert(checker.timeTaken > 0)
 
-def runAllTests():
+def runAllTests(testSuite: List[TestDefinition]):
     print('\033[0m' + "Running NoIdentityOptimalSetPathChecker Tests")
-    testGetPathsToCheck()
+    for testDefinition in testSuite:
+        testGetPathsToCheck(testDefinition)
     print(Fore.GREEN + 'Run Completed')
 
 def main():
-    runAllTests()
+    runAllTests(defaultTestSuite)
 
 if __name__=="__main__":
     main()

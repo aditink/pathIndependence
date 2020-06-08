@@ -2,9 +2,8 @@ from baseOnlineChecker import BaseOnlineChecker
 from colorama import Fore
 import copy
 from testUtilities import assertEqual, test_graph, test_s, test_t,\
-    expected_solution
+    expected_solution, TestDefinition, defaultTestSuite
 import time
-import traceback
 from typing import List, Set, Tuple
 
 class OptimalSetPathChecker(BaseOnlineChecker):
@@ -20,6 +19,9 @@ class OptimalSetPathChecker(BaseOnlineChecker):
         equal."""
         predecessors = self.getAllPredecessors(source)
         successors = self.getAllSuccessors(sink)
+        if (self.noIdentity and source == sink):
+            return {(src, snk) for src in predecessors for snk in successors 
+            if src == snk}
         return {(src, snk) for src in predecessors for snk in successors}
 
     def getRootPairs(self) -> List[List[int]]:
@@ -83,23 +85,24 @@ def testGetRootPairs():
     checker.setEdge(test_s, test_t)
     assertEqual({(2, 2), (3, 3), (6, 6), (7, 7)}, checker.getRootPairs())
     
-def testGetPathsToCheck():
+def testGetPathsToCheck(testDefinition: TestDefinition):
     checker = OptimalSetPathChecker()
-    checker.setGraph(test_graph)
-    checker.setEdge(test_s, test_t)
-    assertEqual(expected_solution, checker.getPathsToCheck())
+    checker.setGraph(testDefinition.test_graph)
+    checker.setEdge(testDefinition.test_s, testDefinition.test_t)
+    assertEqual(testDefinition.expected_solution, checker.getPathsToCheck())
     assert(checker.timeTaken > 0)
 
-def runAllTests():
+def runAllTests(testSuite: List[TestDefinition]):
     print('\033[0m' + "Running optimalSetPathChecker Tests")
     testGetSuccessors()
     testGetRootPairs()
-    testGetPathsToCheck()
-    print(Fore.GREEN + 'Run Completed')    
+    for testDefinition in testSuite:
+        testGetPathsToCheck(testDefinition)
+    print(Fore.GREEN + 'Run Completed')
 
 #### Execute ####
 def main():
-    runAllTests()
+    runAllTests(defaultTestSuite)
 
 if __name__=="__main__":
     main()
