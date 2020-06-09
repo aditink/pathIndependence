@@ -73,7 +73,7 @@ We compare our solution to three baseline implementations: a naive checking of a
 
 We start by formalizing the notion of a diagram, drawing inspiration from the previous acyclic work by Murota ~\cite{commutative}.
 
-% A lot of this exposition is from the cited paper, I feel like I need to make this clearer to give proper credit, but not sure how.
+\xxx[AK]{A lot of this exposition is from the cited paper, I feel like I need to make this clearer to give proper credit, but not sure how}
 
 We start with a directed graph G=(V,E), where V consists of sets of elements and edges (u, v) in E correspond to functions that maps elements of u to elements in v.
 All these functions form a semigroup F, where multiplication is function composition.
@@ -98,21 +98,20 @@ To examine the efficacy of our proposed algorithm, we compare it to some potenti
 
 \subsection{Na\"{i}ve algorithm for online addition}
 
-We solve the question of online addition, where the original diagram is path independent and a new edge is added.  Any implementation can verify only parallel pairs that have been affected by the addition of the new edge. Pairs that do not involve the new edge must continue to be path independent because they already belonged to the old diagram.
+We start with a reference baseline solution for online addition, where the original diagram is path independent and a new edge is added. Pairs that do not involve the new edge must continue to be path independent because they already belonged to the old diagram.   Any implementation can thus verify only parallel pairs that have been affected by the addition of the new edge.
+
+That the original diagram commutes can be used to narrow down the set of pairs to verify.  Cases of pairs where either both paths or neither path includes the new edge must both remain equal with straightforward reasoning.
 
 The cycle checking steps can also be improved upon. In the case where the identity is assumed, only elementary cycles passing through the new edge need to be verified to be equal to the identity. When the identity is not assumed, cycles that include one of the nodes of the new edge must be checked for the new exit or entry point that the new edge becomes (if the cycle includes the source of the new edge then the cycle followed by the new edge must be equal to the new edge alone and if the cycle include the sink then the new edge followed by the cycle must be equal to the new edge).
-Additionally, all cycles that include the new edge would need full verification like in the batch algorithm- the cycle would have to be equal to itself composed with itself, and would have to be verified for all its entry and exit points.
+Additionally, all cycles that include the new edge would need full verification like in the batch algorithm- the cycle would have to be equal to itself composed with itself, and would have to be verified for all its entry and exit points.\xxx[dg]{This paragraph needs to be rewritten to make cycles clear without the identity stuff.  I'm not sure how to do it; I'll come back to it later}
 
-Now, the commutativity of the original diagram could be used to narrow down the set of pairs to verify. Pairs where both paths do not involve the new edge would remain equal, but also, pairs where both paths involved the new edge would have to be equal. To see why this is true, each path could be thought of as consisting of the composition of three segments, the first segment from the common source to the source of the new edge, the second, the new edge itself, and the third, from the sink of the new edge to the common sink of the parallel pair. The first segment of both pairs would have to be equal because they existed in as parallel pairs in the original diagram, and similarly the third segments would also have to be equal. The second segments, consisting of the same edge, would also have to be equal. Therefore the composition of these three equal components would be equal. Note that the new edge could only appear once because cycles have already been dealt with and none of the paths under consideration hit a node twice. Thus we are left only to verify the pairs where exactly one of the paths includes the new edge.
+Thus we are left only to verify the pairs where exactly one of the paths includes the new edge.
 
-\subsubsection{Two flip tolerant path search}
+\paragraph{Two flip tolerant path search}
 We use a "two-flip tolerant" path search to identify the pairs of paths where exactly one path includes the new edge. 
 
 In a normal directed graph path, only forward edges, i.e. edges that go outward from the current node, are considered. 
 A \textit{two flip path} consists of up to three phases: in the first phase, only backward edges- pointing inward to the current node- are accepted. In the second phase, only forward edges are accepted, and in the third phase, again only backward edges are accepted. The node between the first two phases we refer to as the \textit{first flipping point}, which has both edges pointing outward; similarly, we refer to the node between the latter two phases as the \textit{second flipping point}, at which both edges point inwards.
-
-Consider the situation where a new edge from source node S to sink T is being added to a diagram.
-A two flip tolerant path from S to T would correspond to a new pair of parallel paths- flipping point 1 would be the source of both paths, and flipping point 2, the sink. The first path would correspond to the second phase of the flip tolerant path search, and the second path, involving the new edge, would correspond to composing the first phase of the two flip path, the new edge, and the third phase.
 
 To present this idea diagrammatically, we represent path phases with arrows (note that these are the composition of many edges, not a single edge). The new edge is represented with a dashed arrow.
 
@@ -149,10 +148,9 @@ The purpose of this algorithm is to derive the conflicting pairs that a given tw
 
 Let the new edge added to the diagram be (S, T).
 It has already been shown how each path corresponds to a conflicting pair in the case where a path has two flips. When a path has only the first flip (which is to say, the third phase of the path is missing), but not the second flip, sink node T can be treated as the sink of the two conflicting path, while the first flipping point remains the source. Similarly when only the second flipping point is present then it is the sink, and S is the source. Finally when no flipping points are present, there are two possibilities. 
-Either the path is oriented from S to T, in which case the conflicting paths are simply the edge (S, T) and the entire flip-less path, or the path is oriented from T to S. In this case, we have found a cycle that has already been dealt with.
+Either the path is oriented from S to T, in which case the conflicting paths are simply the edge (S, T) and the entire flip-less path, or the path is oriented from T to S. In this case, we have found a cycle, which has already been handled.
 
-
-\paragraph{Theorem} The result of the two-flip tolerant path search from the source to the sink node of an edge that is to be newly added, followed with the path extraction algorithm has a one-to-one correspondence to the set of new parallel pairs with exactly one path passing through the new edge, with neither paths containing any cycles.
+\paragraph{Theorem} Consider the result of two-flip tolerant path search from the source to sink node of an edge that is to be newly added followed with the path extraction algorithm described.  This result has a one-to-one correspondence to the set of new parallel pairs with exactly one path passing through the new edge and neither paths containing any cycles.
 
 \paragraph{Proof}
 
@@ -165,11 +163,12 @@ Only one path passes through (S, T), which we will name path 1. We construct a t
 We have shown that all paths that need verification are caught by the two flip tolerant search followed with path extraction.
 
 \paragraph{Implementation}
-*Copy in python code from implementation? Appendix?*
+\xxx[AK]{Copy in python code from implementation? Appendix?}
+\xxx[DG]{Not sure we need this paragraph, the implementation is pretty clear from the description of the algorithm}
 
 This algorithm is also in the worst case as bad as factorial in the number of nodes. However, in the average case, it significantly outperforms the naive batch baseline. For sparse diagrams it is even competitive with our ultimate polynomial solution. Average case heuristic analysis will be presented in the evaluation section.
 
-\subsection{Optimal solution for batch problem}
+\subsection{Optimal batch solution}
 Murota's main result ~\cite{commutative} is a solution to the question of whether a given acyclic diagram commutes that returns the minimal number of equality checks. The paper describes the following algorithm to find the ($V^2E$ bounded) minimal set of pairs that needs to be checked.
 
 A diagram's structure can result in some redundancy, in the sense that verifying a subset of pairs can imply the verification of path pairs that aren't in the subset.
@@ -207,32 +206,34 @@ $p_2$=($j_1;j_2$, $h_1$)\\
 $p_3$=($f_1;h_1$, $f_1;j_2$)
 \end{center}
 
-
-The approach in the algorithm, at a high level, is to define a function that takes in a subset of pairs and returns the subset of pairs whose verification is implied by the verification of the input set. Then, greedy elimination of redundancies is performed until a minimal set is reached.
+\xxx[dg]{Should be a figure}
+The approach in this algorithm, at a high level, is to define a function that takes in a subset of pairs and returns the subset of pairs whose verification is implied by verifying the input set. Then, greedy elimination of redundancies is performed until a minimal set is reached.
 
 A bilinking is defined to be a parallel pair that is disjoint but for their terminal nodes. The set of all bilinkings is $R_0$.
 In an acyclic diagram, if all bilinkings are equal, all parallel pairs must also be equal since they any given pair can be expressed as a composition of bilinkings.
 
 Define $r_1>r_2$ for bilinkings $r_1$ = $\{p_l,q_l\}$, $r_2$= $\{p_2, q_2)$ $\in$ $R_0$, if there exists a path p such that $\partial p=\partial r_1$ and p contains $p_2$.
-The $\langle\rangle$ function is defined as:
+Define $\langle\rangle$ as:
 $\langle r \rangle = \{ s\in R_0| r>s\}$.
 
-For bilinking s, let F(s) be the vector in $\mathbb{F}2^{|E|}$ representing the edges present in s (there is a dimension corresponding to each edge, the $n^{th}$ dimension of F(s) is 1 if the corresponding edge is in s, and 0 otherwise). Let this function be extended to sets, so that for some set of bilinkings S, F(S) = $\{ F(s) | s\in S \}$.
+For bilinking $s$, let $F(s)$ be the vector in $\mathbb{F}2^{|E|}$ representing the edges present in s (the $n^{th}$ dimension of $F(s)$ is 1 if the corresponding edge is in $s$, and 0 otherwise). Let this function be extended to sets, so that for some set of bilinkings $S, F(S) = \{ F(s) | s\in S \}$.
 
-for a set of bilinkings r, the closure function cl is defined as:
-cl(r) = $\{ s\in R_0|$ s is linearly dependent on $F(r) \}$.
+for a set of bilinkings $r$, the closure function $cl$ is defined as:
+\xxx[dg]{I think this definition is incomplete}
+$cl(r) = \{ s\in R_0| s$ is linearly dependent on $F(r) \}$.
 
-The closure function on r basically captures all the pairs that can be made by made by composing or "gluing together" the bilinkings in r. 
-The aforementioned $\langle\rangle$ function captures the orientation of paths, and can be used to constrain compositions to be in the right direction. 
+The closure function on $r$ basically captures all the pairs that can be made by made by composing or "gluing together" the bilinkings in r. 
 
 Using these two function we finally define the function $\sigma$ on a set of bilinkings r as
 $\sigma(r) = \{s \in R_0 | s\in cl(R\cap \langle s \rangle) \}$.
 This is the function used to capture all the pairs whose verification is implied by the verification of pairs in r.
 
-$\sigma$ is used to iteratively check if a given pair is redundant. bilinkings are eliminated until a minimum "spanning" subset is reached.
+$\sigma$ is used to iteratively check if a given pair is redundant. Bilinkings are eliminated until a minimum "spanning" subset is reached.
 
-An implementation of the described algorithm is
+A complete implementation of the described algorithm is included in the appendix.
 
+\xxx[dg]{Probably put this in the appendix}
+\xxx[dg]{Give a summary of the algorithm though, breaking down important parts.  I think that's mostly been done above, but I'm not sure}
 \begin{verbatim}
 Graph existingGraph;
 R_s = {}
