@@ -4,7 +4,7 @@
 %
 \usepackage{tikz}
 \usepackage{amssymb}
-\usepackage{algorithm}
+\usepackage[norelsize, section]{algorithm2e}
 \usepackage{xxx}
 %
 \usepackage{graphicx}
@@ -325,6 +325,12 @@ for S in existingGraph.Nodes():
 
 output parallelPairs;
 \end{verbatim}
+\begin{algorithm}
+    \caption{Polynomial time algorithm}
+    \label{polynomial}
+    \KwData{placeholder}
+    \KwResult{placeholder}
+\end{algorithm}
 
 The try block is executed at most $O(|V|^2)$ times, so that this is the bound on the number of pairs verified.
 
@@ -397,7 +403,7 @@ We use the fact that $f_1$=$l; f_2$ and $h_1$=$h_2; m$.
 \[\Rightarrow l ; g_2 ; m = l ; f_2 ; (S,T) ; h_2 ; m \Rightarrow g_1 = f_1 ; (S,T) ; h_1\]
 \end{proof}
 
-Note that the proof is not affected if an of these paths is the identity, eg. if $f_1$ is the identity and S and $P_1$ are actually the same node.
+Note that the proof is not affected if any of these paths is the identity, eg. if $f_1$ is the identity and S and $P_1$ are actually the same node.
 
 We conclude that verifying a comparable pair of paths with end points ($P_1$, $P_2$) implies the verification of all path pairs ($Q_1$, $Q_2$) such that $Q_1$ is a successor of $P_1$ and $P_2$ is a successor of $Q_2$. A successor S to node N is any node such that there exists a path from N to S. Nodes are also their own successors and predecessors.
 
@@ -456,6 +462,13 @@ while (len(terminalPairGraph.nodes) > 0):
 return verificationSet
 
 \end{verbatim}
+\begin{algorithm}
+    \caption{Optimal subset algorithm}
+    \label{optimal}
+    \KwData{placeholder}
+    \KwResult{placeholder}
+\end{algorithm}
+
 
 The result of the algorithm cannot be further reduced. Also, the verification of the parallel pairs returned in the algorithm implies that the output of the previous algorithm must commute, and transitively with Theorem \ref{verifyingSet} that the entire diagram must commute.
 
@@ -479,7 +492,7 @@ TODO.
 \subsection{Gator}
 \subsection{Currency Graph}
 
-To demonstrate our algorithm applied to a real world situation, 
+To demonstrate our algorithms applied to a real world situation, 
 we found inconsistencies in a diagram of the exchange rate between currencies.
 Consider a diagram with nodes as currencies and a directed edge being the
 conversion rate from its source node's currency to its sink node's currency.
@@ -487,10 +500,10 @@ Since the transformation exchange rate of money from any given base currency to 
 can be expected to be the same regardless of which intermediate currency transformations
 are used, this diagram should commute.
 
-Using an api, https://exchangeratesapi.io, we built a fully connected diagram for 32 currencies.
-To ensure that it indeed commuted, before the addition of each edge, we used the algorithms presented
-to ensure the addition of a new edge did not introduce inconsistencies in the existing diagram.
-If a new edge was, in fact, problematic, the algorithm returned an example inconsistent
+Using an API ~\footnote{https://exchangeratesapi.io}, we built the fully connected diagram of exchange rates between 32 currencies on a given day.
+To ensure that it indeed commuted, we started with an empty diagram, and added in edges one by one.
+Before the addition of each edge, we used the algorithms (~\ref{polynomial} and ~\ref{optimal}) to ensure the addition of a new edge did not introduce inconsistencies in the existing diagram.
+If a new edge was, in fact, problematic, the algorithms returned an example inconsistent
 pair that would arise from the addition of the edge.
 The pair would consist of two currency transformation sequences with the 
 same source currency and ultimate destination currency, but with different effective 
@@ -498,9 +511,11 @@ exchange rates values, as computed by taking the product of all the exchange rat
 encountered through the chain.
 
 We allowed an "error tolerance" for floating point error.
-Graphs were generally consistent up to an error tolerance to the order of magnitude $10^{-6}$.
+Graphs were generally found to be consistent up to an error tolerance to the order of magnitude $10^{-6}$.
 However, below this threshold we found inconsistencies.
-For both algorithms, computation completed in minutes.
+Averaging over evaluation for the first 9 days of 2020, verifying and building a graph to completion (inclusive of the time required by network calls) took 223$\pm$34 seconds using algorithm ~\ref{optimal}, and in 128$\pm$7 seconds with algorithm ~\ref{polynomial}. 
+Computation was performed on a Macbook Pro 2015, 2.9 GHz Dual-Core Intel Core i5.
+More information about implementation can be found in the evaluation section.
 
 \section{Evaluation}
 

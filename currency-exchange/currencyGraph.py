@@ -2,8 +2,11 @@ from colorama import Fore
 import requests 
 import numpy as np
 import copy
+from datetime import datetime
 from optimalSetPathChecker import OptimalSetPathChecker
 from testUtilities import TestDefinition, defaultTestSuite
+import time
+import traceback
 from typing import List
 
 class CurrencyGraph():
@@ -13,14 +16,21 @@ class CurrencyGraph():
     INFTY = 1000000
     NO_EDGE = -1
     DEBUG = False
-    endPoint = "https://api.exchangeratesapi.io/latest?"
+    baseEndPoint = "https://api.exchangeratesapi.io/"
+    endPoint = baseEndPoint + "latest?"
     
     def __init__(self):
         self.graph = []
         self.currencyList = []
         self.base = 'USD' # Default but can change
+        self.sleepTime = 0
         np.set_printoptions(formatter={
             'float': lambda x: "{0:0.4f}".format(x)}, threshold=10000)
+    
+    def setupWithDay(self, year, month, day):
+        date = datetime(year, month, day)
+        self.endPoint = self.baseEndPoint + date.strftime("%Y-%m-%d") + "?"
+        self.setup()
     
     def setup(self):
         """Setup graph with initial row of data from base currency"""
@@ -87,7 +97,7 @@ class CurrencyGraph():
         if base == 'EUR' and symbols == ['EUR']:
             return { 'EUR' : 1 }
         # sending get request and saving the response as response object 
-        r = requests.get(url = self.makeUrl(base, symbols))   
+        r = requests.get(url = self.makeUrl(base, symbols), timeout = 1)
         # extracting data in json format 
         data = r.json() 
         if (self.DEBUG): 
@@ -100,11 +110,15 @@ class CurrencyGraph():
                 print(rate)
         return rates
     
-    def addEntry(self, base, target, check = False, retries = 3):
+    def addEntry(self, base, target, check = False, retries = 10):
         try:
             rates = self.makeRequest(base, [target])
-        except:
+        except Exception as e:
+            if (self.DEBUG):
+                print(e)
             if retries > 0:
+                self.sleepTime += 2 # 1 second because of the request timeout.
+                time.sleep(1)
                 return self.addEntry(base, target, check, retries-1)
             else:
                 raise Exception("api call failed")

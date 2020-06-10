@@ -11,8 +11,6 @@ Various implementations of path checkers.
 testUtilities to define test functionality and constants.
 Currency graph and related functionality: currencyGraph.py.
 Main.py creates a currency graph and does checks.
-Have stopped maintaining the noIdentity version of path Checkers so they may not
-work correctly in the latest commits.
 
 ### Data extraction and graph building
 Can be found in currencyGraph.py.
@@ -39,3 +37,16 @@ The things I needed to install:
 Requests library: pip install requests
 numpy
 colorama
+
+# Other Notes
+Have stopped maintaining the noIdentity version of path Checkers so they may not
+work correctly in the latest commits.
+Testing is currently broken because of identity representation.
+
+If encountering the error nodename nor servname provided, or not known it may
+actually be because you've hit the maximum number of open files allowed on the 
+system. If this is the case, on mac:
+    launchctl limit maxfiles
+if this shows a low number like 256,
+    sudo launchctl limit maxfiles 12288 200000
+On linux the relevant command is ulimit.
