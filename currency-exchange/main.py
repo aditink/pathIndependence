@@ -70,7 +70,7 @@ def independenceFuncFactory(checker: IPathChecker, graph: CurrencyGraph):
             
 totalCheckerTimes = dict() # checker -> (total seconds, number of runs)
 
-for day in range(1, 10):
+for day in range(1, 31):
     month = 1
     year = 2020
     if (DEBUG):
