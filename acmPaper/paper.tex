@@ -67,7 +67,7 @@ Since diagrams may change over time, and verifying the entire system from scratc
 Naively checking if all paths in a given diagram are path independent could require a number of function equality checks as bad as factorial in the number of nodes, since a path consists of an ordering of nodes.
 Further, the presence of cycles implies a potentially infinite number of paths. 
 
-In order to verify commutativity efficiently over online addition, we identified two key insights.
+In the course of efficiently verifying commutativity over online addition, we identified two key insights.
 The first was that in a commutative diagram, when a new edge is to be added, at most one path needs to be checked against for a given source and sink pair.
 Because the diagram commutes, all the paths between a given source and sink are equal and a representative to check against can arbitrarily be chosen.
 It lead to an $O(|V|^2(|E|+|V|)$ algorithm to verify a diagram remains commutative over the course of online addition, assuming an oracle to check the equality of functions.
@@ -525,9 +525,12 @@ same source currency and ultimate destination currency, but with different effec
 exchange rates values, as computed by taking the product of all the exchange rates
 encountered through the chain.
 
-We allowed an "error tolerance" for floating point error.
-Graphs were generally found to be consistent up to an error tolerance to the order of magnitude $10^{-6}$.
-However, below this threshold we found inconsistencies.
+We allowed an "error tolerance", so that differences reported would not be the trivial consequences of a floating point error.
+However, this relaxation of the equality oracle into imprecision meant that the mathematical reasoning that allow the algorithms to remove redundant path checks no longer applied.
+For instance, composing a new function with two approximately equal functions does not lead to equal results, so theorem ~\ref{reductionRule} fails with this approximate equality.
+When the algorithms reported no inconsistencies, it was still possible that the graph possessed inconsistencies above the given threshold and did not commute.
+Nonetheless, both algorithms were effective in catching inconsistencies. Algorithm ~\ref{polynomial} started finding inconsistencies at error tolerances to the order of $10^{-3}$, and ~\ref{optimal}, which makes more invalid redundant path check removals, at error tolerances to the order of $10^{-7}$.
+
 Averaging over evaluation for the first 30 days of 2020, building and verifying a diagram to completion (inclusive of the time required by network calls) took 243$\pm$19 seconds using algorithm ~\ref{optimal}, and in 133$\pm$13 seconds with algorithm ~\ref{polynomial}. 
 Computation was performed on a Macbook Pro 2015, 2.9 GHz Dual-Core Intel Core i5.
 More information about implementation can be found in the evaluation section.
