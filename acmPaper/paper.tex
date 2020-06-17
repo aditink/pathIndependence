@@ -55,14 +55,29 @@ We present an algorithm that given a diagram and an edge to add to it, verifies 
 \maketitle
 
 \section{Introduction}
-Many systems can be understood as graphs: a set of objects with directed functions between members. With programming, for example, type systems with coercions can be drawn as a graph with type nodes and coercion edges.  A desirable trait of such a type system and many other similar systems is that traversing the graph from a given start and end node results in the same value independent of path chosen; a property equivalent to saying the graph diagram is commutative.  With our type coercion example, it could be problematic if casting to a supposedly equivalent type as an intermediate step resulted in a different answer than a direct cast.
+Many systems can be understood as diagrams: graphs where nodes represent objects, and edges, directed transformation functions between nodes.
+In programming, for example, type systems with coercions can be drawn as a graph with type nodes and coercion edges.
+A desirable trait of such a type system and many other similar systems is that traversing the graph from a given start and end node results in the same value independent of path chosen.
+A diagram with this property is said to commute.
+With our type coercion example, it could be problematic if casting to a supposedly equivalent type as an intermediate step resulted in a different answer than a direct cast.
 
-Given the utility of system diagram commutativity, it would be helpful to check that the property holds for real systems.
+Given the utility of system diagram commutativity, it would be useful to check that the property holds for real systems.
 Since diagrams may change over time, and verifying the entire system from scratch may be computationally expensive, it would be additionally convenient if new edges could be checked online as they are added.
 
-Naively checking if all paths in a given graph are path independent could require a number of function equality checks as bad as factorial in the number of nodes, since a path consists of an ordering of nodes. Previous work ~\cite{commutative} has identified an $O(|E|^2|V|^4)$ algorithm to verify that a complete acyclic diagram commutes; however, this solution neither manages the batch case nor the existence of cycles. Unfortunately, the presence of cycles implies a potentially infinite number of paths. 
+Naively checking if all paths in a given diagram are path independent could require a number of function equality checks as bad as factorial in the number of nodes, since a path consists of an ordering of nodes.
+Further, the presence of cycles implies a potentially infinite number of paths. 
 
-We present a polynomial time $O(|V|(|E|+|V|)$ algorithm to verify that commutativity of a graph (potentially with cycles) is maintained over the course of online addition, assuming an oracle to check the abstract notion of equality of functions. We show the number of calls to the equality checking oracle is asymptotically tight. Should the calls to the oracle be expensive, we also show, with an additional $O(|V|^4)$ optimization step, an algorithm to use instead the minimal possible number of equality checks.
+In order to verify commutativity efficiently over online addition, we identified two key insights.
+The first was that in a commutative diagram, when a new edge is to be added, at most one path needs to be checked against for a given source and sink pair.
+Because the diagram commutes, all the paths between a given source and sink are equal and a representative to check against can arbitrarily be chosen.
+It lead to an $O(|V|^2(|E|+|V|)$ algorithm to verify a diagram remains commutative over the course of online addition, assuming an oracle to check the equality of functions.
+The algorithm makes an asymptotically optimal number of calls to the oracle.
+
+The second insight was that there is a single rule that places a partial, transitive ordering on the informativeness of paths.
+It allowed for the creation of a greedy, $O(|V|^4)$ optimization step, that results in the number of calls to the oracle being minimal.
+The optimization is very useful when the equality checking oracle is expensive.
+
+Previous work ~\cite{commutative} has identified an $O(|E|^2|V|^4)$ algorithm to verify that a complete acyclic diagram commutes; however, it addresses neither online addition nor cyclic diagrams.
 
 To evaluate our results we use two case studies.
 First, our algorithm is used for the domain specific geometry type language \textit{Gator} to ensure that user defined transformations between spaces stay consistent. Second, our algorithm is used to identify inefficiencies in a currency conversion graph.
