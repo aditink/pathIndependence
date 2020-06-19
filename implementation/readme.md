@@ -16,6 +16,7 @@ testUtilities to define test functionality and constants.
 
 ### Currency Graph
 Currency graph and related functionality: currencyGraph.py.
+
 main.py creates currency graphs and does checks.
 
 ### Evaluation
