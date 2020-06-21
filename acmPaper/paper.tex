@@ -4,7 +4,7 @@
 %
 \usepackage{tikz}
 \usepackage{amssymb}
-\usepackage[norelsize, section]{algorithm2e}
+\usepackage[norelsize]{algorithm2e}
 \usepackage{xxx}
 %
 \usepackage{graphicx}
@@ -233,7 +233,7 @@ $\sigma$ is used to iteratively check if a given pair is redundant. Bilinkings a
 A complete implementation of the described algorithm is included in the appendix.
 
 \xxx[dg]{Probably put this in the appendix}
-\xxx[dg]{Give a summary of the algorithm though, breaking down important parts.  I think that's mostly been done above, but I'm not sure}
+\xxx[dg]{Give a summary of the algorithm though, breaking down important parts.  I think that's mostly been done above, but some actual code snippets might help}
 \begin{verbatim}
 Graph existingGraph;
 R_s = {}
@@ -284,10 +284,14 @@ The number of checks returned by the algorithm is at worst $O(|V|^2|E|)$. The ov
 
 \section{Solving the online addition problem}
 
+\xxx[dg]{Insert an introduction paragraph here about what we're solving before jumping into the details}
+
+\xxx[dg]{As we've discussed, I think the existence of an identity function doesn't have to be assumed, since every node "exists" as itself.  I guess another way to put it is that we assume the 0-edge path exists as the "identity" function}
 The solution presented here assumes that there is an implicit identity function on every node, as would be the case in most applications. However, a modified version of the algorithm for diagrams without this assumption is presented in the appendix. The modification is similar in spirit to what was described in the description of the naive baselines.
 
 Like with the online baseline, we do not concern ourselves with parallel pairs where neither or both paths pass through the new edge.
-The key observation that allows us to improve on the online baseline is that for a given (source, sink) pair only a single parallel pair needs to be verified. This is an implication of Theorem \ref{reductionRule}, expanded on later.
+The key observation that allows us to improve on the online baseline is that, for a given source and sink pair, only a single parallel pair needs to be verified. 
+This is an implication of Theorem \ref{reductionRule}, expanded on later.
 Theorem \ref{verifyingSet} shows that should our selected set of pairs along with cycles passing through the new edge be verified commutative, the entire diagram must commute. The approach is to identify a parallel pair with exactly one path through the edge for each (source, sink) pair.
 
 
