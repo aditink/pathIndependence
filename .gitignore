@@ -13,6 +13,8 @@
 .*.lb
 *.dvi
 *.xdv
+*.bbl
+*.blg
 *-converted-to.*
 *.fdb_latexmk
 
