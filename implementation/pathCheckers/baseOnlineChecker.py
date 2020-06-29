@@ -1,3 +1,4 @@
+import setup
 from colorama import Fore
 import copy
 from pathCheckers.iPathChecker import IPathChecker
@@ -160,14 +161,14 @@ class BaseOnlineChecker(IPathChecker):
         (_, secondPath) = self.findPath(source, sink)
         # Special case of Identity.
         if source == sink:
-            secondPath = self.identityFunction    
+            secondPath = self.identityFunction(source)    
         return(firstSegment + lastSegment, secondPath)
 
     #### Public interface ####
 
     def __init__(self):
         self.graph = [[]]
-        self.identityFunction = [-1]
+        self.identityFunction = lambda source : [source]
         self.newEdgeSource = self._invalid_node
         self.newEdgeSink = self._invalid_node
         self.timeTaken = 0
@@ -206,8 +207,6 @@ class BaseOnlineChecker(IPathChecker):
     
     def setIdFunction(self, idFunction):
         """Store the special representation of identity function."""
-        # TODO Change Identity constant to be a function on terminal node so as
-        # to make "unit" tests pass again.
         self.identityFunction = idFunction
         
 
@@ -287,7 +286,7 @@ def testComputeTime():
     checker.timeTaken = 123
     assert(checker.getComputeTime() == 123)
 
-def runAllTests(testSuite: List[TestDefinition]):
+def runAllTests(testSuite: List[TestDefinition] = defaultTestSuite):
     print('\033[0m' + "Running baseOnlinePathChecker Tests")
     testGetAllPredecessorsUnordered()
     testGetAllSuccessors()

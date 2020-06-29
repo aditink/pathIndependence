@@ -1,3 +1,4 @@
+import setup
 from colorama import Fore
 from pathCheckers.nonIdentityUtilities import NonIdentityPathChecker
 from pathCheckers.optimalSetPathChecker import OptimalSetPathChecker

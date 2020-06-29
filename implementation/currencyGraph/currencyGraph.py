@@ -1,9 +1,10 @@
+import setup
 from colorama import Fore
 import requests 
 import numpy as np
 import copy
 from datetime import datetime
-from testing.testUtilities import TestDefinition
+from testing.testUtilities import TestDefinition, defaultTestSuite
 import time
 import traceback
 from typing import List
@@ -153,7 +154,7 @@ def testSetup():
     assert(len(graph.currencyList) > 0)
     assert(len(graph.graph) == len(graph.currencyList))
 
-def runAllTests(testSuite: List[TestDefinition]):
+def runAllTests(testSuite: List[TestDefinition] = defaultTestSuite):
     print('\033[0m' + "Running NoIdentityPolynomialPathChecker Tests")
     # testMakeRequest() # Only test when necessary to reduce number of requests
     testSetup()

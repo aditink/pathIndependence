@@ -18,7 +18,10 @@ from pathCheckers.polynomialPathChecker import PolynomialPathChecker
 INFTY = 1000000
 NO_EDGE = -1
 DEBUG = False
-ID_FUNCTION = [-1]
+
+ID = [-1]
+ID_PATH = [ID]
+ID_FUNCTION = lambda source : ID_PATH
 
 # TODO add:
 # 1. Commandline arguments.
@@ -37,7 +40,7 @@ def getPathValue(path: List[int], graph: List[List[int]]):
     """Composition oracle defintion."""
     result = 1
     # Special case for identity function.
-    if path == ID_FUNCTION:
+    if path == ID_PATH:
         return result
     # Special case for just new edge.
     if len(path) == 1:

@@ -1,3 +1,4 @@
+import setup
 from pathCheckers.baseOnlineChecker import BaseOnlineChecker
 from colorama import Fore
 import copy
@@ -92,7 +93,7 @@ def testGetPathsToCheck(testDefinition: TestDefinition):
     assertEqual(testDefinition.expected_solution, checker.getPathsToCheck())
     assert(checker.timeTaken > 0)
 
-def runAllTests(testSuite: List[TestDefinition]):
+def runAllTests(testSuite: List[TestDefinition] = defaultTestSuite):
     print('\033[0m' + "Running optimalSetPathChecker Tests")
     testGetSuccessors()
     testGetRootPairs()
