@@ -10,9 +10,9 @@ from typing import List
 
 NUM_TRIES = 1
 
-densityStep = 0.1
+densityStep = 0.2
 sizeStep = 10
-maxSize = 1000
+maxSize = 100
 
 densities = [i*densityStep for i in range(1, int(1.0/densityStep))] #[0.1, 0.5, 0.7, 0.8]
 sizes = [i*sizeStep for i in range(1, int(maxSize/sizeStep))]
@@ -68,7 +68,7 @@ def plot(checkerName, results):
 
     fig = plt.figure()
     ax = plt.axes(projection='3d')
-    ax.contour3D(X, Y, Z, 50, cmap='binary')
+    ax.contour3D(X, Y, Z, 50, zdir='z')
     ax.set_xlabel('Density')
     ax.set_ylabel('Size')
     ax.set_zlabel('time')
