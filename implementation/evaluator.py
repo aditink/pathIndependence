@@ -6,16 +6,19 @@ from pathCheckers.iPathChecker import IPathChecker
 from pathCheckers.optimalSetPathChecker import OptimalSetPathChecker
 from pathCheckers.polynomialPathChecker import PolynomialPathChecker
 from randomGraphGenerator import generateGraph
+import traceback
 from typing import List
 
-NUM_TRIES = 1
+NUM_TRIES = 10
 
 densityStep = 0.2
 sizeStep = 10
 maxSize = 100
 
-densities = [i*densityStep for i in range(1, int(1.0/densityStep))] #[0.1, 0.5, 0.7, 0.8]
+# densities = [i*densityStep for i in range(1, int(1.0/densityStep))] 
+densities = [0.1, 0.5, 0.9]
 sizes = [i*sizeStep for i in range(1, int(maxSize/sizeStep))]
+# sizes = [10, 50, 100]
 
 evaluationList = [(density, size) for size in sizes for density in densities]
 
@@ -60,9 +63,8 @@ def getEvaluateFunction(checker: IPathChecker, numTries: int):
         return info
     return evaluate
 
-
-
-def plot(checkerName, results):
+def plot3d(checkerName, results):
+    plt.clf()
     X, Y = np.meshgrid(densities, sizes)
     Z = [[results[(x, y)].getAvgTime() for x in densities] for y in sizes]
 
@@ -73,8 +75,32 @@ def plot(checkerName, results):
     ax.set_ylabel('Size')
     ax.set_zlabel('time')
 
-    plt.show()
-    fig.savefig("results/result{}{}.png".format(checkerName, datetime.utcnow()))
+    # plt.show()
+    fig.savefig("results/result3d{}{}.png".format(checkerName, datetime.utcnow()))
+    plt.clf()
+
+def plotTimeVsSize(checkerName, results, densities):
+    plt.clf()
+    handles = []
+
+    X = sizes
+    for density in densities:
+        try:
+            Y = [results[(density, size)].getAvgTime() for size in sizes]
+            handles += plt.plot(X, Y, label="density {}".format(density))
+        except:
+            print("No results for density {}".format(density))
+            print(traceback.print_stack())
+    plt.legend(handles=handles)
+    plt.xlabel('Number of Nodes')
+    plt.ylabel('Execution Time (seconds)')
+    plt.savefig("results/timeVsSize_{}_{}{}.png".format(NUM_TRIES, checkerName, datetime.utcnow()))
+    plt.clf()
+
+def plot(checkerName, results):
+    # plot3d(checkerName, results)
+    # Modify densities to plot only a subset of those computed.
+    plotTimeVsSize(checkerName, results, densities)
 
 # dictionary from (density, size) to attemptInfo
 for checker in checkers:

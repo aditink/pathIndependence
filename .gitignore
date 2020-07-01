@@ -161,3 +161,6 @@ dmypy.json
 *.synctex.gz
 
 *.pdf
+
+# Results folder in evaluation
+results/
