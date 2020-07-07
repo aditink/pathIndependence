@@ -5,15 +5,17 @@ import numpy as np
 from pathCheckers.iPathChecker import IPathChecker
 from pathCheckers.optimalSetPathChecker import OptimalSetPathChecker
 from pathCheckers.polynomialPathChecker import PolynomialPathChecker
+from pathCheckers.naiveChecker import NaiveChecker
+from pathCheckers.twoFlipChecker import TwoFlipPathChecker
 from randomGraphGenerator import generateGraph
 import traceback
 from typing import List
 
-NUM_TRIES = 10
+NUM_TRIES = 1
 
-densityStep = 0.2
-sizeStep = 10
-maxSize = 100
+densityStep = 0.5
+sizeStep = 2
+maxSize = 10
 
 # densities = [i*densityStep for i in range(1, int(1.0/densityStep))] 
 densities = [0.1, 0.5, 0.9]
@@ -23,8 +25,10 @@ sizes = [i*sizeStep for i in range(1, int(maxSize/sizeStep))]
 evaluationList = [(density, size) for size in sizes for density in densities]
 
 checkers : List[IPathChecker] = [
-    PolynomialPathChecker(),
-    OptimalSetPathChecker()
+    #PolynomialPathChecker(),
+    #OptimalSetPathChecker(),
+    NaiveChecker(),
+    #TwoFlipPathChecker()
 ]
 
 class attemptInfo:
@@ -97,14 +101,34 @@ def plotTimeVsSize(checkerName, results, densities):
     plt.savefig("results/timeVsSize_{}_{}{}.png".format(NUM_TRIES, checkerName, datetime.utcnow()))
     plt.clf()
 
+def plotTimeVsSizeForChecker(checkerNames, results, density):
+    plt.clf()
+    handles = []
+
+    X = sizes
+    for checkerName in checkerNames:
+        try:
+            Y = [results[checkerName][(density, size)].getAvgTime() for size in sizes]
+            handles += plt.plot(X, Y, label=checkerName)
+        except:
+            print("Error for {}".format(checkerName))
+            print(traceback.print_stack())
+    plt.legend(handles=handles)
+    plt.xlabel('Number of Nodes')
+    plt.ylabel('Execution Time (seconds)')
+    plt.savefig("results/timeVsSizeForChecker_{}_{}.png".format(NUM_TRIES, datetime.utcnow()))
+    plt.clf()
+
 def plot(checkerName, results):
     # plot3d(checkerName, results)
     # Modify densities to plot only a subset of those computed.
     plotTimeVsSize(checkerName, results, densities)
 
-# dictionary from (density, size) to attemptInfo
+checkerToResults = dict()
 for checker in checkers:
     evaluate = getEvaluateFunction(checker, NUM_TRIES)
+    # dictionary from (density, size) to attemptInfo
     results = { (density, size) : evaluate(density, size) for 
         density in densities for size in sizes }
+    checkerToResults[checker.__class__.__name__] = results
     plot(checker.__class__.__name__, results)

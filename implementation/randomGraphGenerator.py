@@ -15,10 +15,12 @@ class evaluationGraph:
 def generateGraph(density: float, nodes: int) -> evaluationGraph:
     """generate a random graph of the given density, with a given number of 
     nodes along with a new edge to add to the graph.
-    Density = number of edges / total possible number of edges, i.e. n^2."""
+    Density = number of edges / total possible number of edges, i.e. n^2.
+    Assume graph can have at least one edge."""
     allPaths = [(src, snk) for src in range(nodes) for snk in range(nodes)]
     graph = [[NO_EDGE for col in range(nodes)] for row in range(nodes)]
-    randomList = random.sample(allPaths, int(density * nodes**2))
+    # TODO add graceful failure for edge case of 0 edges.
+    randomList = random.sample(allPaths, max(int(density * nodes**2), 1))
     for edge in randomList[1:]:
         (src, snk) = edge
         graph[src][snk] = 1
