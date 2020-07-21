@@ -44,6 +44,8 @@ class BaseOnlineChecker(IPathChecker):
     def getAllPredecessors(self, node, memoize = False) -> List[int]:
         """Returns a list of nodes that are predecessors of this one.
         Memoize if source of new edge."""
+        if not self.compactBkdGraph:
+            self.buildCompactBkdGraph()
         memoize = memoize or node == self.newEdgeSource
         if memoize:
             pathDict = dict()
@@ -105,6 +107,8 @@ class BaseOnlineChecker(IPathChecker):
     def getAllSuccessors(self, node) -> List[int]:
         """Returns a list of nodes that are successors of this one.
         Memoize if sink of new edge."""
+        if not self.compactFwdGraph:
+            self.buildCompactFwdGraph()
         visited = set()
         # maintain a separate list to get ordering where closest node is first.
         visitedList = []
@@ -127,6 +131,39 @@ class BaseOnlineChecker(IPathChecker):
             print("getAllSuccessors: node = {} and visited list: {}".format(
                 node, visitedList))
         return visitedList
+    
+    def getTree(self, node: int):
+        """Similar to get all successors, but returns a spanning tree in 
+        the form of a set of edges."""
+        if not self.compactFwdGraph:
+            self.buildCompactFwdGraph()
+        visited = set()
+        # maintain a separate list to get ordering where closest node is first.
+        visitedList = []
+        treeEdges = set()
+        currentNode = node
+        previousNode = _invalid_node
+        stack = [node]
+        path = []
+        # More or less DFS.
+        while (len(stack) > 0):
+            currentNode = stack.pop()
+            if currentNode == self._invalid_node:
+                path.pop()
+            elif currentNode not in visited:
+                visited.add(currentNode)
+                visitedList += [currentNode]
+                path += [currentNode]
+                if (node == self.newEdgeSink):
+                    self.pathsFromNewEdgeSink[currentNode] = copy.deepcopy(path)
+                stack += [self._invalid_node] + self.compactFwdGraph[currentNode]
+                if (previousNode != _invalid_node):
+                    treeEdges.add((previousNode, currentNode))
+                    previousNode = currentNode
+        if __debug__ and self._debug:
+            print("getAllSuccessors: node = {} and visited list: {}".format(
+                node, visitedList))
+        return treeEdges
 
     def findPath(self, source: int, sink: int) -> Tuple[bool, List[int]]:
         """Find path from source ot sink in old graph,

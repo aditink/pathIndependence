@@ -307,7 +307,7 @@ With the spanning set thus initialized, it greedily tries to remove each pair fr
 \SetKwProg{Fn}{Function}{:}{}
 \Fn{\FSigma{inputSet S, codomain = Rs}}{
     output $\gets$ \{\}\;
-    \For{bilinking $\in$ Rs}{
+    \For{bilinking $\in$ S}{
         smallerPairs $\gets$ \{\}\;
         \For{candidateBilinking $\in$ Rs}{
             \If{$\exists$ path from bilinking.source to candidateBilinking.source
