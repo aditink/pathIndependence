@@ -3,13 +3,14 @@ from colorama import Fore
 import copy
 from pathCheckers.naiveChecker import NaiveChecker
 from pathCheckers.baseOnlineChecker import BaseOnlineChecker
+from pathCheckers.batchTestCommonUtilities import addVectors
 from pathCheckers.pathFinding import findEdgeConflicts
 from testing.testUtilities import assertEqual, assertActualIsSuperset,\
     test_graph, test_s, test_t, expected_paths_to_s, expected_paths_from_t,\
     expected_fwd_graph, expected_bkd_graph, NO_EDGE, TestDefinition,\
-    defaultTestSuite
+    defaultTestSuite, batchTestSuite, BatchTestDefinition
 import time
-from typing import List, Set, Tuple
+from typing import List, Set, Tuple, Union
 
 _default_no_edge = -1
 _source = 0
@@ -26,11 +27,22 @@ class BatchChecker(NaiveChecker, BaseOnlineChecker):
 
     #### Utility functions ####
 
+    def getIndex(self, src, snk):
+        """Returns the index of that an edge from source to sink would take in
+        the vector space of the edges of this graph."""
+        return src*len(self.graph[0]) + snk
+
     def vectorize(self, path):
+        """Get a vector corresponding to a path."""
         vector = [0 for i in range(len(self.graph)**2)]
         for i in range(len(path)-1):
-            vector[path[i]][path[i+1]] = (vector[path[i]][path[i+1]] + 1) % 2
+            vector[self.getIndex(path[i], path[i+1])] = (vector[self.getIndex(i, i+1)] + 1) % 2
         return vector
+
+    def vectorizePair(self, pair):
+        """Return vector corresponding to a pair of paths."""
+        vector1, vector2 = (self.vectorize(path) for path in pair)
+        return addVectors(vector1, vector2)
 
     def findCoTreePairs(self, node):
         """Find co tree starting at node."""
@@ -120,10 +132,12 @@ class BatchChecker(NaiveChecker, BaseOnlineChecker):
         return {bilinking for bilinking in subst if bilinking[_source] in sources 
             and bilinking[_sink] in sinks}
         
-    def matrixify(self, pieces, pair):
+    def matrixify(self, pieces, lastPair):
+        """Given a list of pairs and the last pair in the problem, create the
+        corresponding matrix in order to Gaussian reduce."""
         matrix = []
-        pieces = [self.vectorize(piece) for piece in pieces]
-        pair = self.vectorize(pair)
+        pieces = [self.vectorizePair(piece) for piece in pieces]
+        pair = self.vectorizePair(lastPair)
         for row in range(len(self.graph)**2):
             rowEntries = [piece[row] for piece in pieces]
             rowEntries += [pair[row]]
@@ -157,17 +171,31 @@ class BatchChecker(NaiveChecker, BaseOnlineChecker):
 
 #### Quick tests ####
 
-def testGetPathsToCheck(testDefinition: TestDefinition):
+def testGetPathsToCheck(testDefinition: Union[TestDefinition, BatchTestDefinition]):
     checker = BatchChecker()
     checker.setGraph(testDefinition.test_graph)
-    checker.setEdge(testDefinition.test_s, testDefinition.test_t)
     paths = checker.getPathsToCheck()
     assertActualIsSuperset(testDefinition.expected_solution, checker.getPathsToCheck())
     assert(checker.timeTaken > 0)
 
-def testGaussianReduce(testDefinition: TestDefinition):
+def testVectorize(testDefinition: Union[TestDefinition, BatchTestDefinition]):
     checker = BatchChecker()
     checker.setGraph(testDefinition.test_graph)
+    if hasattr(testDefinition, 'paths'):
+        vectors = [checker.vectorize(v) for v in testDefinition.paths]
+        for i in range(len(vectors)):
+            assertEqual(testDefinition.expected_vectors[i], vectors[i])
+
+def testMatrixify(testDefinition: Union[TestDefinition, BatchTestDefinition]):
+    checker = BatchChecker()
+    checker.setGraph(testDefinition.test_graph)
+    if hasattr(testDefinition, 'pieces'):
+        matrix = checker.matrixify(testDefinition.pieces, testDefinition.finalPair)
+        assertEqual(testDefinition.expected_matrix, matrix)
+
+def testGaussianReduce():
+    checker = BatchChecker()
+    checker.setGraph(test_graph)
     _testGraph1 = [
         [1, 0, 0],
         [0, 1, 0],
@@ -184,17 +212,19 @@ def testGaussianReduce(testDefinition: TestDefinition):
         [0, 1, 1]]
     assert(checker.gaussianReduce(_testGraph3))
 
-def runAllTests(testSuite: List[TestDefinition] = defaultTestSuite):
+def runAllTests(testSuite: List[Union[TestDefinition, BatchTestDefinition]] = defaultTestSuite):
     print('\033[0m' + "Running baseOnlinePathChecker Tests")
+    testGaussianReduce()
     for testDefinition in testSuite:
         # testGetPathsToCheck(testDefinition)
-        testGaussianReduce(testDefinition)
+        testVectorize(testDefinition)
+        testMatrixify(testDefinition)
     print(Fore.GREEN + 'Run Completed')
 
 #### Execute ####
 
 def main():
-    runAllTests(defaultTestSuite)
+    runAllTests(batchTestSuite)
 
 if __name__=="__main__":
     main()

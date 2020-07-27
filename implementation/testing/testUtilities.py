@@ -1,4 +1,5 @@
 from colorama import Fore
+from pathCheckers.batchTestCommonUtilities import addVectors
 import traceback
 
 NO_EDGE = -1
@@ -79,11 +80,13 @@ expected_solution_no_identity = [
 # This method is from stack overflow.
 def compareLists(expected, actual):
     actual = list(actual)   # make a mutable copy
+    current = None
     try:
         for elem in expected:
+            current = elem
             actual.remove(elem)
     except ValueError:
-        print(Fore.RED + "Missing element")
+        print(Fore.RED + "Missing element {}".format(current))
         traceback.print_stack()
         return False
     if actual:
@@ -145,7 +148,9 @@ class TestDefinition():
         expected_solution = [],
         expected_solution_no_identity = [],
         source_cycles = [],
-        sink_cycles = []):
+        sink_cycles = [],
+        paths_to_vectorize = [],
+        expected_vectors = []):
         self.NO_EDGE = NO_EDGE
         self.test_graph = test_graph
         self.test_s = test_s
@@ -159,6 +164,29 @@ class TestDefinition():
         self.expected_solution_no_identity = expected_solution_no_identity
         self.expected_source_cycles = source_cycles
         self.expected_sink_cycles = sink_cycles
+        self.paths_to_vectorize = paths_to_vectorize
+        self.expected_vectors = expected_vectors
+
+class BatchTestDefinition():
+    """Define all constants for a batch test case.
+    
+    argument paths should have bilinking paths in order, since it is used to
+    create pairs.
+    """
+
+    def __init__(
+        self, 
+        test_graph,
+        paths = [],
+        expected_vectors = [],
+        expected_matrix = [[]]):
+        self.test_graph = test_graph
+        self.expected_vectors = expected_vectors
+        self.paths = paths
+        self.pairs = [pair for pair in zip(paths[::2], paths[1::2])]
+        self.pieces = self.pairs[:-1]
+        self.finalPair = self.pairs[-1]
+        self.expected_matrix = expected_matrix
 
 # Test Definitions
 
@@ -173,7 +201,65 @@ defaultTestDefinition = TestDefinition(
     expected_solution = expected_solution,
     expected_solution_no_identity = expected_solution_no_identity,
     source_cycles = [],
-    sink_cycles = [])
+    sink_cycles = [],
+    paths_to_vectorize = [[0,1,2,3]],
+    expected_vectors = [
+    [0, 1, 0, 0, 0, 0, 0, 0,
+    0, 0, 1, 0, 0, 0, 0, 0,
+    0, 0, 0, 1, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0]
+    ])
+
+# An example to test Batch algorithm.
+acyclicTest = BatchTestDefinition(
+    test_graph = [
+    [0, 1, 0, 0],
+    [0, 0, 1, 1],
+    [0, 0, 0, 0],
+    [0, 0, 1, 0]],
+    paths = [[0, 1, 2], [0, 1, 3, 2], [1, 3, 2], [1, 2]],
+    expected_vectors = [
+    [0, 1, 0, 0,
+    0, 0, 1, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0],
+    [0, 1, 0, 0,
+    0, 0, 1, 0,
+    0, 0, 0, 0,
+    0, 0, 1, 0],
+    [0,0, 0, 0,
+    0, 0, 1, 0,
+    0, 0, 0, 0,
+    0, 0, 1, 0],
+    [0,0, 0, 0,
+    0, 0, 1, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0],
+    ],
+    expected_matrix = [
+        [0, 0],
+        [0, 0],
+        [0, 0],
+        [0, 0],
+        [0, 0],
+        [0, 0],
+        [1, 1],
+        [1, 1],
+        [0, 0],
+        [0, 0],
+        [0, 0],
+        [0, 0],
+        [0, 0],
+        [0, 0],
+        [1, 1],
+        [0, 0]
+    ]
+    
+)
 
 testCaseOne = TestDefinition(
     test_graph = [
@@ -234,3 +320,8 @@ defaultTestSuite = [
     defaultTestDefinition,
     testCaseOne
     ]
+
+batchTestSuite = [
+    defaultTestDefinition,
+    acyclicTest
+]
