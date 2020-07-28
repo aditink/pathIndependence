@@ -135,14 +135,15 @@ class BaseOnlineChecker(IPathChecker):
     def getTree(self, node: int):
         """Similar to get all successors, but returns a spanning tree in 
         the form of a set of edges."""
-        if not self.compactFwdGraph:
-            self.buildCompactFwdGraph()
+        # if not self.compactFwdGraph:
+        #     self.buildCompactFwdGraph()
+        self.buildCompactFwdGraph()
         visited = set()
         # maintain a separate list to get ordering where closest node is first.
         visitedList = []
         treeEdges = set()
         currentNode = node
-        previousNode = _invalid_node
+        previousNode = self._invalid_node
         stack = [node]
         path = []
         # More or less DFS.
@@ -154,12 +155,10 @@ class BaseOnlineChecker(IPathChecker):
                 visited.add(currentNode)
                 visitedList += [currentNode]
                 path += [currentNode]
-                if (node == self.newEdgeSink):
-                    self.pathsFromNewEdgeSink[currentNode] = copy.deepcopy(path)
                 stack += [self._invalid_node] + self.compactFwdGraph[currentNode]
-                if (previousNode != _invalid_node):
+                if (previousNode != self._invalid_node):
                     treeEdges.add((previousNode, currentNode))
-                    previousNode = currentNode
+                previousNode = currentNode
         if __debug__ and self._debug:
             print("getAllSuccessors: node = {} and visited list: {}".format(
                 node, visitedList))
@@ -217,6 +216,8 @@ class BaseOnlineChecker(IPathChecker):
         self.pathsToNode = dict()
         self._no_edge = _default_no_edge
         self.noIdentity = False
+        # Hack to make sub classes work
+        self._invalid_node = -1
     
     def setGraph(
         self,

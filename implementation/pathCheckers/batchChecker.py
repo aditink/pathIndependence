@@ -24,6 +24,7 @@ class BatchChecker(NaiveChecker, BaseOnlineChecker):
 
     def __init__(self):
         super().__init__()
+        BaseOnlineChecker.__init__(self)
 
     #### Utility functions ####
 
@@ -44,17 +45,17 @@ class BatchChecker(NaiveChecker, BaseOnlineChecker):
         vector1, vector2 = (self.vectorize(path) for path in pair)
         return addVectors(vector1, vector2)
 
-    def findCoTreePairs(self, node):
-        """Find co tree starting at node."""
+    def findCoTreePairs(self, node) -> Set[Tuple[Tuple[int], Tuple[int]]]:
+        """Find co tree starting at node. Paths are tuple because hashing."""
         allNodes = self.getSuccessors(node)
         tree = self.getTree(node)
-        coTree = {}
+        coTree = set()
         for src in allNodes:
             for snk in allNodes:
-                if self.graph[src][snk] != _invalid_node and (src, snk) not in tree:
+                if self.graph[src][snk] != self._invalid_node and (src, snk) not in tree:
                     pair = (
-                        self.getTreePath(node, snk, tree),
-                        self.getTreePath(node, src, tree) + [snk]
+                        tuple(self.getTreePath(src, snk, tree)),
+                        (src, snk)
                     )
                     coTree.add(pair)
         return coTree
@@ -63,11 +64,11 @@ class BatchChecker(NaiveChecker, BaseOnlineChecker):
         """Reconstruct path in tree from source to sink given tree edge set."""
         currentNode = snk
         path = [snk]
-        while currentNode != snk:
-            edge = self.getBackEdge(snk, tree)
+        while currentNode != src:
+            edge = self.getBackEdge(currentNode, tree)
             currentNode = edge[0]
             path += [currentNode]
-        return path
+        return path[::-1]
     
     def getBackEdge(self, snk, st):
         """Get some edge (*, snk) from set st."""
@@ -118,19 +119,22 @@ class BatchChecker(NaiveChecker, BaseOnlineChecker):
                 return False
         return True
 
-    def sigma(self, subst: Set, allPairs: Set):
-        return {
+    def sigma(self, subst: List[Tuple[List, List]], allPairs: List[Tuple[List, List]]) -> List:
+        """Implementation of Sigma closure function. Using lists not sets 
+        because paths are unhashable lists."""
+        return [
             pair for pair in allPairs if self.gaussianReduce(self.matrixify(
                 self.smallerPiecesIntersection(subst,
-                pair), pair)) }
+                pair), pair)) ]
     
-    def smallerPiecesIntersection(self, subst, pair):
+    def smallerPiecesIntersection(self, subst: List[Tuple[List, List]],
+        pair: Tuple[List, List]):
         """Get subset of subst such that the members are smaller than pair. 
         (<> function intersected with subset)."""
         sources = self.getSuccessors(pair[_source])
         sinks = self.getPredecessors(pair[_sink])
-        return {bilinking for bilinking in subst if bilinking[_source] in sources 
-            and bilinking[_sink] in sinks}
+        return [bilinking for bilinking in subst if bilinking[_source] in sources 
+            and bilinking[_sink] in sinks]
         
     def matrixify(self, pieces, lastPair):
         """Given a list of pairs and the last pair in the problem, create the
@@ -145,7 +149,7 @@ class BatchChecker(NaiveChecker, BaseOnlineChecker):
         return matrix
 
     def getSuccessors(self, node):
-        return set(self.getAllSuccessors(node, False))
+        return set(self.getAllSuccessors(node))
 
     def getPredecessors(self, node):
         return set(self.getAllPredecessors(node, False))
@@ -162,7 +166,9 @@ class BatchChecker(NaiveChecker, BaseOnlineChecker):
         
         spanningSet = Rs.copy()
         for pair in spanningSet:
-            if spanningSet.issubset(self.sigma(Rs.copy.remove(pair), spanningSet)):
+            RsCopy = Rs.copy()
+            RsCopy.remove(pair)
+            if spanningSet.issubset(set(self.sigma(RsCopy, spanningSet))):
                 Rs.remove(pair)
         
         endTime = time.time()
@@ -193,6 +199,23 @@ def testMatrixify(testDefinition: Union[TestDefinition, BatchTestDefinition]):
         matrix = checker.matrixify(testDefinition.pieces, testDefinition.finalPair)
         assertEqual(testDefinition.expected_matrix, matrix)
 
+def testFindCoTreePairs(testDefinition: BatchTestDefinition):
+    checker = BatchChecker()
+    checker.setGraph(testDefinition.test_graph)
+    if hasattr(testDefinition, 'co_tree_root'):
+        coTree = checker.findCoTreePairs(testDefinition.co_tree_root)
+        assertEqual(testDefinition.expected_co_tree, coTree)
+
+def testSigma(testDefinition: BatchTestDefinition):
+    checker = BatchChecker()
+    checker.setGraph(testDefinition.test_graph)
+    if hasattr(testDefinition, 'sigma_test_subset'):
+        result = checker.sigma(testDefinition.sigma_test_subset, testDefinition.all_pairs)
+        assertEqual(testDefinition.expected_sigma, result)
+
+def testGetPathsToCheck(testDefinition: TestDefinition):
+    pass
+
 def testGaussianReduce():
     checker = BatchChecker()
     checker.setGraph(test_graph)
@@ -219,6 +242,8 @@ def runAllTests(testSuite: List[Union[TestDefinition, BatchTestDefinition]] = de
         # testGetPathsToCheck(testDefinition)
         testVectorize(testDefinition)
         testMatrixify(testDefinition)
+        testFindCoTreePairs(testDefinition)
+        # testSigma(testDefinition)
     print(Fore.GREEN + 'Run Completed')
 
 #### Execute ####

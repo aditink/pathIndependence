@@ -179,7 +179,12 @@ class BatchTestDefinition():
         test_graph,
         paths = [],
         expected_vectors = [],
-        expected_matrix = [[]]):
+        expected_matrix = [[]],
+        co_tree_root = 0,
+        expected_co_tree = {},
+        sigma_test_subset = {},
+        all_pairs = {},
+        expected_sigma = {}):
         self.test_graph = test_graph
         self.expected_vectors = expected_vectors
         self.paths = paths
@@ -187,7 +192,11 @@ class BatchTestDefinition():
         self.pieces = self.pairs[:-1]
         self.finalPair = self.pairs[-1]
         self.expected_matrix = expected_matrix
-
+        self.co_tree_root = co_tree_root
+        self.expected_co_tree = expected_co_tree
+        self.sigma_test_subset = sigma_test_subset
+        self.all_pair = all_pairs
+        self.expected_sigma = expected_sigma
 # Test Definitions
 
 defaultTestDefinition = TestDefinition(
@@ -215,12 +224,13 @@ defaultTestDefinition = TestDefinition(
     ])
 
 # An example to test Batch algorithm.
+allPairs = [([0, 1, 3, 2],[0, 1, 2]), ([1, 3, 2],[1, 2])],
 acyclicTest = BatchTestDefinition(
     test_graph = [
-    [0, 1, 0, 0],
-    [0, 0, 1, 1],
-    [0, 0, 0, 0],
-    [0, 0, 1, 0]],
+    [-1,  1, -1, -1],
+    [-1, -1,  1,  1],
+    [-1, -1, -1, -1],
+    [-1, -1,  1, -1]],
     paths = [[0, 1, 2], [0, 1, 3, 2], [1, 3, 2], [1, 2]],
     expected_vectors = [
     [0, 1, 0, 0,
@@ -257,8 +267,12 @@ acyclicTest = BatchTestDefinition(
         [0, 0],
         [1, 1],
         [0, 0]
-    ]
-    
+    ],
+    co_tree_root = 0,
+    expected_co_tree = {((1, 3, 2), (1, 2))},
+    sigma_test_subset = [([1, 3, 2],[1, 2])],
+    all_pairs = allPairs,
+    expected_sigma = allPairs
 )
 
 testCaseOne = TestDefinition(
