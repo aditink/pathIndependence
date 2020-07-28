@@ -2,12 +2,13 @@ from datetime import datetime
 import functools
 import matplotlib.pyplot as plt
 import numpy as np
+from pathCheckers.batchChecker import BatchChecker
 from pathCheckers.iPathChecker import IPathChecker
 from pathCheckers.optimalSetPathChecker import OptimalSetPathChecker
 from pathCheckers.polynomialPathChecker import PolynomialPathChecker
 from pathCheckers.naiveChecker import NaiveChecker
 from pathCheckers.twoFlipChecker import TwoFlipPathChecker
-from randomGraphGenerator import generateGraph
+from randomGraphGenerator import generateGraph, generateAcyclicGraph
 import traceback
 from typing import List
 
@@ -18,7 +19,7 @@ sizeStep = 2
 maxSize = 10
 
 # densities = [i*densityStep for i in range(1, int(1.0/densityStep))] 
-densities = [0.1, 0.5, 0.9]
+densities = [0.1, 0.4]
 sizes = [i*sizeStep for i in range(1, int(maxSize/sizeStep))]
 # sizes = [10, 50, 100]
 
@@ -26,9 +27,10 @@ evaluationList = [(density, size) for size in sizes for density in densities]
 
 checkers : List[IPathChecker] = [
     #PolynomialPathChecker(),
-    #OptimalSetPathChecker(),
-    NaiveChecker(),
-    #TwoFlipPathChecker()
+    OptimalSetPathChecker(),
+    # NaiveChecker(),
+    #TwoFlipPathChecker(),
+    BatchChecker()
 ]
 
 class attemptInfo:
@@ -54,11 +56,25 @@ class attemptInfo:
         return self.avgList(self.sizes)
 
 
-def getEvaluateFunction(checker: IPathChecker, numTries: int):
+def getEvaluateFunction(checker: IPathChecker, numTries: int, acyclic=False):
+    if isinstance(checker, BatchChecker):
+        def evaluate(density, size):
+            info = attemptInfo()
+            for attempt in range(numTries):
+                inp = generateAcyclicGraph(density, size)
+                checker.setGraph(inp.graph)
+                paths = checker.getPathsToCheck()
+                info.addSize(len(paths))
+                info.addTime(checker.getComputeTime())
+            return info
+        return evaluate
     def evaluate(density, size):
         info = attemptInfo()
         for attempt in range(numTries):
-            inp = generateGraph(density, size)
+            if (acyclic):
+                inp = generateAcyclicGraph(density, size)
+            else:
+                inp = generateGraph(density, size)
             checker.setGraph(inp.graph)
             checker.setEdge(inp.newEdgeSource, inp.newEdgeSink)
             paths = checker.getPathsToCheck()
