@@ -143,7 +143,6 @@ class BaseOnlineChecker(IPathChecker):
         visitedList = []
         treeEdges = set()
         currentNode = node
-        previousNode = self._invalid_node
         stack = [node]
         path = []
         # More or less DFS.
@@ -156,9 +155,8 @@ class BaseOnlineChecker(IPathChecker):
                 visitedList += [currentNode]
                 path += [currentNode]
                 stack += [self._invalid_node] + self.compactFwdGraph[currentNode]
-                if (previousNode != self._invalid_node):
-                    treeEdges.add((previousNode, currentNode))
-                previousNode = currentNode
+                if (len(path) > 1):
+                    treeEdges.add((path[-2], currentNode))
         if __debug__ and self._debug:
             print("getAllSuccessors: node = {} and visited list: {}".format(
                 node, visitedList))

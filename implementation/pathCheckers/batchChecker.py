@@ -14,7 +14,9 @@ from typing import List, Set, Tuple, Union
 
 _default_no_edge = -1
 _source = 0
-_sink = 1
+_sink = -1
+_first = 0
+_second = 1
 
 class BatchChecker(NaiveChecker, BaseOnlineChecker):
     """Set of paths to check using two flip tolerant search."""
@@ -54,8 +56,8 @@ class BatchChecker(NaiveChecker, BaseOnlineChecker):
             for snk in allNodes:
                 if self.graph[src][snk] != self._invalid_node and (src, snk) not in tree:
                     pair = (
-                        tuple(self.getTreePath(src, snk, tree)),
-                        (src, snk)
+                        tuple(self.getTreePath(node, snk, tree)),
+                        tuple(self.getTreePath(node, src, tree) + [snk])
                     )
                     coTree.add(pair)
         return coTree
@@ -122,19 +124,25 @@ class BatchChecker(NaiveChecker, BaseOnlineChecker):
     def sigma(self, subst: List[Tuple[List, List]], allPairs: List[Tuple[List, List]]) -> List:
         """Implementation of Sigma closure function. Using lists not sets 
         because paths are unhashable lists."""
-        return [
-            pair for pair in allPairs if self.gaussianReduce(self.matrixify(
-                self.smallerPiecesIntersection(subst,
-                pair), pair)) ]
+        # return [
+        #     pair for pair in allPairs if self.gaussianReduce(self.matrixify(
+        #         self.smallerPiecesIntersection(subst,
+        #         pair), pair)) ]
+        result = []
+        for pair in allPairs:
+            if self.gaussianReduce(self.matrixify(self.smallerPiecesIntersection(
+                subst, pair), pair)):
+                result.append(pair)
+        return result
     
     def smallerPiecesIntersection(self, subst: List[Tuple[List, List]],
         pair: Tuple[List, List]):
         """Get subset of subst such that the members are smaller than pair. 
         (<> function intersected with subset)."""
-        sources = self.getSuccessors(pair[_source])
-        sinks = self.getPredecessors(pair[_sink])
-        return [bilinking for bilinking in subst if bilinking[_source] in sources 
-            and bilinking[_sink] in sinks]
+        sources = self.getSuccessors(pair[_first][_source])
+        sinks = self.getPredecessors(pair[_second][_sink])
+        return [bilinking for bilinking in subst if bilinking[_first][_source] in sources 
+            and bilinking[_second][_sink] in sinks]
         
     def matrixify(self, pieces, lastPair):
         """Given a list of pairs and the last pair in the problem, create the
@@ -161,7 +169,7 @@ class BatchChecker(NaiveChecker, BaseOnlineChecker):
         the new graph."""
         startTime = time.time()
         Rs = set()
-        for node in range(len(graph)):
+        for node in range(len(self.graph)):
             Rs = Rs.union(self.findCoTreePairs(node))
         
         spanningSet = Rs.copy()
@@ -173,7 +181,8 @@ class BatchChecker(NaiveChecker, BaseOnlineChecker):
         
         endTime = time.time()
         self.timeTaken = endTime - startTime
-        return Rs
+        return [(list(a), list(b)) for a, b in Rs]
+        # return list(Rs)
 
 #### Quick tests ####
 
@@ -214,7 +223,11 @@ def testSigma(testDefinition: BatchTestDefinition):
         assertEqual(testDefinition.expected_sigma, result)
 
 def testGetPathsToCheck(testDefinition: TestDefinition):
-    pass
+    checker = BatchChecker()
+    checker.setGraph(testDefinition.test_graph)
+    if hasattr(testDefinition, 'expected_batch_result'):
+        result = checker.getPathsToCheck()
+        assertEqual(testDefinition.expected_batch_result, result)
 
 def testGaussianReduce():
     checker = BatchChecker()
@@ -239,11 +252,11 @@ def runAllTests(testSuite: List[Union[TestDefinition, BatchTestDefinition]] = de
     print('\033[0m' + "Running baseOnlinePathChecker Tests")
     testGaussianReduce()
     for testDefinition in testSuite:
-        # testGetPathsToCheck(testDefinition)
         testVectorize(testDefinition)
         testMatrixify(testDefinition)
         testFindCoTreePairs(testDefinition)
-        # testSigma(testDefinition)
+        testSigma(testDefinition)
+        testGetPathsToCheck(testDefinition)
     print(Fore.GREEN + 'Run Completed')
 
 #### Execute ####
