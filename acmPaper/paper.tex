@@ -575,10 +575,31 @@ When the algorithms reported no inconsistencies, it was still possible that the 
 Nonetheless, both algorithms were effective in catching inconsistencies. Algorithm ~\ref{algo_online_polynomial} started finding inconsistencies at error tolerances to the order of $10^{-3}$, and ~\ref{algo_online_minimal}, which makes more invalid redundant path check removals, at error tolerances to the order of $10^{-7}$.
 
 Averaging over evaluation for the first 30 days of 2020, building and verifying a diagram to completion (inclusive of the time required by network calls) took 243$\pm$19 seconds using algorithm ~\ref{algo_online_minimal}, and in 133$\pm$13 seconds with algorithm ~\ref{algo_online_polynomial}. 
-Computation was performed on a Macbook Pro 2015, 2.9 GHz Dual-Core Intel Core i5.
-More information about implementation can be found in the evaluation section.
 
 \section{Evaluation}
+We compare performance of the following path checking algorithms: (1) naive baseline (2) less naive, two-flip baseline (3) batch baseline (4) algorithm ~\ref{algo_online_polynomial}, and (5) algorithm ~\ref{algo_online_minimal}.
+The two aspects we look at are time for response and size of response set (smaller sets -- tighter output results -- would mean less calls to the oracle).
+We use randomly generated graphs for benchmarking, and vary their size.
+All computation was performed on a Macbook Pro 2015, 2.9 GHz Dual-Core Intel Core i5.
+
+The naive baseline performs poorly, taking well over a thousand seconds for even small graphs of 10 nodes.
+The batch algorithm brings timing down to seconds. Algorithm ~\ref{algo_online_polynomial} performs only slightly better.
+Surprisingly, the optimal set algorithm cuts time cost by several orders of magnitude.
+All implementations are sensitive to density, performing better when density is very low or very high.
+
+%TODO add figures
+
+\begin{tabular}{|c|c|}
+    \hline
+    Algorithm & average seconds taken for ten nodes, density close to 0.5 \\
+    \hline
+    Naive baseline & 1,500 \\
+    Batch algorithm & 1.4 \\
+    algorithm ~\ref{algo_online_polynomial} & 1.2 \\
+    algorithm ~\ref{algo_online_minimal} & 0.0006 \\
+    \hline
+\end{tabular}
+
 
 \section{Appendix: Theorems and additional cases}
 
