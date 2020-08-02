@@ -589,75 +589,126 @@ The batch algorithm brings timing down to seconds. Algorithm ~\ref{algo_online_p
 Surprisingly, the optimal set algorithm cuts time cost by several orders of magnitude, and runs in milliseconds for small graphs.
 All implementations are sensitive to density, performing better when density is very low or very high.
 
-\section{Comparison of algorithm time cost}
-The average time taken by each algorithm over the course of 10 runs over randomly generated graphs with 8 nodes and 32 edges is listed in table ~\ref{times}.
+\subsection{Comparison of algorithm time cost}
+The average time taken by each algorithm over the course of 10 runs over randomly generated graphs with 9 nodes and 32 edges is listed in table ~\ref{times}.
 
-%TODO get this data.
+\begin{figure}
 \begin{tabular}{|c|c|}
     \hline
     Algorithm & average seconds of computation \\
     \hline
-    Naive baseline & 1,500 \\
-    Two Flip tolerant & 1 \\
-    Batch algorithm & 1.4 \\
-    algorithm ~\ref{algo_online_polynomial} & 1.2 \\
-    algorithm ~\ref{algo_online_minimal} & 0.0006 
+    Naive baseline & 0.77 \\
+    Two Flip tolerant & 0.075 \\
+    Batch algorithm & 7.55 \\
+    ~\ref{algo_online_polynomial} & 0.0038 \\
+    ~\ref{algo_online_minimal} & 0.00086 \\
     \hline
-    \label{times}
 \end{tabular}
-
-\section{Scaling of time with input size}
+\label{times} %TODO debug and fix label not working.
+\caption{Computation time for 9 node graph of density 0.4, averaged over ten runs}
+\end{figure}
+    
+\subsection{Scaling of time with input size}
 
 Algorithms scale as expected with time, as seen in figure ~\ref{fig:timeVsSize}. 
 Both algorithm ~\ref{algo_online_minimal} and ~\ref{algo_minimal_spanning_set} exhibit graphs that are polynomial in appearance, as does the batch baseline.
 \xxx[AK]{Do I need to justify this by doing some kind of fit?}
-The naive baseline as well as the two flip tolerant baseline display catastrophic growth that quickly makes computation untenable.
+The naive baseline as well as the two flip tolerant baseline display growth that quickly makes computation untenable.
+The batch algorithm also grows quickly.
 
-Further, run time is found to relate to the density of edges in the input graph.
 We define density to be the ratio of the number of edges in the graph to the total possible number of edges ($|V|^2$, where $|V|$ is the number of nodes).
-Generally, time cost is found to be higher at middling densities and lower as density approaches 0 or 1.
+Run time relates to the density of edges in the input graph.
+The degree of the effect differs with the algorithms, as figure ~\ref{fig:timeVsSize} shows.
+Generally, denser graphs entail longer computation time.
+% Our proposed algorithms, ~\ref{algo_minimal_spanning_set} and ~\ref{algo_online_polynomial} are less affected because they aggressively remove redundancies.
 
 \begin{figure}
     % TODO format nicely.
-    \begin{subfigure}{.2\textwidth}
+    \begin{subfigure}{.4\textwidth}
       \includegraphics[width=.8\linewidth]{timeVsSize_10_OptimalSet.png}
       \caption{~\ref{algo_online_minimal}}
-      \label{fig:sfig1}
+      \label{fig:sfigOptimal}
     \end{subfigure}
-    \begin{subfigure}{.2\textwidth}
+
+    \begin{subfigure}{.4\textwidth}
       \includegraphics[width=.8\linewidth]{timeVsSize_10_Polynomial.png}
       \caption{~\ref{algo_online_polynomial}}
-      \label{fig:sfig2}
+      \label{fig:sfigPolynomial}
     \end{subfigure}
-    \caption{Plots of scaling of time with input size and density}
+    
+    \begin{subfigure}{.4\textwidth}
+      \includegraphics[width=.8\linewidth]{timeVsSize_10_NaiveChecker.png}
+      \caption{Naive baseline}
+      \label{fig:sfigNaive}
+    \end{subfigure}
+
+    \begin{subfigure}{.4\textwidth}
+      \includegraphics[width=.8\linewidth]{timeVsSize_10_TwoFlipPathChecker.png}
+      \caption{Two flip tolerant baseline}
+      \label{fig:sfigTwoFlip}
+    \end{subfigure}
+
+    \begin{subfigure}{.4\textwidth}
+      \includegraphics[width=.8\linewidth]{timeVsSize_10_BatchChecker.png}
+      \caption{Batch algorithm baseline}
+      \label{fig:sfigBatch}
+    \end{subfigure}
+
     \label{fig:timeVsSize}
-    %TODO add plots for two flip, naive, batch checker
+    \caption{Plots of scaling of time with input size and density}
 \end{figure}
 
-\section{Variance}
-For all algorithms, there is considerable spread in the time taken for a given graph size, varying with graph structure.
-The plots in figure ~\ref{fig:timeVsSize} %TODO replace
-depict the situation.
-After computation on 10 randomly generated graphs of density 0.5, each outcome is plotted as a point and error bars indicate standard deviation.
+\subsection{Variance}
+The periodic spikes in figure ~\ref{fig:sfigOptimal} are striking. 
+We plot the spread of results to understand what is happening.
+We find ~\ref{algo_online_minimal} has outliers about two standard deviation above the mean responsible for the spikes in the average.
+The outliers themselves follow a polynomial curve.
+The plots in figure ~\ref{fig:variance} depict the situation.
+Grey points are the results of evaluation on individual points, and error bars show standard deviation. 
+The black curve traces the mean.
+No such effect is observed in ~\ref{algo_online_polynomial}.
+\begin{figure}
+    % TODO format nicely.
+    \begin{subfigure}{.4\textwidth}
+      \includegraphics[width=.8\linewidth]{variance_10_OptimalSet.png}
+      \caption{~\ref{algo_online_minimal}}
+      \label{fig:sfigOptimal}
+    \end{subfigure}
 
-%TODO add a figure for each of the checkers.
+    \begin{subfigure}{.4\textwidth}
+      \includegraphics[width=.8\linewidth]{variance_10_Polynomial.png}
+      \caption{~\ref{algo_online_polynomial}}
+      \label{fig:sfigPolynomial}
+    \end{subfigure}
+    
+    \begin{subfigure}{.4\textwidth}
+      \includegraphics[width=.8\linewidth]{variance_10_TwoFlip.png}
+      \caption{Two flip tolerant baseline}
+      \label{fig:sfigTwoFlip}
+    \end{subfigure}
 
-\section{Size of Output}
-Output size is found to be along similar lines to time cost.
-Table ~\ref{sizes}, the size analog of table ~\ref{times} summarizes the number of output pairs that the algorithms returned on average over 10 runs, for graphs with 8 nodes and 32 edges.
-% TODO get this data.
+    \label{fig:variance}
+    \caption{Plots of spread of results}
+\end{figure}
+
+\subsection{Size of Output}
+Output size is a metric of interest, should the equality checking oracle be expensive.
+Table ~\ref{sizes}, summarizes the number of output pairs that the algorithms returned on average over 10 runs, for graphs with 9 nodes and 32 edges.
+\begin{figure}
 \begin{tabular}{|c|c|}
     \hline
     Algorithm & average number of output pairs \\
     \hline
-    Naive baseline & 1,500 \\
-    Two Flip tolerant & 1 \\
-    Batch algorithm & 1.4 \\
-    algorithm ~\ref{algo_online_polynomial} & 1.2 \\
-    algorithm ~\ref{algo_online_minimal} & 0.0006
+    Naive baseline & 39754.9 \\
+    Two Flip tolerant & 748.9 \\
+    Batch algorithm & 23 \\
+    algorithm ~\ref{algo_online_polynomial} & 78.3 \\
+    algorithm ~\ref{algo_online_minimal} & 1 \\
     \hline
-    \label{sizes}
 \end{tabular}
+\label{sizes} % Now working. TODO fix label.
+\caption{Output size for 9 node graph of density 0.4, averaged over ten runs}
+\end{figure}
 
 \section{Appendix: Theorems and additional cases}
 

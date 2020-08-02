@@ -16,6 +16,12 @@ class evaluationGraph:
         self.graphWithEdge = graph
         self.graphWithEdge[self.newEdgeSource][self.newEdgeSink] = _EDGE
 
+class batchEvaluationGraph:
+    """Type for input to evaluation script for batchChecker (no new edge)."""
+
+    def __init__(self, graph):
+        self.graph = graph
+
 def generateGraph(density: float, nodes: int) -> evaluationGraph:
     """generate a random graph of the given density, with a given number of 
     nodes along with a new edge to add to the graph.
@@ -36,7 +42,9 @@ def generateAcyclicGraph(density: float, nodes: int) -> evaluationGraph:
     Density = number of edges / total possible number of edges, i.e. n^2."""
     # Generate a graph that is a lower triangular matrix.
     # https://mathematica.stackexchange.com/questions/608/how-to-generate-random-directed-acyclic-graphs.
-    allPaths = [(src, snk) for src in range(nodes) for snk in range(src)]
+    allPaths = []
+    for src in range(1, nodes):
+        allPaths += [(src, snk) for snk in range(src)]
     graph = [[NO_EDGE for col in range(nodes)] for row in range(nodes)]
     #TODO handle density>0.5
     randomList = random.sample(allPaths, min(max(int(density * nodes**2), 1), len(allPaths)))
@@ -44,4 +52,4 @@ def generateAcyclicGraph(density: float, nodes: int) -> evaluationGraph:
     for edge in randomList[1:]:
         (src, snk) = edge
         graph[src][snk] = _EDGE
-    return evaluationGraph(graph, randomList[0])
+    return batchEvaluationGraph(graph)

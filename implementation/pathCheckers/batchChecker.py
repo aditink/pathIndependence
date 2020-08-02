@@ -164,6 +164,16 @@ class BatchChecker(NaiveChecker, BaseOnlineChecker):
 
     #### Public interface ####
 
+    def setGraph(
+        self,
+        graph: List[List[int]],
+        noEdge: int = _default_no_edge) -> None:
+        """Set the graph to which an edge is to be added."""
+        self.graph = graph
+        self._no_edge = noEdge
+        self.buildCompactBkdGraph()
+        self.buildCompactFwdGraph()
+
     def getPathsToCheck(self) ->  Set[Tuple[List[int], List[int]]]:
         """Return the pairs of path whose equality implies path independence of 
         the new graph."""
