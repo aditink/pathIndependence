@@ -581,7 +581,7 @@ Averaging over evaluation for the first 30 days of 2020, building and verifying 
 We compare performance of the following path checking algorithms: (1) naive baseline (2) less naive, two-flip baseline (3) batch baseline (4) algorithm ~\ref{algo_online_polynomial}, and (5) algorithm ~\ref{algo_online_minimal}.
 The two aspects we look at are time for response and size of response set (smaller sets -- tighter output results -- would mean less calls to the oracle).
 We use randomly generated graphs for benchmarking, and vary their size.
-Given a graph and a new edge, we time how long it takes for an algorithm to return 
+Given a graph and a new edge, we time how long it takes for an algorithm to return  the set of pairs that need to be verified.
 All computation was performed on a Macbook Pro 2015, 2.9 GHz Dual-Core Intel Core i5.
 
 The naive baseline performs poorly, taking well over a thousand seconds for even small graphs of 10 nodes.
