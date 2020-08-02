@@ -590,9 +590,9 @@ Surprisingly, the optimal set algorithm cuts time cost by several orders of magn
 All implementations are sensitive to density, performing better when density is very low or very high.
 
 \subsection{Comparison of algorithm time cost}
-The average time taken by each algorithm over the course of 10 runs over randomly generated graphs with 9 nodes and 32 edges is listed in table ~\ref{times}.
+The average time taken by each algorithm over the course of 10 runs over randomly generated graphs with 9 nodes and 32 edges is listed in table ~\ref{tab:times}.
 
-\begin{figure}
+\begin{table}
 \begin{tabular}{|c|c|}
     \hline
     Algorithm & average seconds of computation \\
@@ -604,22 +604,23 @@ The average time taken by each algorithm over the course of 10 runs over randoml
     ~\ref{algo_online_minimal} & 0.00086 \\
     \hline
 \end{tabular}
-\label{times} %TODO debug and fix label not working.
 \caption{Computation time for 9 node graph of density 0.4, averaged over ten runs}
-\end{figure}
+\label{tab:times} %TODO debug and fix label not working.
+\end{table}
     
 \subsection{Scaling of time with input size}
 
 Algorithms scale as expected with time, as seen in figure ~\ref{fig:timeVsSize}. 
-Both algorithm ~\ref{algo_online_minimal} and ~\ref{algo_minimal_spanning_set} exhibit graphs that are polynomial in appearance, as does the batch baseline.
+Both ~\ref{algo_online_minimal} and ~\ref{algo_minimal_spanning_set} exhibit graphs that are polynomial in appearance, as does the batch baseline.
 \xxx[AK]{Do I need to justify this by doing some kind of fit?}
 The naive baseline as well as the two flip tolerant baseline display growth that quickly makes computation untenable.
-The batch algorithm also grows quickly.
+The batch algorithm also grows fast, though not as much as the online checking baselines.
 
 We define density to be the ratio of the number of edges in the graph to the total possible number of edges ($|V|^2$, where $|V|$ is the number of nodes).
 Run time relates to the density of edges in the input graph.
 The degree of the effect differs with the algorithms, as figure ~\ref{fig:timeVsSize} shows.
 Generally, denser graphs entail longer computation time.
+For the batch algorithm we use lower densities since the input graph must be acyclic. This puts an upper bound on density that approaches 0.5 in large graphs.
 % Our proposed algorithms, ~\ref{algo_minimal_spanning_set} and ~\ref{algo_online_polynomial} are less affected because they aggressively remove redundancies.
 
 \begin{figure}
@@ -627,39 +628,38 @@ Generally, denser graphs entail longer computation time.
     \begin{subfigure}{.4\textwidth}
       \includegraphics[width=.8\linewidth]{timeVsSize_10_OptimalSet.png}
       \caption{~\ref{algo_online_minimal}}
-      \label{fig:sfigOptimal}
+      \label{fig:sfigOptimalTvsS}
     \end{subfigure}
 
     \begin{subfigure}{.4\textwidth}
       \includegraphics[width=.8\linewidth]{timeVsSize_10_Polynomial.png}
       \caption{~\ref{algo_online_polynomial}}
-      \label{fig:sfigPolynomial}
+      \label{fig:sfigPolynomialTvsS}
     \end{subfigure}
     
     \begin{subfigure}{.4\textwidth}
       \includegraphics[width=.8\linewidth]{timeVsSize_10_NaiveChecker.png}
       \caption{Naive baseline}
-      \label{fig:sfigNaive}
+      \label{fig:sfigNaiveTvsS}
     \end{subfigure}
 
     \begin{subfigure}{.4\textwidth}
       \includegraphics[width=.8\linewidth]{timeVsSize_10_TwoFlipPathChecker.png}
       \caption{Two flip tolerant baseline}
-      \label{fig:sfigTwoFlip}
+      \label{fig:sfigTwoFlipTvsS}
     \end{subfigure}
 
     \begin{subfigure}{.4\textwidth}
       \includegraphics[width=.8\linewidth]{timeVsSize_10_BatchChecker.png}
       \caption{Batch algorithm baseline}
-      \label{fig:sfigBatch}
+      \label{fig:sfigBatchTvsS}
     \end{subfigure}
-
-    \label{fig:timeVsSize}
     \caption{Plots of scaling of time with input size and density}
+    \label{fig:timeVsSize}
 \end{figure}
 
 \subsection{Variance}
-The periodic spikes in figure ~\ref{fig:sfigOptimal} are striking. 
+The periodic spikes in figure ~\ref{fig:sfigOptimalTvsS} are striking. 
 We plot the spread of results to understand what is happening.
 We find ~\ref{algo_online_minimal} has outliers about two standard deviation above the mean responsible for the spikes in the average.
 The outliers themselves follow a polynomial curve.
@@ -672,29 +672,29 @@ No such effect is observed in ~\ref{algo_online_polynomial}.
     \begin{subfigure}{.4\textwidth}
       \includegraphics[width=.8\linewidth]{variance_10_OptimalSet.png}
       \caption{~\ref{algo_online_minimal}}
-      \label{fig:sfigOptimal}
+      \label{fig:sfigOptimalSpread}
     \end{subfigure}
 
     \begin{subfigure}{.4\textwidth}
       \includegraphics[width=.8\linewidth]{variance_10_Polynomial.png}
       \caption{~\ref{algo_online_polynomial}}
-      \label{fig:sfigPolynomial}
+      \label{fig:sfigPolynomialSpread}
     \end{subfigure}
     
     \begin{subfigure}{.4\textwidth}
       \includegraphics[width=.8\linewidth]{variance_10_TwoFlip.png}
       \caption{Two flip tolerant baseline}
-      \label{fig:sfigTwoFlip}
+      \label{fig:sfigTwoFlipSpread}
     \end{subfigure}
 
-    \label{fig:variance}
     \caption{Plots of spread of results}
+    \label{fig:variance}
 \end{figure}
 
 \subsection{Size of Output}
 Output size is a metric of interest, should the equality checking oracle be expensive.
-Table ~\ref{sizes}, summarizes the number of output pairs that the algorithms returned on average over 10 runs, for graphs with 9 nodes and 32 edges.
-\begin{figure}
+Table ~\ref{tab:sizes}, summarizes the number of output pairs that the algorithms returned on average over 10 runs, for graphs with 9 nodes and 32 edges.
+\begin{table}
 \begin{tabular}{|c|c|}
     \hline
     Algorithm & average number of output pairs \\
@@ -702,13 +702,13 @@ Table ~\ref{sizes}, summarizes the number of output pairs that the algorithms re
     Naive baseline & 39754.9 \\
     Two Flip tolerant & 748.9 \\
     Batch algorithm & 23 \\
-    algorithm ~\ref{algo_online_polynomial} & 78.3 \\
-    algorithm ~\ref{algo_online_minimal} & 1 \\
+    ~\ref{algo_online_polynomial} & 78.3 \\
+    ~\ref{algo_online_minimal} & 1 \\
     \hline
 \end{tabular}
-\label{sizes} % Now working. TODO fix label.
 \caption{Output size for 9 node graph of density 0.4, averaged over ten runs}
-\end{figure}
+\label{tab:sizes}
+\end{table}
 
 \section{Appendix: Theorems and additional cases}
 
