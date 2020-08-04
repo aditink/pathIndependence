@@ -50,101 +50,46 @@
 Commutative diagrams arise in many systems, such as an implicit type conversion graph in some programming languages.
 It can be useful in program analysis to verify that a diagram representing conversions remains commutative over the course of its construction.
 A naive approach to solving the problem would take factorial time, and the presence of cycles could potentially lead to an infinite number of paths to check. Previous work provides an algorithm for the special case of acyclic diagrams that verifies that a given diagram commutes in $O(|V|^4|E|^2)$ time, where V is the set of vertices in the diagram, and E, the set of edges. 
-We present an algorithm that given a diagram and an edge to add to it, and an oracle to check the equality of a given pair of paths, verifies that the resultant diagram commutes in $O(|V|^2(|E| + |V|))$ time. For the case when checking the equality of paths is expensive, we present an optimization that runs in $O(|V|^4)$ time but reduces to the minimum possible number of equality checks.
-We evaluate the algorithms against baselines, and see its practical application in the compiler of a domain specific language for geometry types.
-As a demonstration of the more general applicability of the algorithm, we use it to identify discrepancies in a  currency conversion graph.
+We present an algorithm that given a diagram and an edge to add to it, verifies that the resultant diagram commutes in $O(|V|(|E| + |V|)$ time. For the case when checking the equality of paths is expensive, we present an optimization that runs in $O(V^4)$ time but reduces to the minimum possible number of equality checks. We evaluate the algorithms against baselines, and see its practical application in the compiler of a domain specific language for geometry types. As a demonstration of the more general applicability of the algorithm, we use it to identify discrepancies in a  currency conversion graph.
 \end{abstract}
 
 \maketitle
 
 \section{Introduction}
-Many systems can be understood as diagrams: graphs where nodes represent domains, and edges, directed transformation functions between nodes.
-In programming, for example, type systems with coercions can be drawn as a graph with type nodes and coercion edges, as demonstrated in figure ~\ref{fig:typeExample}.
+Many systems can be understood as diagrams: graphs where nodes represent objects, and edges, directed transformation functions between nodes.
+In programming, for example, type systems with coercions can be drawn as a graph with type nodes and coercion edges.
 A desirable trait of such a type system and many other similar systems is that traversing the graph from a given start and end node results in the same value independent of path chosen.
-A diagram with this property is said to \textit{commute}.
+A diagram with this property is said to commute.
 With our type coercion example, it could be problematic if casting to a supposedly equivalent type as an intermediate step resulted in a different answer than a direct cast.
-
-\begin{figure}[]
-    \centering
-    \begin{subfigure}{.4\textwidth}
-        \begin{verbatim}
-            var a : meters = 1;
-            var b : miles = (miles) a;
-            var c : feet = (feet) a;
-            define wugs:
-                1 miles = 10 wugs;
-                1 foot = 10000 wugs;
-            var d : wugs = (wugs) a;
-        \end{verbatim}
-        \caption{A sample program with user defined type conversion.}
-    \end{subfigure}
-
-    \begin{subfigure}{.4\textwidth}
-        \begin{tikzpicture}[scale=0.2]
-            \tikzstyle{every node}+=[inner sep=0pt]
-            \draw [black] (32.8,-8.8) circle (3);
-            \draw (32.8,-8.8) node {$meters$};
-            \draw [black] (21.5,-21.4) circle (3);
-            \draw (21.5,-21.4) node {$feet$};
-            \draw [black] (43.7,-21.4) circle (3);
-            \draw (43.7,-21.4) node {$miles$};
-            \draw [black] (32.4,-33.6) circle (3);
-            \draw (32.4,-33.6) node {$wugs$};
-            \draw [black] (30.8,-11.03) -- (23.5,-19.17);
-            \fill [black] (23.5,-19.17) -- (24.41,-18.9) -- (23.66,-18.24);
-            \draw (26.61,-13.64) node [left] {$\times 3.28$};
-            \draw [black] (34.76,-11.07) -- (41.74,-19.13);
-            \fill [black] (41.74,-19.13) -- (41.59,-18.2) -- (40.84,-18.85);
-            \draw (43.7,-13) node [left] {$\times 6.21 \times 10^{-4}$};
-            \draw [black] (23.5,-23.64) -- (30.4,-31.36);
-            \fill [black] (30.4,-31.36) -- (30.24,-30.43) -- (29.5,-31.1);
-            \draw (26.41,-28.96) node [left] {$\times 10$};
-            \draw [black] (41.66,-23.6) -- (34.44,-31.4);
-            \fill [black] (34.44,-31.4) -- (35.35,-31.15) -- (34.62,-30.47);
-            \draw (37.52,-26.04) node [left] {$\times 10^4$};
-            \draw [dashed] (29.441,-34.049) arc (-88.02206:-273.82603:12.915);
-            \fill [black] (29.44,-34.05) -- (28.62,-33.58) -- (28.66,-34.58);
-            \draw (15.56,-20.93) node [left] {$\times 32.8$};
-            \draw [dashed] (35.77,-8.425) arc (90.49177:-92.33986:12.828);
-            \fill [black] (35.36,-34.07) -- (36.13,-34.6) -- (36.18,-33.6);
-            \draw (49.23,-21.46) node [right] {$\times 6.21$};
-            \end{tikzpicture}
-        \caption{Diagram for the type conversions in the program}
-    \end{subfigure}
-
-    \caption{In this sample program, the user implicitly defines two ways to cast variable a from meters to the new unit wugs.
-    The definitions are different, and a compiler performing implicit conversion would not know which to choose.}
-    \label{fig:typeExample}
-\end{figure}
 
 Given the utility of system diagram commutativity, it would be useful to check that the property holds for real systems.
 Since diagrams may change over time, and verifying the entire system from scratch may be computationally expensive, it would be additionally convenient if new edges could be checked online as they are added.
-In figure ~\ref{fig:typeExample}, for example, an interpreter that caught the first instance of a user making a bad definition would need to build and verify the conversion graph at run time.
 
-Naively checking if all path pairs that begin and end at the same node in a given diagram commute could require a number of function equality checks that grow as factorial in the number of nodes, since a path consists of an ordering of nodes.
+Naively checking if all paths in a given diagram are path independent could require a number of function equality checks as bad as factorial in the number of nodes, since a path consists of an ordering of nodes.
 Further, the presence of cycles implies a potentially infinite number of paths. 
-Previous work ~\cite{commutative} has identified an $O(|E|^2|V|^4)$ algorithm to verify that a complete acyclic diagram commutes; however, it addresses neither online addition nor cyclic diagrams.
 
 In the course of efficiently verifying commutativity over online addition, we identified two key insights.
 The first was that in a commutative diagram, when a new edge is to be added, at most one path needs to be checked against for a given source and sink pair.
 Because the diagram commutes, all the paths between a given source and sink are equal and a representative to check against can arbitrarily be chosen.
-It lead to an $O(|V|^2(|E|+|V|))$ algorithm to verify a diagram remains commutative over the course of online addition, assuming an oracle to check the equality of functions.
+It lead to an $O(|V|^2(|E|+|V|)$ algorithm to verify a diagram remains commutative over the course of online addition, assuming an oracle to check the equality of functions.
 The algorithm makes an asymptotically optimal number of calls to the oracle.
 
 The second insight was that there is a single rule that places a partial, transitive ordering on the informativeness of paths.
 It allowed for the creation of a greedy, $O(|V|^4)$ optimization step, that results in the number of calls to the oracle being minimal.
 The optimization is very useful when the equality checking oracle is expensive.
 
+Previous work ~\cite{commutative} has identified an $O(|E|^2|V|^4)$ algorithm to verify that a complete acyclic diagram commutes; however, it addresses neither online addition nor cyclic diagrams.
+
 To evaluate our results we use two case studies.
-First, our algorithm is used for the domain specific geometry type language \textit{Gator} ~\cite{gator} to ensure that user defined transformations between spaces stay consistent.
-Second, our algorithm is used to identify inefficiencies in a currency conversion graph.
+First, our algorithm is used for the domain specific geometry type language \textit{Gator} to ensure that user defined transformations between spaces stay consistent. Second, our algorithm is used to identify inefficiencies in a currency conversion graph.
 
 We compare our solution to three baseline implementations: a naive checking of all path pairs with only special handling for cycles, a check for all path pairs that involve the new edge, and an algorithm suggested by previous work to solve the batch version of the problem for acyclic diagrams.
-Our proposed algorithms run orders of magnitude faster than the baselines.
 
 \section{Formal Problem Setup and Terminology}
 
-We start by formalizing the notion of a diagram, drawing terminology from the previous acyclic work by Murota ~\cite{commutative}.
+We start by formalizing the notion of a diagram, drawing inspiration from the previous acyclic work by Murota ~\cite{commutative}.
+
+\xxx[AK]{A lot of this exposition is from the cited paper, I feel like I need to make this clearer to give proper credit, but not sure how}
 
 We start with a directed graph G=(V,E), where V consists of sets of elements and edges (u, v) in E correspond to functions that maps elements of u to elements in v.
 All these functions form a semigroup F, where multiplication is function composition.
@@ -447,8 +392,7 @@ parallelPairs $\gets$ \{\}\;
     }
 }
 \KwRet{parallelPairs}\;
-\caption{Online polynomial time algorithm to find parallel pair set}
-\label{algo_online_polynomial}
+\caption{Online polynomial time algorithm to find parallel pair set}\label{algo_online_polynomial}
 \end{algorithm}
 
 The try block is executed at most $O(|V|^2)$ times, so that this is the bound on the number of pairs verified.
@@ -578,8 +522,7 @@ verificationSet $\gets$ \{\}\;
     terminalPairGraph.removeNodes( currentNode.successors(terminalPairGraph))\;
 }
 \KwRet{verificationSet}\;
-\caption{Minimal set finding algorithm}
-\label{algo_online_minimal}
+\caption{Minimal set finding algorithm}\label{algo_online_minimal}
 \end{algorithm}
 
 The result of the algorithm cannot be further reduced.
