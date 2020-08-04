@@ -146,22 +146,24 @@ Our proposed algorithms run orders of magnitude faster than the baselines.
 
 We start by formalizing the notion of a diagram, drawing terminology from the previous acyclic work by Murota ~\cite{commutative}.
 
-We start with a directed graph G=(V,E), where V consists of sets of elements and edges (u, v) in E correspond to functions that maps elements of u to elements in v.
-All these functions form a semigroup F, where multiplication is function composition.
+We start with a directed graph $G=(V,E)$, where $V$ consists of sets of elements and edges $(u, v)$ in $E$ correspond to functions that maps elements of $u$ to elements in $v$.
+All these functions form a semigroup $F$, where multiplication is function composition.
 A semigroup consists of a set and an associative binary operation, which we use to capture function composition.
 
-The correspondence between edges and functions is stored as a mapping f:$E\rightarrow F$, where f maps each edge to the function it represents.
+The correspondence between edges and functions is stored as a mapping $f:E\rightarrow F$, where $f$ maps each edge to the function it represents.
 
-A path is a sequence of edges. The edge-to-function mapping f can be naturally extended to paths: if path p=$e_1\circ e_2 ... e_n$ then $f(p)=f(e_1) \circ f(e_2) ... f(e_n)$.
+A path is a sequence of edges. The edge-to-function mapping $f$ can be naturally extended to paths: if path $p=e_1\circ e_2 ... e_n$ then $f(p)=f(e_1) \circ f(e_2) ... f(e_n)$.
 
-The notation $\partial(p)$ maps to the tuple (start node of p, end node of p).
+The notation $\partial(p)$ maps to the tuple (start node of $p$, end node of $p$).
 
-A pair of paths p and q is called \textit{parallel} iff their terminal nodes are the same, i.e., $\partial(p)=\partial(q)$.
+A pair of paths $p$ and $q$ is called \textit{parallel} iff their terminal nodes are the same, i.e., $\partial(p)=\partial(q)$.
 Let $R_{all}$ be the set of all parallel pairs of paths in the diagram.
 
-The diagram commutes iff f(p)=f(q) $\forall (p,q)\in R_{all}$; that is, the composition of maps along any path connecting u to v is independent of path choice.
+The diagram commutes iff $f(p)=f(q)$ $\forall (p,q)\in R_{all}$; that is, the composition of maps along any path connecting $u$ to $v$ is independent of path choice.
 
 The \textsc{Online addition problem}, given a commuting diagram and a new edge, returns whether the diagram commutes.
+Checking function equality is a domain specific, potentially hard problem, dependent on the nature of the graph.
+For graphics programs in Gator, for example, where edges are matrices, function equality checking would be comparing matrix elements.
 We make an abstraction - equality of functions is defined by some oracle whose specifics will vary by target functions and domain - and reduce the \textsc{Online addition problem} to the \textsc{Verification set problem}, which given a diagram and a new edge, returns the set of parallel pairs of paths, such that if and only if the members in each pair are equal, then the new graph must commute. 
 The output to the \textsc{Online addition problem} can then be obtained as whether equality checking for all pairs succeeds.
 
@@ -170,7 +172,7 @@ The output to the \textsc{Online addition problem} can then be obtained as wheth
 To examine the efficacy of our proposed solution to the \textsc{Verification set problem}, we compare it to some potential alternatives.
 Specifically, we examine a na\"{i}ve factorial algorithm, a slightly less na\"{i}ve factorial algorithm which we identify to be a two-flip tolerant path search, and Murota's historical batch solution~\cite{commutative}.
 
-\subsection{Very Na\"{i}ve baseline}
+\subsection{Very Na\"{i}ve Baseline}
 
 We start with the set of all parallel pairs in the diagram (with the new edge added in), and pare it down to be finite by handling cycles.
 We find all simple cycles in the diagram, using a procedure like Johnson's algorithm. 
