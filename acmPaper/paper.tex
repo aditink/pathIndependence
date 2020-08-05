@@ -52,7 +52,7 @@ However, a straightforward approach to verifying commutativity must contend with
 While previous work has shown how to verify commutativity in the special case of acyclic diagrams in $O(|V|^4|E|^2)$ time,
 % I think this is clear enough (at least for the abstract). --AS
 % where V is the set of vertices in the diagram, and E, the set of edges.
-this is a \emph{batch} algorithm: the entire system must be known ahead of time.
+but this is a \emph{batch} algorithm: the entire diagram must be known ahead of time.
 We present an \emph{online} algorithm that efficiently verifies that a commutative diagram remains commutative when adding a new edge.
 The new incremental algorithm runs in $O(|V|^2(|E| + |V|))$ time.
 For the case when checking the equality of paths is expensive, we also present an optimization that runs in $O(|V|^4)$ time but reduces to the minimum possible number of equality checks.
