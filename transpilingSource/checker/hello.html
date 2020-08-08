@@ -1,0 +1,25 @@
+<script type="module">import * as hello from './__target__/hello.js'; window.hello = hello;</script>
+<h2>Path checker demo</h2>
+
+<p>
+    <input type="text" id="graph" name="graph"><br>
+    <button onclick="hello.setGraph()">Set (adjacency matrix) graph</button>
+    Eg. "1 2; 3 4" = [[1, 2],[3, 4]]. <br>
+    No edge = -1
+</p>
+
+<p>
+    <input type="text" id="graph" name="newedge"><br>
+    <button onclick="hello.setGraph()">Set new edge</button>
+    Eg. "(1 2)" = edge from node 1 to node 2 (0 indexed).
+</p>
+
+<p>
+    <div id="paths">...</div>
+    <button onclick="hello.getPathsToCheck()">Paths to check</button>
+</p>
+
+<p>
+    <div id="time">...</div>
+    <button onclick="hello.getTime()">Time taken for most recent computation</button>
+</p>
