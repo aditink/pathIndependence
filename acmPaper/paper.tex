@@ -3,7 +3,6 @@
 \setcopyright{none}
 %
 \usepackage{tikz}
-\usepackage{amssymb}
 \usepackage[norelsize]{algorithm2e}
 \usepackage{xxx}
 \usepackage{fncylab}
@@ -47,12 +46,18 @@
 \email{email 3}
 
 \begin{abstract}
-Commutative diagrams arise in many systems, such as an implicit type conversion graph in some programming languages.
-It can be useful in program analysis to verify that a diagram representing conversions remains commutative over the course of its construction.
-A naive approach to solving the problem would take factorial time, and the presence of cycles could potentially lead to an infinite number of paths to check. Previous work provides an algorithm for the special case of acyclic diagrams that verifies that a given diagram commutes in $O(|V|^4|E|^2)$ time, where V is the set of vertices in the diagram, and E, the set of edges. 
-We present an algorithm that given a diagram and an edge to add to it, and an oracle to check the equality of a given pair of paths, verifies that the resultant diagram commutes in $O(|V|^2(|E| + |V|))$ time. For the case when checking the equality of paths is expensive, we present an optimization that runs in $O(|V|^4)$ time but reduces to the minimum possible number of equality checks.
-We evaluate the algorithms against baselines, and see its practical application in the compiler of a domain specific language for geometry types.
-As a demonstration of the more general applicability of the algorithm, we use it to identify discrepancies in a  currency conversion graph.
+Systems of transformations arise in many programming systems, such as in type graphs of implicit type conversion functions.
+It is important to ensure that these diagrams commute: that any composing path of transformations from the same source to the same destination yields the same result.
+However, a straightforward approach to verifying commutativity must contend with cycles, and even so it runs in factorial time.
+While previous work has shown how to verify commutativity in the special case of acyclic diagrams in $O(|V|^4|E|^2)$ time,
+% I think this is clear enough (at least for the abstract). --AS
+% where V is the set of vertices in the diagram, and E, the set of edges.
+but this is a \emph{batch} algorithm: the entire diagram must be known ahead of time.
+We present an \emph{online} algorithm that efficiently verifies that a commutative diagram remains commutative when adding a new edge.
+The new incremental algorithm runs in $O(|V|^2(|E| + |V|))$ time.
+For the case when checking the equality of paths is expensive, we also present an optimization that runs in $O(|V|^4)$ time but reduces to the minimum possible number of equality checks.
+We implement the algorithms and compare them to batch baselines, and we demonstrate their practical application in the compiler of a domain-specific language for geometry types.
+To study the algorithms' scalability to large diagrams, we apply them to discover discrepancies in currency conversion graphs.
 \end{abstract}
 
 \maketitle
