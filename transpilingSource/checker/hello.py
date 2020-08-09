@@ -11,6 +11,11 @@ class BaseOnlineChecker():
 
     #### Utility functions ####
 
+    def extend(self, list1, list2):
+        for elem in list2:
+            list1.append(elem)
+        return list1
+
     def getForwardEdges(self, source: int) -> List[int]:
         return [i for i in range(len(self.graph)) \
             if self.graph[source][i] != self._no_edge]
@@ -22,7 +27,7 @@ class BaseOnlineChecker():
     def getEmptyPathList(self):
         paths = []
         for _ in range(len(self.graph)):
-            paths += [[]]
+            paths.append([])
         return paths
 
     def buildCompactFwdGraph(self):
@@ -55,11 +60,12 @@ class BaseOnlineChecker():
                 path = path[1:]
             elif currentNode not in visited:
                 visited.add(currentNode)
-                visitedList += [currentNode]
-                path = [currentNode] + path
+                visitedList.append(currentNode)
+                path = self.extend([currentNode], path)
                 if (memoize):
                     pathDict[currentNode] = self.deepcopyList(path)
-                stack += [self._invalid_node] + self.compactBkdGraph[currentNode]
+                stack.append(self._invalid_node)
+                stack = self.extend(stack, self.compactBkdGraph[currentNode])
         if self._debug:
             print("getAllPredecessors: node: {} and visitedList: {}".format(
                 node, visitedList))
@@ -88,7 +94,8 @@ class BaseOnlineChecker():
                 path = [currentNode] + path
                 if (memoize):
                     pathDict[currentNode] = self.deepcopyList(path)
-                stack += [self._invalid_node] + self.compactBkdGraph[currentNode]
+                stack.append(self._invalid_node)
+                stack = self.extend(stack, self.compactBkdGraph[currentNode])
         if self._debug:
             print("getAllPredecessors: node: {} and visitedList: {}".format(
                 node, visited))
@@ -116,11 +123,12 @@ class BaseOnlineChecker():
                 path.pop()
             elif currentNode not in visited:
                 visited.add(currentNode)
-                visitedList += [currentNode]
-                path += [currentNode]
+                visitedList.append(currentNode)
+                path.append(currentNode)
                 if (node == self.newEdgeSink):
                     self.pathsFromNewEdgeSink[currentNode] = self.deepcopyList(path)
-                stack += [self._invalid_node] + self.compactFwdGraph[currentNode]
+                stack.append(self._invalid_node)
+                stack = self.extend(stack, self.compactFwdGraph[currentNode])
         if self._debug:
             print("getAllSuccessors: node = {} and visited list: {}".format(
                 node, visitedList))
@@ -129,7 +137,7 @@ class BaseOnlineChecker():
     def deepcopyList(self, path):
         copy = []
         for entry in path:
-            copy += [entry]
+            copy.append(entry)
         return copy
 
     def findPath(self, source: int, sink: int) -> Tuple[bool, List[int]]:
@@ -142,13 +150,15 @@ class BaseOnlineChecker():
         while (len(stack)>0):
             currentNode = stack.pop()
             if currentNode == self._invalid_node:
-                path.pop()
+                # path.pop()
+                path = path[:-1]
             elif currentNode not in visited:
-                path = path+[currentNode]
+                path.append(currentNode)
                 if currentNode == sink:
                     return (True, path)
                 visited.add(currentNode)
-                stack += [self._invalid_node] + self.compactFwdGraph[currentNode]
+                stack.append(self._invalid_node)
+                stack = self.extend(stack, self.compactFwdGraph[currentNode])
         return (False, [])
 
     def findPair(self, source: int, sink: int) -> Tuple[List[int], List[int]]:
@@ -165,8 +175,9 @@ class BaseOnlineChecker():
         (_, secondPath) = self.findPath(source, sink)
         # Special case of Identity.
         if source == sink:
-            secondPath = self.identityFunction(source)    
-        return(firstSegment + lastSegment, secondPath)
+            secondPath = self.identityFunction(source) 
+        firstPath = self.extend(firstSegment, lastSegment)
+        return(firstPath, secondPath)
 
     #### Public interface ####
 
@@ -245,27 +256,28 @@ class OptimalSetPathChecker(BaseOnlineChecker):
         predecessors = self.getAllPredecessors(self.newEdgeSource)
         successors = self.getAllSuccessors(self.newEdgeSink)
         # Go through each element in predecessors X successors.
-        # For efficiency, closest pairs to new edge should appear first.
         potentialPairs = {(source, sink) for source in predecessors \
             for sink in successors}
-        orderedPotentialPairs = [(source, sink) for source in predecessors \
-            for sink in successors]
         while (len(potentialPairs) != 0):
             # using ordering is a heuristic to (hopefully) improve performance,
             # so parent is usually checked before child.
-            (source, sink) = orderedPotentialPairs.pop(0)
-            if (source, sink) in potentialPairs:
-                potentialPairs.remove((source, sink))
-                (pathExists, _) = self.findPath(source, sink)
-                if pathExists:
-                    currentPairSuccessors = self.getSuccessors(source, sink)
-                    for redundantPair in acceptedPairs.intersection(
-                        currentPairSuccessors):
+            (source, sink) = potentialPairs.pop(0)
+            (pathExists, _) = self.findPath(source, sink)
+            if pathExists:
+                currentPairSuccessors = self.getSuccessors(source, sink)
+                for redundantPair in acceptedPairs.intersection(
+                    currentPairSuccessors):
+                    try:
                         acceptedPairs.remove(redundantPair)
-                    for redundantPair in potentialPairs.intersection(
-                        currentPairSuccessors):
+                    except:
+                        pass
+                for redundantPair in potentialPairs.intersection(
+                    currentPairSuccessors):
+                    try:
                         potentialPairs.remove(redundantPair)
-                    acceptedPairs.add((source, sink))
+                    except:
+                        pass
+                acceptedPairs.add((source, sink))
         return acceptedPairs        
 
     def getPathsToCheck(self) ->  List[Tuple[List[int], List[int]]]:
@@ -277,30 +289,45 @@ class OptimalSetPathChecker(BaseOnlineChecker):
         pathPairs = []
         for node in subset:
             (source, sink) = node
-            pathPairs += [self.findPair(source, sink)]
+            pathPairs.append(self.findPair(source, sink))
         endTime = time.time()
         self.timeTaken = endTime - startTime
         return pathPairs
 
 
 ###### Front end code ######
+# Test cases:
+# 
+# graph: -1 1 -1; -1 -1 1; -1 -1 -1
+# new edge: 0 2
+#
+#  -1  1  -1  -1  -1  -1  -1  -1 ; -1  -1  1  -1  -1  -1  -1  -1 ; -1  -1  -1  -1  -1  -1  -1  -1 ; -1  -1  -1  -1  1  -1  1  -1 ; -1  -1  -1  -1  -1  1  -1  -1 ; -1  -1  -1  -1  -1  -1  -1  -1 ; -1  -1  -1  -1  -1  -1  -1  1 ; -1  -1  1  -1  -1  -1  -1  -1 
+# 2 3
 
 _EMPTY = 0
 checker = OptimalSetPathChecker()
 # placeholder oracle
 oracle = lambda matrix1, matrix2 : matrix1==matrix2
 
+def getPathListString(pathList):
+    string = ''
+    for pair in pathList:
+        path1, path2 = pair
+        string+='('+path1+' and '+path2+') '
+    return string
+
 def getTime():
     document.getElementById('time').innerHTML = (
-            checker.getComputeTime()
+            checker.getComputeTime()+'s'
         )
 
 def getPathsToCheck():
     if (len(checker.graph)!=_EMPTY and len(checker.graph[0])!=_EMPTY) \
         and checker.newEdgeSource!=checker._invalid_node \
         and checker.newEdgeSink!=checker._invalid_node:
+        paths = checker.getPathsToCheck()
         document.getElementById('paths').innerHTML = (
-            checker.getPathsToCheck()
+            getPathListString(paths)
         )
     else:
         document.getElementById('paths').innerHTML = (
@@ -322,7 +349,9 @@ def setGraph():
     checker.setGraph(graph)
 
 def setNewEdge():
-    pass
+    edgeString = document.getElementById('edge').value
+    source, sink = edgeString.split()
+    checker.setEdge(int(source), int(sink))
 
 
 ##### To integrate with gator #####
