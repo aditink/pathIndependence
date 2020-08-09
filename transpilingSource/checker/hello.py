@@ -421,3 +421,40 @@ def verify(graph, graphValues, newEdge, oracle):
     checker.setEdge(newEdge[0], newEdge[1])
     pathsToCheck = checker.getPathsToCheck()
     return checkPaths(pathsToCheck, graphValues, newEdge, oracle)
+
+def gatorTest():
+    """Check for functionality of gator hook code.
+    Please add to test case list instead of replacing."""
+    NO_EDGE = _default_no_edge
+    graph1 = [
+        [-1,  1, -1],
+        [-1, -1,  1],
+        [-1, -1, -1]]
+    newEdge1 = (0, 2)
+    graphValue1 = [
+        [1, 1, 1],
+        [1, 1, 1],
+        [1, 1, 1]]
+    oracle1 = lambda a, b: a==b
+    expectedOutcome1 = True
+
+    # If expanding on this later, put in "testCase" class
+    testGraphs = [graph1]
+    newEdge = [newEdge1]
+    oracles = [oracle1]
+    graphValues = [graphValue1]
+    expectedOutcomes = [expectedOutcome1]
+    
+    testsSucceeded  = True
+    
+    for i in range(testGraphs):
+        outcome = verify(
+            testGraphs[i],
+            graphValues[i],
+            newEdge[i],
+            oracles[i])
+        testsSucceeded = testsSucceeded and (outcome == expectedOutcomes[i])
+    
+    document.getElementById('gator').innerHTML = (
+            'succeeded: '+testsSucceeded
+        )
