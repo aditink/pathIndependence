@@ -71,40 +71,8 @@ class BaseOnlineChecker():
                 node, visitedList))
         if node == self.newEdgeSource:
             self.pathsToNewEdgeSource = pathDict
-        if memoize:
-            self.pathsToNode[node] = pathDict
         return visitedList
     
-    def getAllPredecessorsUnordered(self, node, memoize = True) -> Set[int]:
-        """Returns a list of nodes that are predecessors of this one.
-        Memoize if source of new edge."""
-        memoize = memoize or node == self.newEdgeSource
-        if memoize:
-            pathDict = dict()
-        visited = set()
-        currentNode = node
-        stack = [currentNode]
-        path = []
-        while (len(stack) > 0):
-            currentNode = stack.pop()
-            if currentNode == self._invalid_node:
-                path = path[1:]
-            elif currentNode not in visited:
-                visited.add(currentNode)
-                path = [currentNode] + path
-                if (memoize):
-                    pathDict[currentNode] = self.deepcopyList(path)
-                stack.append(self._invalid_node)
-                stack = self.extend(stack, self.compactBkdGraph[currentNode])
-        if self._debug:
-            print("getAllPredecessors: node: {} and visitedList: {}".format(
-                node, visited))
-        if node == self.newEdgeSource:
-            self.pathsToNewEdgeSource = pathDict
-        if memoize:
-            self.pathsToNode[node] = pathDict
-        return visited
-
     def getAllSuccessors(self, node) -> List[int]:
         """Returns a list of nodes that are successors of this one.
         Memoize if sink of new edge."""
@@ -169,7 +137,7 @@ class BaseOnlineChecker():
         if not bool(self.pathsFromNewEdgeSink):
             self.getAllSuccessors(self.newEdgeSink)
         if not bool(self.pathsToNewEdgeSource):
-            self.getAllPredecessors(self.newEdgeSource)
+            self.getAllPredecessors(self.newEdgeSource, memoize=False)
         firstSegment = self.pathsToNewEdgeSource[source]
         lastSegment = self.pathsFromNewEdgeSink[sink]
         (_, secondPath) = self.findPath(source, sink)
@@ -191,8 +159,6 @@ class BaseOnlineChecker():
         self.compactBkdGraph = []
         self.pathsToNewEdgeSource = dict()
         self.pathsFromNewEdgeSink = dict()
-        # sink node -> {source node -> path}
-        self.pathsToNode = dict()
         self._no_edge = _default_no_edge
         self.noIdentity = False
         # Hack to make sub classes works
@@ -238,7 +204,7 @@ class OptimalSetPathChecker(BaseOnlineChecker):
         """Returns a set of pairs such that verifying a path between given
         source and sink implies also that all the pairs in the returned set are
         equal."""
-        predecessors = self.getAllPredecessors(source)
+        predecessors = self.getAllPredecessors(source, memoize=False)
         successors = self.getAllSuccessors(sink)
         if (self.noIdentity and source == sink):
             return {(src, snk) for src in predecessors for snk in successors 
@@ -253,7 +219,7 @@ class OptimalSetPathChecker(BaseOnlineChecker):
         the paths pairs of A must also be equal."""
         acceptedPairs = set()
         # Get set of all predecessors, successors.
-        predecessors = self.getAllPredecessors(self.newEdgeSource)
+        predecessors = self.getAllPredecessors(self.newEdgeSource, memoize=False)
         successors = self.getAllSuccessors(self.newEdgeSink)
         # Go through each element in predecessors X successors.
         potentialPairs = {(source, sink) for source in predecessors \
@@ -267,18 +233,24 @@ class OptimalSetPathChecker(BaseOnlineChecker):
                 currentPairSuccessors = self.getSuccessors(source, sink)
                 for redundantPair in acceptedPairs.intersection(
                     currentPairSuccessors):
-                    try:
-                        acceptedPairs.remove(redundantPair)
-                    except:
-                        pass
+                    acceptedPairs = self.removePairFromList(acceptedPairs, redundantPair)
                 for redundantPair in potentialPairs.intersection(
                     currentPairSuccessors):
-                    try:
-                        potentialPairs.remove(redundantPair)
-                    except:
-                        pass
+                    potentialPairs = self.removePairFromList(potentialPairs, redundantPair)
                 acceptedPairs.add((source, sink))
         return acceptedPairs        
+
+    def removePairFromList(self, lst, pair):
+        """Custom implementation of remove because transcrypt translates pairs to objects
+        for which remove fails."""
+        indices = []
+        for i in range(len(lst)):
+            elem = lst[i]
+            if pair[0]==elem[0] and pair[1]==elem[1]:
+                indices.append(i)
+        for i in indices:
+            lst = self.extend(lst[:i], lst[i+1:])
+        return lst
 
     def getPathsToCheck(self) ->  List[Tuple[List[int], List[int]]]:
         """Return the pairs of path whose equality implies path independence of 
@@ -365,7 +337,7 @@ def scalarMultiply(scalar, matrix):
         ans.append(ansRow)
     return ans
 
-def metrixMultiple(mat1, mat2):
+def matrixMultiple(mat1, mat2):
     """Takes scalars and metrices as parameters. Returns product."""
     if isinstance(mat1, list):
         if isinstance(mat2, list):
