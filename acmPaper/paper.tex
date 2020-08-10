@@ -492,7 +492,8 @@ The bound is asymptotically tight. This can be seen in the case where the graph 
 
 Also notice that if trying to optimize for path length (say, if composing functions is expensive) then "find any path" can be replaced with "find shortest path".
 
-An efficient implementation of the algorithm can run in $O(|V|^2(|V|+|E|))$ time at a $O(|V|^3)$ space cost. In such an implementation, path finding from a given source node to all potential sink nodes could be done in a single $O(|V|+|E|)$ breadth first search and the results memoized in $O(|V|^2)$ space.
+An efficient implementation of the algorithm can run in $O(|V|^2(|V|+|E|))$ time, space complexity not exceeding the asymptotic $O(|V|^2)$ bound on the output.
+In such an implementation, path finding from a given source node to all potential sink nodes could be done in a single $O(|V|+|E|)$ breadth first search.
 
 \subsection{Optimization Step}
 
@@ -621,6 +622,7 @@ The result of the algorithm cannot be further reduced.
 Also, the verification of the parallel pairs returned in the algorithm implies that the output of the previous algorithm must commute, and transitively with Theorem ~\ref{verifyingSet} that the entire diagram must commute.
 
 The run time of the first step is $O(|V|^4)$, and that of the second step is $O(|V|)$, so that the overall bound is $O(|V|^4)$.
+Space complexity remains $O(|V|^2)$.
 
 \subsection{Verification}
 Ultimately verification is performed by calling an equality oracle (that is beyond the scope of this work) for every comparable pair returned by the previous stage, as in algorithm ~\ref{algo_verification}.
