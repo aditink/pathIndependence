@@ -141,12 +141,16 @@ The second insight was that there is a single rule that places a partial, transi
 It allowed for the creation of a greedy, $O(|V|^4)$ optimization step, that results in the number of calls to the oracle being minimal.
 The optimization is very useful when the equality checking oracle is expensive.
 
-To evaluate our results we use two case studies.
-First, our algorithm is used for the domain specific geometry type language \textit{Gator} ~\cite{gator} to ensure that user defined transformations between spaces stay consistent.
+We evaluate our algorithms against random graphs, and use them in two case studies.
+First, our algorithm is used in the domain specific geometry type language \textit{Gator} ~\cite{gator} to ensure that user defined transformations between spaces stay consistent.
 Second, our algorithm is used to identify inefficiencies in a currency conversion graph.
 
 We compare our solution to three baseline implementations: a Na\"{i}ve checking of all path pairs with only special handling for cycles, a check for all path pairs that involve the new edge, and an algorithm suggested by previous work to solve the batch version of the problem for acyclic diagrams.
 Our proposed algorithms run orders of magnitude faster than the baselines.
+
+\section{Related Work}
+
+Absolutely nothing related to this was ever done.
 
 \section{Formal Problem Setup and Terminology}
 
