@@ -189,8 +189,11 @@ $f(p)=f(q)$; that is, the composition of maps along any path connecting any pair
 
 The \textsc{Online addition problem}, given a commuting diagram and a new edge, returns whether the diagram commutes.
 Checking function equality is a domain specific, potentially hard problem, dependent on the nature of the graph.
-For graphics programs in Gator, for example, where edges are matrices, function equality checking would be comparing matrix elements.
-We make an abstraction --- equality of functions is defined by some oracle whose specifics will vary by target functions and domain --- and reduce the \textsc{Online addition problem} to the \textsc{Verification set problem}, which given a diagram and a new edge, returns the set of parallel pairs of paths, such that if and only if the members in each pair are equal, then the new graph must commute.
+For our case study in graphics programming (see Section~\ref{sec:gator}), edges are matrices and nodes are vector spaces, so function composition uses matrix multiplication and equivalence checking simply compares matrix values.
+We therefore assume some oracle for checking transformation function equivalence that will vary by domain.
+%
+We therefore reduce the \textsc{Online addition problem} to the \textsc{Verification set problem}.
+The latter, when given a diagram and a new edge, returns the set of parallel pairs of paths, such that if and only if the members in each pair are equal, then the new graph must commute.
 The output to the \textsc{Online addition problem} can then be obtained as whether equality checking for all pairs succeeds.
 
 The oracle would needs to preserve that equality is reflexive, symmetric and transitive in order to benefit from the guarantees of the algorithms below.
@@ -656,9 +659,13 @@ Ultimately verification is performed by calling an equality oracle (that is beyo
 \end{algorithm}
 
 \section{Applications}
-TODO.
+
+\xxx[as]{Just a brief overview here to explain to the reader why these applications are important and appropriate (and what we hope to learn from the case studies).}
 
 \subsection{Gator}
+\label{sec:gator}
+
+\xxx{Write the Gator section!}
 
 \subsection{Currency Graph}
 \label{sec:currency}
