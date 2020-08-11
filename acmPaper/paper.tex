@@ -193,11 +193,14 @@ For our case study in graphics programming (see Section~\ref{sec:gator}), edges 
 We therefore assume some oracle for checking transformation function equivalence that will vary by domain.
 %
 We therefore reduce the \textsc{Online addition problem} to the \textsc{Verification set problem}.
+\xxx[as]{Although it's not technically a ``reduction,'' is it? Maybe better to say that the latter is what we solve, and we assume an oracle that uses those results to solve the former.}
 The latter, when given a diagram and a new edge, returns the set of parallel pairs of paths, such that if and only if the members in each pair are equal, then the new graph must commute.
+\xxx[as]{Let's be precise around the ``equal'' terminology in the previous and next sentences. It's not that the pairs are equal---it's that we check function equivalence for the pairs' corresponding functions.}
 The output to the \textsc{Online addition problem} can then be obtained as whether equality checking for all pairs succeeds.
 
-The oracle would needs to preserve that equality is reflexive, symmetric and transitive in order to benefit from the guarantees of the algorithms below.
-For example, the oracle for currency graph (Section ~\ref{sec:currency}) only approximately preserves transitivity because of floating point error magnification, so while the algorithm catches mistakes, it does not guarantee that the diagram commutes.
+The algorithms in the rest of the paper assume that the function equivalence oracle is reflexive, symmetric, and transitive.
+\xxx[as]{The following is a little tricky to understand here... maybe this is best left to the currency section?}
+For example, the oracle for currency graph (Section~\ref{sec:currency}) only approximately preserves transitivity because of floating point error magnification, so while the algorithm catches mistakes, it does not guarantee that the diagram commutes.
 
 \section{Baseline Algorithms}
 
