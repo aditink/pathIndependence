@@ -471,14 +471,15 @@ R $\gets$ Rs\;
 The proof of correctness can be found in Murota\cite{commutative}.
 The number of checks returned by the algorithm is at worst $O(|V|^2|E|)$. The overall run time of an optimized implementation is $O(|V|^4|E|^2)$.
 
-\section{Solving the online addition problem}
+\section{Solving the Online Addition Problem}
 
 We present a polynomial time solution to the \textsc{verification set} problem.
-Like with the baseline, we do not concern ourselves with parallel pairs where neither or both paths pass through the new edge.
-The key observation that allows us to improve on the online baseline is that, for a given source and sink pair, only a single parallel pair needs to be verified. 
-This is an implication of Theorem \ref{reductionRule}, expanded on later.
-Theorem \ref{verifyingSet} shows that should our selected set of pairs along with cycles passing through the new edge be verified commutative, the entire diagram must commute. 
-The approach is to identify a parallel pair with exactly one path through the edge for each (source, sink) pair (algorithm ~\ref{algo_online_polynomial}).
+\xxx[as]{Elsewhere, ``problem'' is also in small-caps. Either way is fine, but consistency is important.}
+Like in the online baseline algorithm, we do not concern ourselves with parallel pairs where neither or both paths pass through the new edge.
+The key observation that allows us to improve on the online baseline is that, for a given source and sink pair, only a single parallel pair needs to be verified.
+This is an implication of Theorem~\ref{reductionRule}, expanded on later.
+Theorem~\ref{verifyingSet} shows that should our selected set of pairs along with cycles passing through the new edge be verified commutative, the entire diagram must commute.
+The approach is to identify a parallel pair with exactly one path through the edge for each (source, sink) pair (\ref{algo_online_polynomial}).
 
 \begin{algorithm}
 \DontPrintSemicolon
@@ -526,9 +527,9 @@ parallelPairs $\gets$ \{\}\;
 
 The try block is executed at most $O(|V|^2)$ times, so that this is the bound on the number of pairs verified.
 
-The bound is asymptotically tight. This can be seen in the case where the graph contains 2N nodes besides S and T. We consider N of the nodes to be in group 1, and the other N to be in group 2. Every node in group 1 has a forward node to every node in group 2, as well as to S. T has a forward edge to every node in group 2. In this diagram, on the addition of edge (S, T), $N^2$ paths need to be verified which is polynomial in 2N+2.
+The bound is asymptotically tight. This can be seen in the case where the graph contains $2N$ nodes besides $S$ and $T$. We consider $N$ of the nodes to be in group 1, and the other $N$ to be in group 2. Every node in group 1 has a forward node to every node in group 2, as well as to $S$. $T$ has a forward edge to every node in group 2. In this diagram, on the addition of edge $(S, T)$, $N^2$ paths need to be verified which is polynomial in $2N+2$.
 
-Also notice that if trying to optimize for path length (say, if composing functions is expensive) then "find any path" can be replaced with "find shortest path".
+Also notice that if trying to optimize for path length (say, if composing functions is expensive) then ``find any path'' can be replaced with ``find the shortest path.''
 
 An efficient implementation of the algorithm can run in $O(|V|^2(|V|+|E|))$ time, space complexity not exceeding the asymptotic $O(|V|^2)$ bound on the output.
 In such an implementation, path finding from a given source node to all potential sink nodes could be done in a single $O(|V|+|E|)$ breadth first search.
