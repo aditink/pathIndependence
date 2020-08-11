@@ -159,25 +159,33 @@ Our proposed algorithms run orders of magnitude faster than the baselines.
 
 \section{Formal Problem Setup and Terminology}
 
-We start by formalizing the notion of a diagram, drawing terminology from the previous acyclic work by Murota ~\cite{commutative}.
+We start by formalizing the notion of a diagram, drawing terminology from the previous acyclic work by Murota~\cite{commutative}.
 
-We start with a directed graph $G=(V,E)$, where $V$ consists of sets of elements and edges $(u, v)$ in $E$ correspond to functions that maps elements of $u$ to elements in $v$.
+\paragraph{Notation.}
+
+We start with a directed graph $G=(V,E)$, where $V$ corresponds to sets of elements and edges $(u, v)$ in $E$ correspond to functions that maps elements of $u$ to elements in $v$.
 All these functions form a semigroup $F$, where multiplication is function composition.
 A semigroup consists of a set and an associative binary operation, which we use to capture function composition.
-
+%
 The correspondence between edges and functions is stored as a mapping $f:E\rightarrow F$, where $f$ maps each edge to the function it represents.
 
-A path is a sequence of edges. The edge-to-function mapping $f$ can be naturally extended to paths: if path $p=e_1\circ e_2 ... e_n$ then $f(p)=f(e_1) \circ f(e_2) ... f(e_n)$.
-
-The notation $\partial(p)$ maps to the tuple (start node of $p$, end node of $p$).
-Additionally, $\partial(p)^{+}$ is the start node, and $\partial(p)^{-}$ is end node of p.
-
+A path is a sequence of edges. The edge-to-function mapping $f$ can be naturally extended to paths: if path $p=e_1\circ e_2 \circ \cdots \circ e_n$ then $f(p)=f(e_1) \circ f(e_2) \circ \cdots \circ f(e_n)$.
+%
+We write $\partial(p)^{+}$ for $p$'s start node, $\partial(p)^{-}$ for its end node, and $\partial(p)$ to denote the pair
+$(\partial(p)^{+}, \partial(p)^{-})$.
+\xxx[as]{Simplified this explanation; I hope it's OK.}
 
 A pair of paths $p$ and $q$ is called \textit{parallel} iff their terminal nodes are the same, i.e., $\partial(p)=\partial(q)$.
-$\partial$, $\partial^{+}$ and $\partial^{-}$ are extended to apply to parallel pairs. For parallel pair $p$ = ($p_1$, $p_2$), $\partial(p)=\partial(p_1)=\partial(p_2)=(\partial(p)^{+}, \partial(p)^{-})$.
-Let $R_{all}$ be the set of all parallel pairs of paths in the diagram.
+$\partial$, $\partial^{+}$ and $\partial^{-}$ are extended to apply to parallel pairs.
+\xxx[as]{Let's use a name other than $p$, which we have already used for paths, for pairs. (Or use something else for paths above.) Also, since we just used $p$ and $q$ for two paths, maybe that would be better than $p_1$ and $p_2$.}
+For parallel pair $p$ = ($p_1$, $p_2$), $\partial(p)=\partial(p_1)=\partial(p_2)=(\partial(p)^{+}, \partial(p)^{-})$.
 
-The diagram commutes iff $f(p)=f(q)$ $\forall (p,q)\in R_{all}$; that is, the composition of maps along any path connecting $u$ to $v$ is independent of path choice.
+Let $R_{all}$ be the set of all parallel pairs of paths in a given diagram.
+The diagram commutes iff
+$\forall (p,q)\in R_{all}$,
+$f(p)=f(q)$; that is, the composition of maps along any path connecting any pair $u$ to $v$ is independent of path choice.
+
+\paragraph{Problems.}
 
 The \textsc{Online addition problem}, given a commuting diagram and a new edge, returns whether the diagram commutes.
 Checking function equality is a domain specific, potentially hard problem, dependent on the nature of the graph.
