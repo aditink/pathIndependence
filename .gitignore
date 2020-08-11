@@ -160,6 +160,7 @@ dmypy.json
 # Latex
 *.aux
 *.synctex.gz
+*.synctex(busy)
 
 *.pdf
 
