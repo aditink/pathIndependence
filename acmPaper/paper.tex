@@ -697,7 +697,9 @@ Ultimately verification is performed by calling an equality oracle (that is beyo
 \subsection{Currency Graph}
 \label{sec:currency}
 
-To demonstrate our algorithms applied to a real world situation, 
+\xxx[as]{To perhaps excuse why this section doesn't have a proper programming language attached, maybe we should briefly say that we are imagining a units-of-measure type system---but to make it more interesting and scale to large graphs easily, we are using currencies as units.}
+
+To demonstrate our algorithms applied to a real world situation,
 we found inconsistencies in a diagram of the exchange rate between currencies.
 Consider a diagram with nodes as currencies and a directed edge being the
 conversion rate from its source node's currency to its sink node's currency.
@@ -705,9 +707,9 @@ Since the transformation exchange rate of money from any given base currency to 
 can be expected to be the same regardless of which intermediate currency transformations
 are used, this diagram should commute.
 
-Using an API ~\footnote{https://exchangeratesapi.io}, we built the fully connected diagram of exchange rates between 32 currencies on a given day.
+Using a web API\footnote{https://exchangeratesapi.io} for currency data, we built the fully connected diagram of exchange rates between 32 currencies on a given day.
 To ensure that it indeed commuted, we started with an empty diagram, and added in edges one by one.
-Before the addition of each edge, we used the algorithms (~\ref{algo_online_polynomial} and ~\ref{algo_online_minimal}) to ensure the addition of a new edge did not introduce inconsistencies in the existing diagram.
+Before the addition of each edge, we used the algorithms (\ref{algo_online_polynomial} and ~\ref{algo_online_minimal}) \xxx[as]{remind the reader what these are: our algorithms? baselines? batch? incremental? etc.} to ensure the addition of a new edge did not introduce inconsistencies in the existing diagram.
 If a new edge was, in fact, problematic, the algorithms returned an example inconsistent
 pair that would arise from the addition of the edge.
 The pair would consist of two currency transformation sequences with the 
@@ -715,29 +717,38 @@ same source currency and ultimate destination currency, but with different effec
 exchange rates values, as computed by taking the product of all the exchange rates
 encountered through the chain.
 
-We allowed an "error tolerance", so that differences reported would not be the trivial consequences of a floating point error.
+We allowed an ``error tolerance'' so that differences reported would not be the trivial consequences of a floating point error.
 However, this relaxation of the equality oracle into imprecision meant that the mathematical reasoning that allow the algorithms to remove redundant path checks no longer applied.
-For instance, composing a new function with two approximately equal functions does not lead to equal results, so theorem ~\ref{reductionRule} fails with this approximate equality.
+For instance, composing a new function with two approximately equal functions does not lead to equal results, so Theorem~\ref{reductionRule} fails with this approximate equality.
 When the algorithms reported no inconsistencies, it was still possible that the graph possessed inconsistencies above the given threshold and did not commute.
-Nonetheless, both algorithms were effective in catching inconsistencies. Algorithm ~\ref{algo_online_polynomial} started finding inconsistencies at error tolerances to the order of $10^{-3}$, and ~\ref{algo_online_minimal}, which makes more invalid redundant path check removals, at error tolerances to the order of $10^{-7}$.
+Nonetheless, both algorithms were effective in catching inconsistencies. \ref{algo_online_polynomial} started finding inconsistencies at error tolerances to the order of $10^{-3}$, and \ref{algo_online_minimal}, which makes more invalid redundant path check removals, at error tolerances to the order of $10^{-7}$.
 
-Averaging over evaluation for the first 30 days of 2020, building and verifying a diagram to completion (inclusive of the time required by network calls) took 243$\pm$19 seconds using algorithm ~\ref{algo_online_minimal}, and in 133$\pm$13 seconds with algorithm ~\ref{algo_online_polynomial}. 
+Averaging over evaluation for the first 30 days of 2020, building and verifying a diagram to completion (inclusive of the time required by network calls) took 243$\pm$19 seconds using \ref{algo_online_minimal}, and in 133$\pm$13 seconds with \ref{algo_online_polynomial}.
+\xxx[as]{What is the conclusion the reader should take away?}
 
 \section{Evaluation}
 \label{sec:evaluation}
-We compare performance of the following path checking algorithms: (1) Na\"{i}ve baseline (2) less Na\"{i}ve, two-flip baseline (3) batch baseline (4) algorithm ~\ref{algo_online_polynomial}, and (5) algorithm ~\ref{algo_online_minimal}.
-The two aspects we look at are time for response and size of response set (smaller sets -- tighter output results -- would mean less calls to the oracle).
+We compare performance of the following path checking algorithms:
+(1) the na\"{i}ve baseline,
+(2) the less na\"{i}ve two-flip baseline,
+(3) the batch baseline,
+(4) \ref{algo_online_polynomial}, and
+(5) \ref{algo_online_minimal}.
+\xxx[as]{Again, the reader probably needs a reminder about what the latter ones are.}
+The two aspects we look at are time for response and size of response set (smaller sets---tighter output results---would mean less calls to the oracle).
 We use randomly generated graphs for benchmarking, and vary their size.
 Given a graph and a new edge, we time how long it takes for an algorithm to return  the set of pairs that need to be verified.
 All computation was performed on a Macbook Pro 2015, 2.9 GHz Dual-Core Intel Core i5.
 
-The Na\"{i}ve baseline performs poorly, taking well over a thousand seconds for even small graphs of 10 nodes.
-The batch algorithm brings timing down to seconds. Algorithm ~\ref{algo_online_polynomial} performs only slightly better.
+The na\"{i}ve baseline performs poorly, taking well over a thousand seconds for even small graphs of 10 nodes.
+The batch algorithm brings timing down to seconds.
+\ref{algo_online_polynomial} performs only slightly better.
 Surprisingly, the optimal set algorithm cuts time cost by several orders of magnitude, and runs in milliseconds for small graphs.
 All implementations are sensitive to density, performing better when density is very low or very high.
 
-\subsection{Comparison of algorithm time cost}
-The average time taken by each algorithm over the course of 10 runs over randomly generated graphs with 9 nodes and 32 edges is listed in Table ~\ref{tab:times}.
+\subsection{Comparison of Algorithm Time Cost}
+The average time taken by each algorithm over the course of 10 runs over randomly generated graphs with 9 nodes and 32 edges is listed in Table~\ref{tab:times}.
+\xxx[as]{Perhaps the previous paragraph summarizing the findings from this table should be moved here?}
 
 \begin{table}
 \begin{tabular}{|c|c|}
@@ -755,16 +766,20 @@ The average time taken by each algorithm over the course of 10 runs over randoml
 \label{tab:times} %TODO debug and fix label not working.
 \end{table}
     
-\subsection{Scaling of time with input size}
+\subsection{Scaling of Time with Input Size}
 
-Algorithms scale as expected with time, as seen in Figure ~\ref{fig:timeVsSize}. 
-Both ~\ref{algo_online_minimal} and ~\ref{algo_minimal_spanning_set} exhibit graphs that are polynomial in appearance.
-The Na\"{i}ve baseline as well as the two flip tolerant baseline display quick growth.
+\xxx[as]{In general, I recommend the syntax ``Figure X shows the time results. They are interesting.'' over ``The time results indicate something interesting, as Figure X shows.'' Putting the reference up front helps the reader immediately see what figure they should be cross-referencing. (Occurs in both paragraphs below.)}
+
+Algorithms scale as expected with time, as seen in Figure~\ref{fig:timeVsSize}.
+\xxx[as]{The plots are weirdly tiny on my machine... any chance your plotting tool can output PDF images?}
+Both \ref{algo_online_minimal} and \ref{algo_minimal_spanning_set} exhibit graphs that are polynomial in appearance.
+\xxx[as]{\ref{algo_minimal_spanning_set} does not appear in the figure.}
+The na\"{i}ve baseline as well as the two flip tolerant baseline display quick growth.
 The batch algorithm also grows fast, though not as much as the online checking baselines.
 
 We define density to be the ratio of the number of edges in the graph to the total possible number of edges ($|V|^2$, where $|V|$ is the number of nodes).
 Run time relates to the density of edges in the input graph.
-The degree of the effect differs with the algorithms, as Figure ~\ref{fig:timeVsSize} shows.
+The degree of the effect differs with the algorithms, as Figure~\ref{fig:timeVsSize} shows.
 Generally, denser graphs entail longer computation time.
 For the batch algorithm we use lower densities since the input graph must be acyclic. This puts an upper bound on density that approaches 0.5 in large graphs.
 % Our proposed algorithms, ~\ref{algo_minimal_spanning_set} and ~\ref{algo_online_polynomial} are less affected because they aggressively remove redundancies.
@@ -840,6 +855,8 @@ No such effect is observed in ~\ref{algo_online_polynomial}.
 \subsection{Size of Output}
 Output size is a metric of interest, should the equality checking oracle be expensive.
 Table ~\ref{tab:sizes}, summarizes the number of output pairs that the algorithms returned on average over 10 runs, for graphs with 9 nodes and 32 edges.
+\xxx[as]{Conclusions. Are they as expected? If so, it's OK to just say why they were expected.}
+
 \begin{table}
 \begin{tabular}{|c|c|}
     \hline
