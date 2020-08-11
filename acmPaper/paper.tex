@@ -762,32 +762,35 @@ For the batch algorithm we use lower densities since the input graph must be acy
 
 \begin{figure}
     % TODO format nicely.
-    \begin{subfigure}{0.5\linewidth}
-      \includegraphics[width=.8\linewidth]{timeVsSize_10_OptimalSet.png}
+    \begin{subfigure}{\linewidth}
+      \includegraphics[width=\linewidth]{timeVsSize_10_OptimalSet.png}
       \caption{~\ref{algo_online_minimal}}
       \label{fig:sfigOptimalTvsS}
     \end{subfigure}
 
-    \begin{subfigure}{0.5\linewidth}
-      \includegraphics[width=.8\linewidth]{timeVsSize_10_Polynomial.png}
+    \begin{subfigure}{\linewidth}
+      \includegraphics[width=\linewidth]{timeVsSize_10_Polynomial.png}
       \caption{~\ref{algo_online_polynomial}}
       \label{fig:sfigPolynomialTvsS}
     \end{subfigure}
     
-    \begin{subfigure}{0.5\linewidth}
-      \includegraphics[width=.8\linewidth]{timeVsSize_10_NaiveChecker.png}
+    \begin{subfigure}{\linewidth}
+      \includegraphics[width=\linewidth]{timeVsSize_10_NaiveChecker.png}
       \caption{Naive baseline}
       \label{fig:sfigNa\"{i}veTvsS}
     \end{subfigure}
 
-    \begin{subfigure}{0.5\linewidth}
-      \includegraphics[width=.8\linewidth]{timeVsSize_10_TwoFlipPathChecker.png}
+\end{figure}
+\begin{figure}\ContinuedFloat
+
+    \begin{subfigure}{\linewidth}
+      \includegraphics[width=\linewidth]{timeVsSize_10_TwoFlipPathChecker.png}
       \caption{Two flip tolerant baseline}
       \label{fig:sfigTwoFlipTvsS}
     \end{subfigure}
 
-    \begin{subfigure}{0.5\linewidth}
-      \includegraphics[width=.8\linewidth]{timeVsSize_10_BatchChecker.png}
+    \begin{subfigure}{\linewidth}
+      \includegraphics[width=\linewidth]{timeVsSize_10_BatchChecker.png}
       \caption{Batch algorithm baseline}
       \label{fig:sfigBatchTvsS}
     \end{subfigure}
@@ -797,32 +800,33 @@ For the batch algorithm we use lower densities since the input graph must be acy
 
 \subsection{Variance}
 The periodic spikes in Figure ~\ref{fig:sfigOptimalTvsS} are striking. 
-We plot the spread of results to understand what is happening.
-We find ~\ref{algo_online_minimal} has outliers about two standard deviation above the mean responsible for the spikes in the average.
-The outliers themselves follow a polynomial curve.
-The plots in Figure ~\ref{fig:variance} depict the situation.
+We plot the spread of results in Figure~\ref{fig:sfigOptimalSpread} to understand what is happening.
 Grey points are the results of evaluation on individual points, and error bars show standard deviation. 
 The black curve traces the mean.
-No such effect is observed in ~\ref{algo_online_polynomial}.
+We find ~\ref{algo_online_minimal} has outliers about two standard deviation above the mean responsible for the spikes in the average.
+The outliers themselves follow a polynomial curve, appearing almost periodically.
+We have not yet identified the cause of the behavior.
+Figure ~\ref{fig:variance} depicts the situation for ~\ref{algo_online_polynomial}, where no such effect is observed.
+
 \begin{figure}
     % TODO format nicely.
-    \begin{subfigure}{0.5\linewidth}
-      \includegraphics[width=.8\linewidth]{variance_10_OptimalSet.png}
+    \begin{subfigure}{\linewidth}
+      \includegraphics[width=\linewidth]{variance_10_OptimalSet.png}
       \caption{~\ref{algo_online_minimal}}
       \label{fig:sfigOptimalSpread}
     \end{subfigure}
 
-    \begin{subfigure}{0.5\linewidth}
-      \includegraphics[width=.8\linewidth]{variance_10_Polynomial.png}
+    \begin{subfigure}{\linewidth}
+      \includegraphics[width=\linewidth]{variance_10_Polynomial.png}
       \caption{~\ref{algo_online_polynomial}}
       \label{fig:sfigPolynomialSpread}
     \end{subfigure}
     
-    \begin{subfigure}{0.5\linewidth}
-      \includegraphics[width=.8\linewidth]{variance_10_TwoFlip.png}
-      \caption{Two flip tolerant baseline}
-      \label{fig:sfigTwoFlipSpread}
-    \end{subfigure}
+    % \begin{subfigure}{\linewidth}
+    %   \includegraphics[width=\linewidth]{variance_10_TwoFlip.png}
+    %   \caption{Two flip tolerant baseline}
+    %   \label{fig:sfigTwoFlipSpread}
+    % \end{subfigure}
 
     \caption{Plots of spread of results}
     \label{fig:variance}
@@ -882,7 +886,7 @@ Therefore it is sufficient to check one path that passes through the new edge an
 
 \section{Related Work}
 
-\xxx{Absolutely nothing related to this was ever done.}
+As described in section ~\ref{sec:}
 
 \section{Conclusion}
 
