@@ -64,11 +64,13 @@ To study the algorithms' scalability to large diagrams, we apply them to discove
 \maketitle
 
 \section{Introduction}
-Many systems can be understood as diagrams: graphs where nodes represent domains, and edges, directed transformation functions between nodes.
-In programming, for example, type systems with coercions can be drawn as a graph with type nodes and coercion edges, as demonstrated in Figure ~\ref{fig:typeExample}.
-A desirable trait of such a type system and many other similar systems is that traversing the graph from a given start and end node results in the same value independent of path chosen.
-A diagram with this property is said to \textit{commute}.
-With our type coercion example, it could be problematic if casting to a supposedly equivalent type as an intermediate step resulted in a different answer than a direct cast.
+Many systems can be understood as diagrams: graphs where nodes represent domains and edges represent directed transformation functions between nodes.
+A type system with coercions, for example, corresponds to a graph whose nodes are types and whose edges are coercions.
+Figure~\ref{fig:typeExample} illustrates an example in a simple language with units-of-measure types.
+\xxx[as]{Refer here to some citations of real type systems for units of measure.}
+In such a system, an important correctness criterion is that the diagram \emph{commutes:} when traversing the graph from any start node to any end node, applying every transformation along the path to any input value, the result is the same output value \emph{independent of the path chosen between the two nodes}.
+With our type coercion example, it is a problem if casting to a supposedly equivalent type as an intermediate step resulted in a different answer than a direct cast.
+\xxx[as]{Next, let's make the example specific: say that the expression ``(wugs) a'', for example, can produce value X or value Y, depending on whether the compiler uses path A or path B to do the conversion.}
 
 \begin{figure}[]
     \centering
@@ -123,34 +125,41 @@ With our type coercion example, it could be problematic if casting to a supposed
     \label{fig:typeExample}
 \end{figure}
 
-Given the utility of system diagram commutativity, it would be useful to check that the property holds for real systems.
-Since diagrams may change over time, and verifying the entire system from scratch may be computationally expensive, it would be additionally convenient if new edges could be checked online as they are added.
-In Figure ~\ref{fig:typeExample}, for example, an interpreter that caught the first instance of a user making a bad definition would need to build and verify the conversion graph at run time.
+This paper is about efficiently checking diagrams that arise in real systems for commutativity.
+We assume a simple equivalence checker for individual transformation functions: in our type system example, for instance, it is possible to check transformation equivalence by comparing the conversion factors.
+Our aim is to analyze the graph of transformations and minimize the number of times we need to perform an equivalence check.
+Since diagrams may change over time in real systems, as new conversions are added, and verifying the entire system from scratch may be computationally expensive, we want an online method that only checks the impact of new edges.
+In Figure~\ref{fig:typeExample}, for example, a run-time system can catch the point where the programmer adds a bad conversion definition by verifying each new conversion edge as it is created.
 
-Na\"{i}vely checking if all path pairs that begin and end at the same node in a given diagram commute could require a number of function equality checks that grow as factorial in the number of nodes, since a path consists of an ordering of nodes.
-Further, the presence of cycles implies a potentially infinite number of paths. 
+Efficient commutativity checking is not trivial.
+\xxx[as]{Let's flip these next two thoughts, because the first thing you have to deal with is resolving cycles---then you can worry about an efficient algorithm for acyclic graphs.}
+Na\"{i}vely checking if all path pairs that begin and end at the same node in a given diagram commute could require a number of function equality checks that grow as factorial in the number of nodes, because a path consists of an ordering of nodes.
+Further, the presence of cycles implies a potentially infinite number of paths.
 Previous work ~\cite{commutative} has identified an $O(|E|^2|V|^4)$ algorithm to verify that a complete acyclic diagram commutes; however, it addresses neither online addition nor cyclic diagrams.
 
+\xxx[as]{Let's stick to present tense, even if it sounds a little weird. And we can state up front what the paper accomplishes. Something like this: ``This paper presents an algorithm for online checking of diagram commutativity and applies it to verifying systems of value conversions. We identify two key insights:''}
 In the course of efficiently verifying commutativity over online addition, we identified two key insights.
-The first was that in a commutative diagram, when a new edge is to be added, at most one path needs to be checked against for a given source and sink pair.
+The first was that in a commutative diagram, when a new edge is to be added, at most one path needs to be checked against \xxx[as]{can we rephrase this passive voice, which makes the sentence somewhat tricky to process?} for a given source and sink pair.
 Because the diagram commutes, all the paths between a given source and sink are equal and a representative to check against can arbitrarily be chosen.
 It lead to an $O(|V|^2(|E|+|V|))$ algorithm to verify a diagram remains commutative over the course of online addition, assuming an oracle to check the equality of functions.
 The algorithm makes an asymptotically optimal number of calls to the oracle.
 
+\xxx[as]{This paragraph is a little confusing to me. First, what is ``informativeness''? Maybe we can be a little more specific. Second, I thought the previous paragraph said we already had an optimal number of calls to the oracle, but the second half of this paragraphs says that we need an even more expensive algorithm to obtain that minimum.}
 The second insight was that there is a single rule that places a partial, transitive ordering on the informativeness of paths.
-It allowed for the creation of a greedy, $O(|V|^4)$ optimization step, that results in the number of calls to the oracle being minimal.
+It allowed for the creation of a greedy, $O(|V|^4)$ optimization step that results in the number of calls to the oracle being minimal.
 The optimization is very useful when the equality checking oracle is expensive.
 
-We evaluate our algorithms against random graphs, and use them in two case studies.
+We evaluate our algorithms against random graphs and use them in two case studies.
+\xxx[as]{Let's avoid passive voice in these next two sentences by saying ``we use the algorithm to do this'' instead of ``the algorithm is used to do this.''}
 First, our algorithm is used in the domain specific geometry type language \textit{Gator} ~\cite{gator} to ensure that user defined transformations between spaces stay consistent.
 Second, our algorithm is used to identify inefficiencies in a currency conversion graph.
 
-We compare our solution to three baseline implementations: a Na\"{i}ve checking of all path pairs with only special handling for cycles, a check for all path pairs that involve the new edge, and an algorithm suggested by previous work to solve the batch version of the problem for acyclic diagrams.
+We empirically compare our solution to three baseline implementations: a na\"{i}ve checking of all path pairs with only special handling for cycles, a check for all path pairs that involve the new edge, and an algorithm suggested by previous work to solve the batch version of the problem for acyclic diagrams.
 Our proposed algorithms run orders of magnitude faster than the baselines.
 
 \section{Related Work}
 
-Absolutely nothing related to this was ever done.
+\xxx{Absolutely nothing related to this was ever done.}
 
 \section{Formal Problem Setup and Terminology}
 
