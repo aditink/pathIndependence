@@ -20,7 +20,7 @@
   \providecommand\BibTeX{{%
     \normalfont B\kern-0.5em{\scshape i\kern-0.25em b}\kern-0.8em\TeX}}}
 
-\labelformat{algocf}{algorithm\,(#1)}
+\labelformat{algocf}{Algorithm~#1}
 
 \begin{document}
 \settopmatter{printacmref=false}
@@ -471,14 +471,16 @@ R $\gets$ Rs\;
 The proof of correctness can be found in Murota\cite{commutative}.
 The number of checks returned by the algorithm is at worst $O(|V|^2|E|)$. The overall run time of an optimized implementation is $O(|V|^4|E|^2)$.
 
-\section{Solving the online addition problem}
+\section{Solving the Online Addition Problem}
 
 We present a polynomial time solution to the \textsc{verification set} problem.
-Like with the baseline, we do not concern ourselves with parallel pairs where neither or both paths pass through the new edge.
-The key observation that allows us to improve on the online baseline is that, for a given source and sink pair, only a single parallel pair needs to be verified. 
-This is an implication of Theorem \ref{reductionRule}, expanded on later.
-Theorem \ref{verifyingSet} shows that should our selected set of pairs along with cycles passing through the new edge be verified commutative, the entire diagram must commute. 
-The approach is to identify a parallel pair with exactly one path through the edge for each (source, sink) pair (algorithm ~\ref{algo_online_polynomial}).
+\xxx[as]{Elsewhere, ``problem'' is also in small-caps. Either way is fine, but consistency is important.}
+Like in the online baseline algorithm, we do not concern ourselves with parallel pairs where neither or both paths pass through the new edge.
+The key observation that allows us to improve on the online baseline is that, for a given source and sink pair, only a single parallel pair needs to be verified.
+This is an implication of Theorem~\ref{reductionRule}, expanded on later.
+Theorem~\ref{verifyingSet} shows that should our selected set of pairs along with cycles passing through the new edge be verified commutative, the entire diagram must commute.
+The approach is to identify a parallel pair with exactly one path through the edge for each (source, sink) pair (\ref{algo_online_polynomial}).
+\xxx[as]{Instead of putting the reference in parens, say ``Algorithm X is the strategy for doing Y. Some more details include Z.''}
 
 \begin{algorithm}
 \DontPrintSemicolon
@@ -525,12 +527,14 @@ parallelPairs $\gets$ \{\}\;
 \end{algorithm}
 
 The try block is executed at most $O(|V|^2)$ times, so that this is the bound on the number of pairs verified.
+%
+The bound is asymptotically tight. This can be seen in the case where the graph contains $2N$ nodes besides $S$ and $T$.
+\xxx[as]{Introduce this concept by saying that ``we imagine dividing the nodes into two groups...''}
+We consider $N$ of the nodes to be in group 1 and the other $N$ to be in group 2. Every node in group 1 has a forward node to every node in group 2 as well as to $S$. $T$ has a forward edge to every node in group 2. In this diagram, on the addition of edge $(S, T)$, $N^2$ paths need to be verified which is polynomial in the total number of nodes, $2N+2$.
 
-The bound is asymptotically tight. This can be seen in the case where the graph contains 2N nodes besides S and T. We consider N of the nodes to be in group 1, and the other N to be in group 2. Every node in group 1 has a forward node to every node in group 2, as well as to S. T has a forward edge to every node in group 2. In this diagram, on the addition of edge (S, T), $N^2$ paths need to be verified which is polynomial in 2N+2.
+Also notice that if trying to optimize for path length (say, if composing functions is expensive) then ``find any path'' can be replaced with ``find the shortest path.''
 
-Also notice that if trying to optimize for path length (say, if composing functions is expensive) then "find any path" can be replaced with "find shortest path".
-
-An efficient implementation of the algorithm can run in $O(|V|^2(|V|+|E|))$ time, space complexity not exceeding the asymptotic $O(|V|^2)$ bound on the output.
+An efficient implementation of the algorithm can run in $O(|V|^2(|V|+|E|))$ time, with space complexity not exceeding the asymptotic $O(|V|^2)$ bound on the output.
 In such an implementation, path finding from a given source node to all potential sink nodes could be done in a single $O(|V|+|E|)$ breadth first search.
 
 \subsection{Optimization Step}
@@ -538,8 +542,9 @@ In such an implementation, path finding from a given source node to all potentia
 In the case where equality checks are very expensive, we begin by finding the minimal set of (source, sink) pairs such that checking for these pairs logically implies having checked the full diagram.
 
 We observe that there are some redundancies in the diagram.
-
-Consider the situation in Figure ~\ref{figure_reduction_rule}.
+%
+Consider the situation in Figure~\ref{figure_reduction_rule}.
+\xxx[as]{This needs a bit more explanation. What is the reader looking for? Also, the caption of this figure could probably be a little clearer.}
 
 \begin{figure}
 \begin{center}
@@ -584,7 +589,7 @@ Consider the situation in Figure ~\ref{figure_reduction_rule}.
 \fill [black] (44.5,-23.1) -- (44,-23.9) -- (45,-23.9);
 \draw (45,-32.5) node [right] {$m$};
 \end{tikzpicture}
-Each arrow represents a path, and (S,T) is the new edge being added.
+Each arrow represents a path, and $(S,T)$ is the new edge being added.
 \end{center}
 \caption{Reduction rule.}
 \label{figure_reduction_rule}
@@ -601,17 +606,20 @@ We use the fact that $f_1$=$l; f_2$ and $h_1$=$h_2; m$.
 \[\Rightarrow l ; g_2 ; m = l ; f_2 ; (S,T) ; h_2 ; m \Rightarrow g_1 = f_1 ; (S,T) ; h_1\]
 \end{proof}
 
-The proof is not affected if any of these paths is the identity, eg. if $f_1$ is the identity and S and $P_1$ are actually the same node.
+The proof is not affected if any of these \xxx[as]{which?} paths is the identity, e.g., if $f_1$ is the identity and $S$ and $P_1$ are actually the same node.
+\xxx[as]{Maybe this observation belongs inside the proof block, where it's most relevant?}
 
-We conclude that verifying a comparable pair of paths with end points ($P_1$, $P_2$) implies the verification of all path pairs ($Q_1$, $Q_2$) such that $Q_1$ is a successor of $P_1$ and $P_2$ is a successor of $Q_2$. A successor S to node N is any node such that there exists a path from N to S. Nodes are also their own successors and predecessors.
+We conclude that verifying a comparable pair of paths with end points ($P_1$, $P_2$) implies the verification of all path pairs ($Q_1$, $Q_2$) such that $Q_1$ is a successor of $P_1$ and $P_2$ is a successor of $Q_2$. A successor $S$ to node $N$ is any node such that there exists a path from $N$ to $S$. Nodes are also their own successors and predecessors.
+\xxx[as]{At some point, we have switched to capital letters for both paths and node variables... maybe make this consistent?}
 
-Under the assumption that the only path operations allowed are composition and replacement of one path by a different, equal path, as would be true when edges are generic functions, and no other information is available, so that F is a semi-group, this "reduction" rule is also the only rule to reduce the set of path pairs to check by finding implications.
+\xxx[as]{I couldn't quite follow the following, perhaps because the figure is not quite enough for me to understand what the ``rule'' is here. Which makes it hard to see why ``operations'' are relevant in this context.}
+Under the assumption that the only path operations allowed are composition and replacement of one path by a different, equal path, as would be true when edges are generic functions, and no other information is available, so that $F$ is a semi-group, this ``reduction'' rule is also the only rule to reduce the set of path pairs to check by finding implications.
 
 That is to say, if verifying a comparable pair of paths with end points ($P_1$, $P_2$) implies the verification of a pair with endpoints ($Q_1$, $Q_2$), then it must be that $Q_1$ is a successor of $P_1$ and $P_2$ is a successor of $Q_2$. %TODO proof required?
 
-Using this information it is possible to choose a minimal subset of path pairs to verify, as in algorithm ~\ref{algo_online_minimal}.
-
-We construct a graph with a node for each possible (source, sink) pair in the graph- each node then represents a possible choice for parallel pair endpoint pairs, and greedily search for the smallest set of nodes from which the entire graph would be reachable. The idea is to look for "roots" in the graph that have to be included in the ultimate verification set because they have no predecessor an cannot be verified "through" the verification of some other pair. Then all the successors whose verification is implied by the roots are eliminated.
+Using this information it is possible to choose a minimal subset of path pairs to verify, as in \ref{algo_online_minimal}.
+%
+We construct a graph with a node for each possible (source, sink) pair in the graph: each node then represents a possible choice for parallel pair endpoint pairs, and we greedily search for the smallest set of nodes from which the entire graph would be reachable. The idea is to look for ``roots'' in the graph that have to be included in the ultimate verification set because they have no predecessor an cannot be verified ``through'' the verification of some other pair. Then all the successors whose verification is implied by the roots are eliminated.
 
 \begin{algorithm}
 \DontPrintSemicolon
@@ -657,13 +665,14 @@ verificationSet $\gets$ \{\}\;
 \end{algorithm}
 
 The result of the algorithm cannot be further reduced.
-Also, the verification of the parallel pairs returned in the algorithm implies that the output of the previous algorithm must commute, and transitively with Theorem ~\ref{verifyingSet} that the entire diagram must commute.
+\xxx[as]{Do we need an argument for why?}
+Also, the verification of the parallel pairs returned in the algorithm implies that the output of the previous algorithm must commute, and transitively with Theorem~\ref{verifyingSet} that the entire diagram must commute.
 
 The run time of the first step is $O(|V|^4)$, and that of the second step is $O(|V|)$, so that the overall bound is $O(|V|^4)$.
 Space complexity remains $O(|V|^2)$.
 
 \subsection{Verification}
-Ultimately verification is performed by calling an equality oracle (that is beyond the scope of this work) for every comparable pair returned by the previous stage, as in algorithm ~\ref{algo_verification}.
+Ultimately verification is performed by calling an equality oracle (that is beyond the scope of this work) for every comparable pair returned by the previous stage, as in \ref{algo_verification}.
 
 \begin{algorithm}
 \DontPrintSemicolon
@@ -688,7 +697,9 @@ Ultimately verification is performed by calling an equality oracle (that is beyo
 \subsection{Currency Graph}
 \label{sec:currency}
 
-To demonstrate our algorithms applied to a real world situation, 
+\xxx[as]{To perhaps excuse why this section doesn't have a proper programming language attached, maybe we should briefly say that we are imagining a units-of-measure type system---but to make it more interesting and scale to large graphs easily, we are using currencies as units.}
+
+To demonstrate our algorithms applied to a real world situation,
 we found inconsistencies in a diagram of the exchange rate between currencies.
 Consider a diagram with nodes as currencies and a directed edge being the
 conversion rate from its source node's currency to its sink node's currency.
@@ -696,9 +707,9 @@ Since the transformation exchange rate of money from any given base currency to 
 can be expected to be the same regardless of which intermediate currency transformations
 are used, this diagram should commute.
 
-Using an API ~\footnote{https://exchangeratesapi.io}, we built the fully connected diagram of exchange rates between 32 currencies on a given day.
+Using a web API\footnote{https://exchangeratesapi.io} for currency data, we built the fully connected diagram of exchange rates between 32 currencies on a given day.
 To ensure that it indeed commuted, we started with an empty diagram, and added in edges one by one.
-Before the addition of each edge, we used the algorithms (~\ref{algo_online_polynomial} and ~\ref{algo_online_minimal}) to ensure the addition of a new edge did not introduce inconsistencies in the existing diagram.
+Before the addition of each edge, we used the algorithms (\ref{algo_online_polynomial} and ~\ref{algo_online_minimal}) \xxx[as]{remind the reader what these are: our algorithms? baselines? batch? incremental? etc.} to ensure the addition of a new edge did not introduce inconsistencies in the existing diagram.
 If a new edge was, in fact, problematic, the algorithms returned an example inconsistent
 pair that would arise from the addition of the edge.
 The pair would consist of two currency transformation sequences with the 
@@ -706,29 +717,38 @@ same source currency and ultimate destination currency, but with different effec
 exchange rates values, as computed by taking the product of all the exchange rates
 encountered through the chain.
 
-We allowed an "error tolerance", so that differences reported would not be the trivial consequences of a floating point error.
+We allowed an ``error tolerance'' so that differences reported would not be the trivial consequences of a floating point error.
 However, this relaxation of the equality oracle into imprecision meant that the mathematical reasoning that allow the algorithms to remove redundant path checks no longer applied.
-For instance, composing a new function with two approximately equal functions does not lead to equal results, so theorem ~\ref{reductionRule} fails with this approximate equality.
+For instance, composing a new function with two approximately equal functions does not lead to equal results, so Theorem~\ref{reductionRule} fails with this approximate equality.
 When the algorithms reported no inconsistencies, it was still possible that the graph possessed inconsistencies above the given threshold and did not commute.
-Nonetheless, both algorithms were effective in catching inconsistencies. Algorithm ~\ref{algo_online_polynomial} started finding inconsistencies at error tolerances to the order of $10^{-3}$, and ~\ref{algo_online_minimal}, which makes more invalid redundant path check removals, at error tolerances to the order of $10^{-7}$.
+Nonetheless, both algorithms were effective in catching inconsistencies. \ref{algo_online_polynomial} started finding inconsistencies at error tolerances to the order of $10^{-3}$, and \ref{algo_online_minimal}, which makes more invalid redundant path check removals, at error tolerances to the order of $10^{-7}$.
 
-Averaging over evaluation for the first 30 days of 2020, building and verifying a diagram to completion (inclusive of the time required by network calls) took 243$\pm$19 seconds using algorithm ~\ref{algo_online_minimal}, and in 133$\pm$13 seconds with algorithm ~\ref{algo_online_polynomial}. 
+Averaging over evaluation for the first 30 days of 2020, building and verifying a diagram to completion (inclusive of the time required by network calls) took 243$\pm$19 seconds using \ref{algo_online_minimal}, and in 133$\pm$13 seconds with \ref{algo_online_polynomial}.
+\xxx[as]{What is the conclusion the reader should take away?}
 
 \section{Evaluation}
 \label{sec:evaluation}
-We compare performance of the following path checking algorithms: (1) Na\"{i}ve baseline (2) less Na\"{i}ve, two-flip baseline (3) batch baseline (4) algorithm ~\ref{algo_online_polynomial}, and (5) algorithm ~\ref{algo_online_minimal}.
-The two aspects we look at are time for response and size of response set (smaller sets -- tighter output results -- would mean less calls to the oracle).
+We compare performance of the following path checking algorithms:
+(1) the na\"{i}ve baseline,
+(2) the less na\"{i}ve two-flip baseline,
+(3) the batch baseline,
+(4) \ref{algo_online_polynomial}, and
+(5) \ref{algo_online_minimal}.
+\xxx[as]{Again, the reader probably needs a reminder about what the latter ones are.}
+The two aspects we look at are time for response and size of response set (smaller sets---tighter output results---would mean less calls to the oracle).
 We use randomly generated graphs for benchmarking, and vary their size.
 Given a graph and a new edge, we time how long it takes for an algorithm to return  the set of pairs that need to be verified.
 All computation was performed on a Macbook Pro 2015, 2.9 GHz Dual-Core Intel Core i5.
 
-The Na\"{i}ve baseline performs poorly, taking well over a thousand seconds for even small graphs of 10 nodes.
-The batch algorithm brings timing down to seconds. Algorithm ~\ref{algo_online_polynomial} performs only slightly better.
+The na\"{i}ve baseline performs poorly, taking well over a thousand seconds for even small graphs of 10 nodes.
+The batch algorithm brings timing down to seconds.
+\ref{algo_online_polynomial} performs only slightly better.
 Surprisingly, the optimal set algorithm cuts time cost by several orders of magnitude, and runs in milliseconds for small graphs.
 All implementations are sensitive to density, performing better when density is very low or very high.
 
-\subsection{Comparison of algorithm time cost}
-The average time taken by each algorithm over the course of 10 runs over randomly generated graphs with 9 nodes and 32 edges is listed in Table ~\ref{tab:times}.
+\subsection{Comparison of Algorithm Time Cost}
+The average time taken by each algorithm over the course of 10 runs over randomly generated graphs with 9 nodes and 32 edges is listed in Table~\ref{tab:times}.
+\xxx[as]{Perhaps the previous paragraph summarizing the findings from this table should be moved here?}
 
 \begin{table}
 \begin{tabular}{|c|c|}
@@ -746,16 +766,20 @@ The average time taken by each algorithm over the course of 10 runs over randoml
 \label{tab:times} %TODO debug and fix label not working.
 \end{table}
     
-\subsection{Scaling of time with input size}
+\subsection{Scaling of Time with Input Size}
 
-Algorithms scale as expected with time, as seen in Figure ~\ref{fig:timeVsSize}. 
-Both ~\ref{algo_online_minimal} and ~\ref{algo_minimal_spanning_set} exhibit graphs that are polynomial in appearance.
-The Na\"{i}ve baseline as well as the two flip tolerant baseline display quick growth.
+\xxx[as]{In general, I recommend the syntax ``Figure X shows the time results. They are interesting.'' over ``The time results indicate something interesting, as Figure X shows.'' Putting the reference up front helps the reader immediately see what figure they should be cross-referencing. (Occurs in both paragraphs below.)}
+
+Algorithms scale as expected with time, as seen in Figure~\ref{fig:timeVsSize}.
+\xxx[as]{The plots are weirdly tiny on my machine... any chance your plotting tool can output PDF images?}
+Both \ref{algo_online_minimal} and \ref{algo_minimal_spanning_set} exhibit graphs that are polynomial in appearance.
+\xxx[as]{\ref{algo_minimal_spanning_set} does not appear in the figure.}
+The na\"{i}ve baseline as well as the two flip tolerant baseline display quick growth.
 The batch algorithm also grows fast, though not as much as the online checking baselines.
 
 We define density to be the ratio of the number of edges in the graph to the total possible number of edges ($|V|^2$, where $|V|$ is the number of nodes).
 Run time relates to the density of edges in the input graph.
-The degree of the effect differs with the algorithms, as Figure ~\ref{fig:timeVsSize} shows.
+The degree of the effect differs with the algorithms, as Figure~\ref{fig:timeVsSize} shows.
 Generally, denser graphs entail longer computation time.
 For the batch algorithm we use lower densities since the input graph must be acyclic. This puts an upper bound on density that approaches 0.5 in large graphs.
 % Our proposed algorithms, ~\ref{algo_minimal_spanning_set} and ~\ref{algo_online_polynomial} are less affected because they aggressively remove redundancies.
@@ -835,6 +859,8 @@ Figure ~\ref{fig:variance} depicts the situation for ~\ref{algo_online_polynomia
 \subsection{Size of Output}
 Output size is a metric of interest, should the equality checking oracle be expensive.
 Table ~\ref{tab:sizes}, summarizes the number of output pairs that the algorithms returned on average over 10 runs, for graphs with 9 nodes and 32 edges.
+\xxx[as]{Conclusions. Are they as expected? If so, it's OK to just say why they were expected.}
+
 \begin{table}
 \begin{tabular}{|c|c|}
     \hline
@@ -851,7 +877,20 @@ Table ~\ref{tab:sizes}, summarizes the number of output pairs that the algorithm
 \label{tab:sizes}
 \end{table}
 
-\section{Appendix: Theorems and additional cases}
+\section{Related Work}
+
+\xxx{Absolutely nothing related to this was ever done.}
+
+\section{Conclusion}
+
+\xxx[as]{Write a conclusion.}
+
+\bibliography{refs}
+\bibliographystyle{plain}
+
+\appendix
+
+\section{Theorems and Additional Cases}
 
 Consider all the cycles in the graph that pass through the new edge, unique to their terminal point.
 Define a cycle-pair corresponding to cycle c to mean the pair of paths (c, identity on terminal node of c).
@@ -883,10 +922,6 @@ There are four paths to be considered, two from each pair. Those paths which do 
 Those paths which do include the new edge (S,T) can be reduced, by the case for multiple occurrences of a new edge, to a path with a single occurrence of the new edge as described in the preceding lemma \ref{one_occurence_lemma}. These new paths can be divided into three segments: the segment from the source to S, the new edge, and the segment from the last occurrence of T to the sink. The first segments of all paths are equal by assumption that the original diagram commutes. This is also true of the third segment of all the paths. The second segment consists of only the new edge and is the same for all paths. The composition of equal functions is equal, so all the paths passing through the new edge must be equal.
 Therefore it is sufficient to check one path that passes through the new edge and one that doesn't. Such a pair belongs to V by construction.
 \end{proof}
-
-\section{Related Work}
-
-As described in section ~\ref{sec:}
 
 \section{Conclusion}
 
