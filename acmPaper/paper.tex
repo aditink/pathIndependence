@@ -209,13 +209,17 @@ Specifically, we examine a na\"{i}ve factorial algorithm, a slightly less na\"{i
 
 \subsection{Na\"{i}ve Baseline}
 
-We start with the set of all parallel pairs in the diagram (with the new edge added in), and pare it down to be finite by handling cycles.
-Then, using a procedure like Johnson's algorithm ~\cite{johnson}, we find all simple cycles in the diagram. 
+\xxx[as]{Start with an overview of the steps. Something like: deal with cycles, then deal with the remaining paths in an acyclic graph. Maybe also give overall context to say that this algorithm is going to be exponential but at least it will be finite, unlike trying to check ``all paths.'' Then break up the discussion so there is one paragraph per step instead of one long paragraph.}
+
+We start with the set of all parallel pairs in the diagram (with the new edge added in) \xxx[as]{clarify: is this a batch or incremental algorithm? If it's a batch algorithm, then there is no need to discuss a ``new edge''}, and pare it down to be finite by handling cycles.
+Then, using a procedure like Johnson's algorithm~\cite{johnson}, we find all simple cycles in the diagram. \xxx[as]{I'm a tad confused here because this sentence says ``then...'' as if we had moved on from the previous step, but the previous step says it handled cycles already?}
 We create a cycle verification set, $C$, and verify for each cycle that a single traversal is equal to the identity function by adding $(v \rightarrow v, 1)$ for each node v in the cycle to $C$.
-Here, $v \rightarrow v$ is a simple cycle starting and ending at v, 1 is the identity function, and these must be verified to be equal to each other.
+\xxx[as]{It seems important to have already explained the ``type'' of $C$ (i.e., the output format of the algorithm?}
+Here, $v \rightarrow v$ is a simple cycle starting and ending at $v$, 1 is the identity function, and these must be verified to be equal to each other.
 We then create a set $P$ of all the paths in the diagram with no cycles, and filter the set $P \times P$, excluding pairs where the paths begin or end on different nodes, or are identical, to get the set of all cycle-free parallel pairs $Q$.
-The output of the algorithm is $C \cup Q$, the cycle verification pairs and non-cyclic parallel pairs.
-After verifying $C$, it is sufficient to verify only $Q$ (lemma ~\ref{one_occurence_lemma}) because cycles must now be the identity, so for any pair in the set of all parallel paths, any instance of a cycle can be removed to obtain an equivalent pair with shorter, cycle free paths.
+The output of the algorithm is $C \cup Q$, the cycle verification pairs and acyclic parallel pairs.
+After verifying $C$, it is sufficient to verify only $Q$ (Lemma~\ref{one_occurence_lemma}) because cycles must now be the identity, so for any pair in the set of all parallel paths, any instance of a cycle can be removed to obtain an equivalent pair with shorter, cycle-free paths.
+\xxx[as]{What does it mean to ``verify only $Q$''? This could be a bit more precise...}
 If the shorter pair has equal paths then the paths in the original pair must also be equal to each other.
 It is therefore safe to remove all pairs of paths with cycles, leaving only parallel pairs where neither path has a cycle.
 $P$ is finite, bounded by $2^{|V|}$, as a path without cycles is an ordering on nodes, each node occurring at most once.
