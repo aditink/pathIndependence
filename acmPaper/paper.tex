@@ -207,7 +207,7 @@ For example, the oracle for currency graph (Section~\ref{sec:currency}) only app
 To examine the efficacy of our proposed solution to the \textsc{Verification set problem}, we compare it to some potential alternatives.
 Specifically, we examine a na\"{i}ve factorial algorithm, a slightly less na\"{i}ve factorial algorithm which we identify to be a two-flip tolerant path search, and Murota's historical batch solution~\cite{commutative}.
 
-\subsection{Na\"{i}ve Baseline}
+\subsection{Na\"{i}ve Baseline Algorithm}
 
 \xxx[as]{Start with an overview of the steps. Something like: deal with cycles, then deal with the remaining paths in an acyclic graph. Maybe also give overall context to say that this algorithm is going to be exponential but at least it will be finite, unlike trying to check ``all paths.'' Then break up the discussion so there is one paragraph per step instead of one long paragraph.}
 
@@ -226,37 +226,44 @@ $P$ is finite, bounded by $2^{|V|}$, as a path without cycles is an ordering on 
 $|P \times P|$, and consequently, $|Q|$, are also finite, bounded by $2^{2|V|}$.
 Thus the algorithm terminates and returns a finite (if large) set.
 
-\subsection{Baseline Incremental}
-This baseline refines the output of the na\"{i}ve baseline.
+\subsection{Baseline Incremental Algorithm}
+
+Our second baseline refines the output of the na\"{i}ve baseline.
+\xxx[as]{But even before saying that, let's give some overall context: remind the reader what the incremental setup looks like. Then we can explain that we are going to use something like the previous section. Perhaps we can also be a little more precise than ``refining'' the output, which could mean many things.}
 Like before, it start by creating a cycle verification set $C'$, but includes only the simple cycles that pass through the new edge.
 Then, instead of $Q$, the set of all non-cyclic parallel pairs, the algorithm obtains its subset $Q'$ consisting of all non-cyclic parallel pairs such that exactly one path in each pair passes through the new edge.
-To this end, the algorithm performs a \textit{two-flip tolerant path search} whose output is passed into a \textit{path extraction algorithm}. The result of the path extraction algorithm to get the final output $Q' \cup C'$.
+To this end, the algorithm performs a \textit{two-flip tolerant path search} whose output is passed into a \textit{path extraction algorithm}.
+\xxx[as]{Maybe we can give a one-phrase explanation of what TFTPS does: it finds all the parallel pairs of which only one path includes the new edge, right?}
+The result of the path extraction algorithm to get the final output $Q' \cup C'$.
 
 This narrowing can be done because the original diagram commutes.
 Pairs where both paths do not involve the new edge would remain equal (this would apply to cycles too; cycles that do not pass through the new edge must be the identity).
 Also, pairs where both paths involved the new edge would have to be equal.
 To see why this is true, each path could be thought of as consisting of the composition of three segments.
 For path pair $p$, and new edge from node $S$ to node $T$, the first segment extends from $\partial(p)^+$ to the $S$, the second, the new edge $(S, T)$ itself, and the third, from $T$ to $\partial(p)^-$.
-The new edge could only appear once because cycles have already been dealt with so only pairs where the path includes the new edge once need be checked (lemma ~\ref{one_occurence_lemma}).
-The first segment of both pairs would have to be equal because they existed in as parallel pairs in the original diagram, and similarly the third segments would also have to be equal.
-The second segments, consisting of the same edge, would also have to be equal because the oracle preserves the reflexivity of equality.
-Therefore the two paths of the pair, a composition of these three equal components, would be equal, since the oracle would preserve transitivity of equality.
-We are left only with parallel pairs where exactly one of the path passes through the new edge.
+The new edge could only appear once because cycles have already been dealt with so only pairs where the path includes the new edge once need be checked (Lemma~\ref{one_occurence_lemma}).
+The first segment of both pairs would have to be equal because they existed as parallel pairs in the original diagram, and similarly the third segments would also have to be equal.
+The second segments, consisting of the same edge, would also have to be equal because the equivalence oracle is reflexive.
+Therefore, the two paths of the pair, a composition of these three equal components, would be equal, since the oracle would preserve transitivity of equality.
+We are left only with parallel pairs where exactly one of the paths passes through the new edge.
+
+\xxx[as]{Maybe a quick paragraph here to remind the reader what is still coming in the rest of this section?}
 
 \paragraph{Two flip tolerant path search}
 We use a ``two-flip tolerant'' path search from the source ($S$) to the sink ($T$) of the new edge to identify the pairs of paths where exactly one path includes the new edge.
 The idea is that every such pair corresponds to a two flip tolerant path from $S$ to $T$.
+\xxx[as]{However, ``two flip tolerant path'' has not yet been defined, so this remark sounds a little strange.}
 
-In a normal directed graph path search, only forward edges, i.e. edges that go outward from the current node while executing the search are considered. 
-A \textit{two flip path} consists of up to three phases: in the first phase, only backward edges --- pointing inward to the source of the search --- are accepted.
+In a normal directed graph path search, only forward edges, i.e., edges that go outward from the current node while executing the search are considered.
+A \textit{two flip path} consists of up to three phases: in the first phase, only backward edges---pointing inward to the source of the search---are accepted.
 In the second phase, only forward edges are accepted, and in the third phase, again only backward edges are accepted.
 For a two flip tolerant path $p$, let $t_1(p)$ map to the first phase, $t_2(p)$, to the second, and $t_3(p)$, to the third.
 The node between the first two phases we refer to as the \textit{first flipping point}, which has both edges pointing outward; similarly, we refer to the node between the latter two phases as the \textit{second flipping point}, at which both edges point inwards.
 
-We present the idea diagrammatically in figure \ref{figure_two_flip}.
-Squiggly arrows represent path phases (these are the composition of 0 or more edges, not a single edge).
+We present the idea diagrammatically in Figure~\ref{figure_two_flip}.
+Squiggly arrows represent path phases (these are the composition of zero or more edges, not a single edge).
 The new edge is represented with a dashed arrow.
-Here, $f_1 \circ f_2 \circ f_3$ is a two flip path, and $f_1 \circ (S, T) \circ f_2$ is a new path created because of the addition of ($S$,$T$) that forms a parallel pair with ($f_2$).
+Here, $f_1 \circ f_2 \circ f_3$ is a two flip path, and $f_1 \circ (S, T) \circ f_2$ \xxx[as]{should that be $f_2$ at the end?} is a new path created because of the addition of ($S$,$T$) that forms a parallel pair with ($f_2$).
 
 \begin{figure}
 \begin{center}
@@ -290,13 +297,13 @@ Here, $f_1 \circ f_2 \circ f_3$ is a two flip path, and $f_1 \circ (S, T) \circ 
 
 The two flip tolerant path search returns the set of all paths between a given source and sink that have up to two flips (paths that omit one or more of the three phases are also accepted).
 
-The \textit{path extraction algorithm} then transforms the output of the two flip path search to the verification set, $Q' \cup C'$.
-
 \paragraph{Path extraction algorithm}
+Next, the \textit{path extraction algorithm} then transforms the output of the two flip path search to the verification set, $Q' \cup C'$.
 Given a set of two flip tolerant paths from the new edge source to sink, the algorithm outputs a set of pairs to verify.
 
 Let the new edge added to the diagram be $(S, T)$ and the input set of paths, $P$.
 The algorithm processes every two flip tolerant path $p$ in $P$ case-wise to obtain pairs to add to the output set.
+\xxx[as]{Bullet points (itemize) are often a good way to lay out cases?}
 In the case where p has two flips, $t_1(p) \circ (S, T) \circ t_3(p)$ and $t_2(p)$ form a parallel pair.
 When p has only the first flip (which is to say, the third phase of the path is missing), the parallel paths are $t_1(p) \circ (S, T)$ and $t_2(p)$.
 Similarly when only the second flipping point is present (so that there is no first phase), then the parallel pair is  $(S, T) \circ t_3(p)$ and $t_2(p)$.
@@ -304,6 +311,8 @@ Finally when no flipping points are present, there are two possibilities.
 Either $p$ is a path from $S$ to $T$, in which case the parallel paths are simply the edge $(S, T)$ and $p$, or $p$ is a path from $T$ to $S$.
 In this case, we have found a cycle, $p \circ (S,T)$, to be paired with the identity function.
 Like with the na\"{i}ve algorithm, for every node $v$ in the cycle, we add the pair $(v \rightarrow v, 1)$, where $v \rightarrow v$ is the cycle $p \circ (S,T)$ written to start and end at $v$.
+
+\xxx[as]{A little signposting here might be helpful... maybe a new {\textbackslash}paragraph and a brief reminder to the reader about why we need a theorem to tie things up?}
 
 \begin{theorem}
     Perform the two-flip tolerant path search from the source to sink node of the edge that is to be added followed, and on the output, apply the path extraction algorithm. 
@@ -318,18 +327,19 @@ Like with the na\"{i}ve algorithm, for every node $v$ in the cycle, we add the p
     It remains to show that every new parallel pair $p$ in $Q'$ corresponds to a two flip tolerant path.
     Let $\partial(p)^+ = F_1$ and $\partial(p)^- = F_2$. 
     Only one path passes through $(S, T)$. Let it be called $p_1$, and the other path, $p_2$.
-    The two flip tolerant path from $S$ to $T$ can be constructed as follows: phase 1 is the segment of $p_1$ from $F_1$ to $S$, phase 2 is $p_2$, and phase 3 is the segment of $p_1$ from T to $F_2$.
+    The two flip tolerant path from $S$ to $T$ can be constructed as follows: phase 1 is the segment of $p_1$ from $F_1$ to $S$, phase 2 is $p_2$, and phase 3 is the segment of $p_1$ from $T$ to $F_2$.
     Effectively, $F_1$ corresponds to the first flipping point, and $F_2$, to the second.
-    It is possible that some of $F_1, F_2, S$ and $T$ coincide (e.g., p starts at S --- $F_1 = S$), in which case the corresponding segments between the coinciding nodes can be considered the identity; the resultant path simply has fewer than two flips.        
+    It is possible that some of $F_1, F_2, S$ and $T$ coincide (e.g., $p$ starts at $S$, i.e., $F_1 = S$), in which case the corresponding segments between the coinciding nodes can be considered the identity; the resultant path simply has fewer than two flips.
 \end{proof}
 
 \paragraph{Analysis}
-An upper bound on the number of pairs that this algorithm return is $O(|V|^{2} 2^{|V|})$, since two flip tolerant paths are an ordering on nodes, each node appearing at most once, followed by a selection of the flip points.
-In practice, the algorithm significantly outperforms the Na\"{i}ve batch baseline because it looks only at parallel pairs that involve the new edge, usually a small subset of all parallel pairs.
-Heuristic results are presented in the Section ~\ref{sec:evaluation}.
+An upper bound on the number of pairs that this algorithm returns is $O(|V|^{2} 2^{|V|})$, since two flip tolerant paths are an ordering on nodes, each node appearing at most once, followed by a selection of the flip points.
+In practice, the algorithm significantly outperforms the na\"{i}ve batch baseline because it looks only at parallel pairs that involve the new edge, which is usually a small subset of all parallel pairs.
+Empirical results are presented in Section~\ref{sec:evaluation}.
 
-\subsection{Optimal batch solution}
-Murota's main result ~\cite{commutative} is a solution to a batch version of \textsc{verification set}; given an acyclic diagram, it returns the minimal set of equality checks that would succeed if and only if the diagram commutes.
+\subsection{Optimal Batch Solution}
+
+Murota's main result~\cite{commutative} is a solution to a batch version of \textsc{verification set}; given an acyclic diagram, it returns the minimal set of equality checks that would succeed if and only if the diagram commutes.
 The paper describes an algorithm to find the ($|V|^2|E|$ bounded) minimal set of pairs that needs to be checked.
 
 % A diagram's structure can result in some redundancy, in the sense that equivalence of a subset of pairs can imply the equivalence of path pairs that aren't in the subset.
