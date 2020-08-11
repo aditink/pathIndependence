@@ -157,10 +157,6 @@ Second, our algorithm is used to identify inefficiencies in a currency conversio
 We empirically compare our solution to three baseline implementations: a na\"{i}ve checking of all path pairs with only special handling for cycles, a check for all path pairs that involve the new edge, and an algorithm suggested by previous work to solve the batch version of the problem for acyclic diagrams.
 Our proposed algorithms run orders of magnitude faster than the baselines.
 
-\section{Related Work}
-
-\xxx{Absolutely nothing related to this was ever done.}
-
 \section{Formal Problem Setup and Terminology}
 
 We start by formalizing the notion of a diagram, drawing terminology from the previous acyclic work by Murota ~\cite{commutative}.
@@ -850,6 +846,10 @@ There are four paths to be considered, two from each pair. Those paths which do 
 Those paths which do include the new edge (S,T) can be reduced, by the case for multiple occurrences of a new edge, to a path with a single occurrence of the new edge as described in the preceding lemma \ref{one_occurence_lemma}. These new paths can be divided into three segments: the segment from the source to S, the new edge, and the segment from the last occurrence of T to the sink. The first segments of all paths are equal by assumption that the original diagram commutes. This is also true of the third segment of all the paths. The second segment consists of only the new edge and is the same for all paths. The composition of equal functions is equal, so all the paths passing through the new edge must be equal.
 Therefore it is sufficient to check one path that passes through the new edge and one that doesn't. Such a pair belongs to V by construction.
 \end{proof}
+
+\section{Related Work}
+
+\xxx{Absolutely nothing related to this was ever done.}
 
 \section{Conclusion}
 
