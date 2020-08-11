@@ -339,48 +339,10 @@ Empirical results are presented in Section~\ref{sec:evaluation}.
 
 \subsection{Optimal Batch Solution}
 
+\label{sec:batchBaseline}
+
 Murota's main result~\cite{commutative} is a solution to a batch version of \textsc{verification set}; given an acyclic diagram, it returns the minimal set of equality checks that would succeed if and only if the diagram commutes.
 The paper describes an algorithm to find the ($|V|^2|E|$ bounded) minimal set of pairs that needs to be checked.
-
-% A diagram's structure can result in some redundancy, in the sense that equivalence of a subset of pairs can imply the equivalence of path pairs that aren't in the subset.
-% For example, in Figure ~\ref{figure_redundancies}, verifying $p_1$ and $p_2$ implies that the paths in $p_3$ are equal too.
-
-% \begin{figure}
-    
-% \begin{center}
-% \begin{tikzpicture}[scale=0.2]
-% \tikzstyle{every node}+=[inner sep=0pt]
-% \draw [black] (12,-15.8) circle (3);
-% \draw [black] (30.5,-30.5) circle (3);
-% \draw [black] (46.4,-15.8) circle (3);
-% \draw [black] (29.9,-15.8) circle (3);
-% \draw [black] (15,-15.8) -- (26.9,-15.8);
-% \fill [black] (26.9,-15.8) -- (26.1,-15.3) -- (26.1,-16.3);
-% \draw (20.95,-16.3) node [below] {$f_1$};
-% \draw [black] (14.35,-17.67) -- (28.15,-28.63);
-% \fill [black] (28.15,-28.63) -- (27.84,-27.74) -- (27.21,-28.53);
-% \draw (19.94,-23.64) node [below] {$g_1$};
-% \draw [black] (29.063,-27.873) arc (-157.62406:-197.70132:13.638);
-% \fill [black] (29.06,-27.87) -- (29.22,-26.94) -- (28.3,-27.32);
-% \draw (27.49,-23.25) node [left] {$f_2$};
-% \draw [black] (31.53,-18.309) arc (25.84176:-21.16715:11.992);
-% \fill [black] (31.53,-18.31) -- (31.43,-19.25) -- (32.33,-18.81);
-% \draw (33.28,-23.03) node [right] {$j_1$};
-% \draw [black] (32.9,-15.8) -- (43.4,-15.8);
-% \fill [black] (43.4,-15.8) -- (42.6,-15.3) -- (42.6,-16.3);
-% \draw (38.15,-16.3) node [below] {$j_2$};
-% \draw [black] (32.7,-28.46) -- (44.2,-17.84);
-% \fill [black] (44.2,-17.84) -- (43.27,-18.01) -- (43.95,-18.75);
-% \draw (39.77,-23.64) node [below] {$h_1$};
-% \end{tikzpicture}
-
-% $p_1$=($f_1;f_2$, $g_1$)\\
-% $p_2$=($j_1;j_2$, $h_1$)\\
-% $p_3$=($g_1;h_1$, $f_1;j_2$)
-% \end{center}
-% \caption{Path checking redundancies: verifying $p_1$ and $p_2$ implies that the paths in $p_3$ are equal.}
-% \label{figure_redundancies}
-% \end{figure}
 
 The approach in this algorithm, at a high level, is to define a function that takes in a subset of pairs and returns the subset of pairs whose equivalence is implied by the equivalence of the pairs in the input set.
 Then the algorithm greedily eliminates redundancies until a minimal set is reached.
@@ -879,8 +841,17 @@ Table ~\ref{tab:sizes}, summarizes the number of output pairs that the algorithm
 
 \section{Related Work}
 
-\xxx{Absolutely nothing related to this was ever done.}
+Section ~\ref{sec:batchBaseline} describes Murota's solution to efficiently finding the minimal set of path pairs that need to be compared to check if a given acyclic graph commutes ~\cite{commutative}.
+We did not find any other work that solves the question of verifying that diagrams commute.
 
+However, the question of commuting does come up in programming languages with implicit type conversion.
+Gator ~\cite{gator}, as described in Section ~\ref{sec:gator}, supports automatic type conversion between geometry types.
+The language implements some restrictions to eliminate obvious cases of non-commuting graphs, but does not verify that defined graphs commute, allowing scope for non-commuting graph definitions.
+Frink ~\cite{frink} is a language that supports automatic conversion between units and infinite precision floating point numbers.
+It does not appear to support the implicit definition of conversion between unites \xxx[AK]{Need to spend some time confirming this} but if extended to do so, would need to contend with the problem of commuting graphs.
+The same is true for F\# which has support for units of measure ~\cite{unitsOfMeasure} and Ada's GNAT compiler~\cite{gnat}.
+
+% Units of measure work resource: https://gmpreussner.com/research/dimensional-analysis-in-programming-languages
 \section{Conclusion}
 
 \xxx[as]{Write a conclusion.}
