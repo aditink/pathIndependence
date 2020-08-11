@@ -394,23 +394,24 @@ $\langle r \rangle = \{ s\in R_0| r>s\}$.
 
 For bilinking $s$, let $F(s)$ be the vector in $\text{GF}(2)^{|E|}$ representing the edges present in s (the $n^{\text{th}}$ dimension of $F(s)$ is 1 if the corresponding edge is in $s$, and 0 otherwise).
 \xxx[AK]{GF(2) or $\mathbb{F}_2$ is standard notation for the Galois field of two elements. Do I need to write more about it here?}
+\xxx[as]{Probably just to briefly tell the reader what it is, not to fully explain it.}
 Let this function be extended to sets, so that for some set of bilinkings $S, F(S) = \{ F(s) | s\in S \}$. A notion of linear independence in this vector field exists.
 
 For a set of bilinkings $R$, the closure function $cl$ is defined as:
 $cl(R) = \{ s\in R_0| s$ is linearly {dependent on $F(R) \}$.
-
+%
 The closure function on $R$ basically captures all the pairs that can be made by made by composing or ``gluing together'' the bilinkings in $R$. 
-
-Using these two function we finally define the function $\sigma$ on a set of bilinkings R as
+%
+Using these two functions, we finally define the function $\sigma$ on a set of bilinkings $R$ as
 $\sigma(R) = \{s \in R_0 | s\in cl(R\cap \langle s \rangle) \}$.
 This is the function used to capture all the pairs whose equivalence is implied by the equivalence of pairs in $R$.
-
-$\sigma$ is used to iteratively check if a given pair is redundant.
+%
+$\sigma$ is used \xxx[as]{passive voice, and a somewhat awkward start to the sentence} to iteratively check if a given pair is redundant.
 Bilinkings are eliminated until a minimum ``spanning'' subset is reached.
 
 Roughly, the algorithm proceeds by first efficiently finding a \textit{spanning} set of bilinkings (a subset whose verification implies the verification of all bilinkings in the graph).
 It does this by, starting at every node, finding the reachable subsection of the graph, and a spanning tree for the subsection.
-From each edges in the reachable section that is not a part of the tree, it generates a bilinking using the edge and a path in the tree that is parallel to the edge (~\ref{algo_spanning_set}).
+From each edges in the reachable section that is not a part of the tree, it generates a bilinking using the edge and a path in the tree that is parallel to the edge (\ref{algo_spanning_set}).
 
 \xxx[dg]{Probably put this in the appendix}
 \begin{algorithm}
