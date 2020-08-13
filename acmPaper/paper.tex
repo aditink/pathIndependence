@@ -83,7 +83,7 @@ With our type coercion example, it is a problem if casting to a supposedly equiv
             var b : miles = (miles) a;
             var c : feet = (feet) a;
             define wugs:
-                1 miles = 10000 wugs;
+                1 mile = 10000 wugs;
                 1 foot = 10 wugs;
             var d : wugs = (wugs) a;
         \end{verbatim}
@@ -868,7 +868,15 @@ The same is true for F\# which has support for units of measure ~\cite{unitsOfMe
 % Units of measure work resource: https://gmpreussner.com/research/dimensional-analysis-in-programming-languages
 \section{Conclusion}
 
-\xxx[as]{Write a conclusion.}
+Being able to verify if diagrams commute can be a very useful program analysis tool.
+It allows a compiler to make deterministic automatic type conversions and can catch inconsistencies of definition in a program with user defined conversions.
+In this paper, we have presented verification algorithms that given a commuting diagram, a new edge, efficiently compute the set of paths that would equal to each other if and only if the diagram would still commute after addition of the edge.
+
+Integrating conversion consistency checks into widely used languages such as scala could provide a lot of value to the program.
+Beyond implementation work, this requires an answer to the question of how to write function equality oracles.
+
+In the evaluation section, we found that the graph for the optimal set path checker displayed a peculiar regularity in outliers.
+Future work might include investigating this behavior.
 
 \bibliography{refs}
 \bibliographystyle{plain}
