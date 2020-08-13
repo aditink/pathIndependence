@@ -668,9 +668,9 @@ For simplicity, and to stay in scope for this paper, we focus on geometry transf
 
 These sorts of transformations are very common in graphics programming, and there are several examples of reasonably complicated transformation graphs that we can pick from.  Gator includes several graphics examples as part of its examples package; for this evaluation, we looked at the \textit{phong}, \textit{reflection}, and \textit{shadow map} examples, sample images of which can be seen in Appendix~\ref{sec:gator-appendix}.
 
-We implemented a system for interfacing with the optimal set incremental checker in Gator \xxx[dg]{Which algorithm was it?}.  Gator uses TypeScript for CPU computations, so it was reasonable to build a system to manage graphs for interoperation with the path independence algorithm.
+We implemented a system for interfacing with the optimal set incremental checker in Gator \xxx[dg]{Which algorithm was it?}\xxx[AK]{\ref{algo_online_minimal}}.  Gator uses TypeScript for CPU computations, so it was reasonable to build a system to manage graphs for interoperation with the path independence algorithm.
 
-Using this algorithm, we found a bug in the reflection model, where a matrix was not being divided correctly by its determinant \xxx[dg]{List other things I find, if anything}.  We also inserted previous bugs to check the algorithm was working correctly, and it identified all inserted bugs.
+Using this algorithm, we found a bug in the reflection model, where a matrix was not being divided correctly by its determinant \xxx[dg]{List other things I find, if anything}\xxx[ak]{I think it may be nice to add more detail for at least one bug (code, what was the program doing, what the graph/conflict was, time taken, etc.)}.  We also inserted previous bugs to check the algorithm was working correctly, and it identified all inserted bugs.
 
 \subsection{Currency Graph}
 \label{sec:currency}
