@@ -8,6 +8,7 @@
 \usepackage{xxx}
 \usepackage{fncylab}
 \usepackage{subcaption}
+\usepackage{listings}
 %
 \usepackage{graphicx}
 % Used for displaying a sample figure. If possible, figure files should
@@ -21,6 +22,8 @@
     \normalfont B\kern-0.5em{\scshape i\kern-0.25em b}\kern-0.8em\TeX}}}
 
 \labelformat{algocf}{Algorithm~#1}
+
+\newcommand{\code}{\lstinline[keywordstyle=]}
 
 \begin{document}
 \settopmatter{printacmref=false}
@@ -651,18 +654,29 @@ Ultimately verification is performed by calling an equality oracle (that is beyo
 
 \xxx[as]{Just a brief overview here to explain to the reader why these applications are important and appropriate (and what we hope to learn from the case studies).}
 
+To demonstrate our algorithms applied to a real world situation,
+we search for inconsistencies in diagrams of geometry transformations, and in a diagram of the exchange rate between currencies.
+
 \subsection{Gator}
 \label{sec:gator}
 
-\xxx{Write the Gator section!}
+Gator is a domain specific language designed around Geometry types, which are used to describe properties and transformations of geometric objects.  A key feature of Gator is \code{in} expressions, which insert code to automatically transform between two geometry types.  For example, given a point \code{p} represented in 2-dimensional Cartesian coordinates (which has type \code{cart2}), we can transform this point into polar coordinates using the expression \code{p in polar}.
+
+A key property of these \code{in} expressions is that the path chosen between two representations is arbitrary; thus we would like to ensure that every path is equivalent.  This problem defines a natural application space for working with our commutative diagrams, so long as we can define a transformation graph and oracle.
+
+For simplicity, and to stay in scope for this paper, we focus on geometry transformations between \textit{reference frames}, which are the geometry equivalent of transforming between linear algebra basis vectors.  Each edge on our transformation graph is a thus a matrix, with composition of edges as matrix multiplication and an oracle checking matrix equality (up to a rounding error $\epsilon$).  
+
+These sorts of transformations are very common in graphics programming, and there are several examples of reasonably complicated transformation graphs that we can pick from.  Gator includes several graphics examples as part of its examples package; for this evaluation, we looked at the \textit{phong}, \textit{reflection}, and \textit{shadow map} examples, sample images of which can be seen in Appendix~\ref{sec:gator-appendix}.
+
+We implemented a system for interfacing with the optimal set incremental checker in Gator \xxx[dg]{Which algorithm was it?}.  Gator uses TypeScript for CPU computations, so it was reasonable to build a system to manage graphs for interoperation with the path independence algorithm.
+
+Using this algorithm, we found a bug in the reflection model, where a matrix was not being divided correctly by its determinant \xxx[dg]{List other things I find, if anything}.  We also inserted previous bugs to check the algorithm was working correctly, and it identified all inserted bugs.
 
 \subsection{Currency Graph}
 \label{sec:currency}
 
 \xxx[as]{To perhaps excuse why this section doesn't have a proper programming language attached, maybe we should briefly say that we are imagining a units-of-measure type system---but to make it more interesting and scale to large graphs easily, we are using currencies as units.}
 
-To demonstrate our algorithms applied to a real world situation,
-we found inconsistencies in a diagram of the exchange rate between currencies.
 Consider a diagram with nodes as currencies and a directed edge being the
 conversion rate from its source node's currency to its sink node's currency.
 Since the transformation exchange rate of money from any given base currency to a target currency
@@ -893,5 +907,33 @@ There are four paths to be considered, two from each pair. Those paths which do 
 Those paths which do include the new edge (S,T) can be reduced, by the case for multiple occurrences of a new edge, to a path with a single occurrence of the new edge as described in the preceding lemma \ref{one_occurence_lemma}. These new paths can be divided into three segments: the segment from the source to S, the new edge, and the segment from the last occurrence of T to the sink. The first segments of all paths are equal by assumption that the original diagram commutes. This is also true of the third segment of all the paths. The second segment consists of only the new edge and is the same for all paths. The composition of equal functions is equal, so all the paths passing through the new edge must be equal.
 Therefore it is sufficient to check one path that passes through the new edge and one that doesn't. Such a pair belongs to V by construction.
 \end{proof}
+
+\section{Example Gator Images}
+\label{sec:gator-appendix}
+\begin{figure}
+	\begin{subfigure}{\linewidth}
+		\includegraphics[width=\linewidth]{phong.png}
+		\caption{Phong Lighting Model}
+	\end{subfigure}
+	
+	\begin{subfigure}{\linewidth}
+		\includegraphics[width=\linewidth]{reflection.png}
+		\caption{Reflection Model}
+	\end{subfigure}
+	
+	\begin{subfigure}{\linewidth}
+		\includegraphics[width=\linewidth]{shadowmap.png}
+		\caption{Shadow Map Model}
+	\end{subfigure}
+	
+	% \begin{subfigure}{\linewidth}
+	%   \includegraphics[width=\linewidth]{variance_10_TwoFlip.png}
+	%   \caption{Two flip tolerant baseline}
+	%   \label{fig:sfigTwoFlipSpread}
+	% \end{subfigure}
+	
+	\caption{Example Images from Gator Programs}
+	\label{fig:gator-images}
+\end{figure}
 
 \end{document}
