@@ -1,0 +1,14 @@
+run with:
+    python3 -m http.server
+(perhaps without the 3 depending on your python environment).
+Go to http://0.0.0.0:8000/hello.html in browser to view.
+
+making changes:
+edit hello.py
+hello.html is a small frontend to test pieces of hello.py, edit if required.
+After installing transcrypt, run "transcrypt hello"
+This generates __target__ folder, with js files.
+run server to see it working!
+
+Edits to python require recompilation and browser refresh.
+Edit to html only require refresh.
