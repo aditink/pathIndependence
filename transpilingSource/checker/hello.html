@@ -1,30 +1,56 @@
 <script type="module">import * as hello from './__target__/hello.js'; window.hello = hello;</script>
 <h2>Path checker demo</h2>
 
+<h3>Optimal set checker</h3>
 <p>
-    <input type="text" id="graph" name="graph"><br>
-    <button onclick="hello.setGraph()">Set (adjacency matrix) graph</button><br>
+    <input type="text" id="graph_opt" name="graph_opt"><br>
+    <button onclick="hello.setGraph('Optimal')">Set (adjacency matrix) graph</button><br>
     Eg. "1 2; 3 4" = [[1, 2],[3, 4]]. <br>
     No edge = -1
 </p>
 
 <p>
-    <input type="text" id="edge" name="edge"><br>
-    <button onclick="hello.setNewEdge()">Set new edge</button><br>
+    <input type="text" id="edge_opt" name="edge_opt"><br>
+    <button onclick="hello.setNewEdge('Optimal')">Set new edge</button><br>
     Eg. "1 2" = edge from node 1 to node 2 (0 indexed).
 </p>
 
 <p>
-    <div id="paths">...</div>
-    <button onclick="hello.getPathsToCheck()">Paths to check</button>
+    <div id="paths_opt">...</div>
+    <button onclick="hello.getPathsToCheck('Optimal')">Paths to check</button>
 </p>
 
 <p>
-    <div id="time">...</div>
-    <button onclick="hello.getTime()">Time taken for most recent computation</button>
+    <div id="time_opt">...</div>
+    <button onclick="hello.getTime('Optimal')">Time taken for most recent computation</button>
+</p>
+
+<h3>Polynomial time checker</h3>
+
+<p>
+    <input type="text" id="graph_poly" name="graph_poly"><br>
+    <button onclick="hello.setGraph('Polynomial')">Set (adjacency matrix) graph</button><br>
+    Eg. "1 2; 3 4" = [[1, 2],[3, 4]]. <br>
+    No edge = -1
 </p>
 
 <p>
-    <div id="gator">...</div>
+    <input type="text" id="edge_poly" name="edge_poly"><br>
+    <button onclick="hello.setNewEdge('Polynomial')">Set new edge</button><br>
+    Eg. "1 2" = edge from node 1 to node 2 (0 indexed).
+</p>
+
+<p>
+    <div id="paths_poly">...</div>
+    <button onclick="hello.getPathsToCheck('Polynomial')">Paths to check</button>
+</p>
+
+<p>
+    <div id="time_poly">...</div>
+    <button onclick="hello.getTime('Polynomial')">Time taken for most recent computation</button>
+</p>
+
+<p>
+    <div id="gator_poly">...</div>
     <button onclick="hello.gatorTest()">Run gator hook tests</button>
 </p>

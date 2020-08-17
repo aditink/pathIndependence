@@ -11,10 +11,13 @@ class BaseOnlineChecker():
 
     #### Utility functions ####
 
-    def extend(self, list1, list2):
+    def concatLists(self, list1, list2):
+        lst = []
+        for elem in list1:
+            lst.append(elem)
         for elem in list2:
-            list1.append(elem)
-        return list1
+            lst.append(elem)
+        return lst
 
     def getForwardEdges(self, source: int) -> List[int]:
         return [i for i in range(len(self.graph)) \
@@ -61,16 +64,18 @@ class BaseOnlineChecker():
             elif currentNode not in visited:
                 visited.add(currentNode)
                 visitedList.append(currentNode)
-                path = self.extend([currentNode], path)
+                path = self.concatLists([currentNode], path)
                 if (memoize):
                     pathDict[currentNode] = self.deepcopyList(path)
                 stack.append(self._invalid_node)
-                stack = self.extend(stack, self.compactBkdGraph[currentNode])
+                stack = self.concatLists(stack, self.compactBkdGraph[currentNode])
         if self._debug:
             print("getAllPredecessors: node: {} and visitedList: {}".format(
                 node, visitedList))
         if node == self.newEdgeSource:
             self.pathsToNewEdgeSource = pathDict
+        if memoize:
+            self.pathsToNode[node] = pathDict
         return visitedList
     
     def getAllSuccessors(self, node) -> List[int]:
@@ -96,7 +101,7 @@ class BaseOnlineChecker():
                 if (node == self.newEdgeSink):
                     self.pathsFromNewEdgeSink[currentNode] = self.deepcopyList(path)
                 stack.append(self._invalid_node)
-                stack = self.extend(stack, self.compactFwdGraph[currentNode])
+                stack = self.concatLists(stack, self.compactFwdGraph[currentNode])
         if self._debug:
             print("getAllSuccessors: node = {} and visited list: {}".format(
                 node, visitedList))
@@ -126,7 +131,7 @@ class BaseOnlineChecker():
                     return (True, path)
                 visited.add(currentNode)
                 stack.append(self._invalid_node)
-                stack = self.extend(stack, self.compactFwdGraph[currentNode])
+                stack = self.concatLists(stack, self.compactFwdGraph[currentNode])
         return (False, [])
 
     def findPair(self, source: int, sink: int) -> Tuple[List[int], List[int]]:
@@ -144,7 +149,7 @@ class BaseOnlineChecker():
         # Special case of Identity.
         if source == sink:
             secondPath = self.identityFunction(source) 
-        firstPath = self.extend(firstSegment, lastSegment)
+        firstPath = self.concatLists(firstSegment, lastSegment)
         return(firstPath, secondPath)
 
     #### Public interface ####
@@ -161,6 +166,7 @@ class BaseOnlineChecker():
         self.pathsFromNewEdgeSink = dict()
         self._no_edge = _default_no_edge
         self.noIdentity = False
+        self.pathsToNode = dict()
         # Hack to make sub classes works
         self._invalid_node = -1
     
@@ -249,7 +255,7 @@ class OptimalSetPathChecker(BaseOnlineChecker):
             if pair[0]==elem[0] and pair[1]==elem[1]:
                 indices.append(i)
         for i in indices:
-            lst = self.extend(lst[:i], lst[i+1:])
+            lst = self.concatLists(lst[:i], lst[i+1:])
         return lst
 
     def getPathsToCheck(self) ->  List[Tuple[List[int], List[int]]]:
@@ -266,6 +272,43 @@ class OptimalSetPathChecker(BaseOnlineChecker):
         self.timeTaken = endTime - startTime
         return pathPairs
 
+###### Polynomial checker
+
+class PolynomialPathChecker(BaseOnlineChecker):
+    """Path checker that returns a set for verification for online problem
+    in time O(|V|.(|V|+|E|)))."""
+
+    def __init__(self):
+        super().__init__()
+
+    def getPathsToCheck(self) ->  List[Tuple[List[int], List[int]]]:
+        """Return the pairs of path whose equality implies path independence of 
+        the new graph."""
+        # First find set of all predecessors and successors.
+        startTime = time.time()
+        pathsToCheck = []
+        predecessors = self.getAllPredecessors(self.newEdgeSource)
+        successors = self.getAllSuccessors(self.newEdgeSink)
+        predecessorSet = set(predecessors)
+        # For each successor, find paths to all valid predecessors.
+        for sink in successors:
+            predecessorsForNode = self.getAllPredecessors(
+                sink, 
+                memoize = True).intersection(predecessorSet)
+            while len(predecessorsForNode) > 0:
+                src = predecessorsForNode.pop()
+                # path including new edge
+                part1 = self.pathsToNewEdgeSource[src]
+                part2 = self.pathsFromNewEdgeSink[sink]
+                newPath = self.concatLists(part1, part2)
+                # path excluding new edge
+                oldPath = self.identityFunction(sink)
+                if src != sink:
+                    _, oldPath = self.findPath(src, sink)
+                pathsToCheck.append((newPath,oldPath))
+        endTime = time.time()
+        self.timeTaken = endTime - startTime
+        return pathsToCheck
 
 ###### Front end code ######
 # Test cases:
@@ -275,9 +318,35 @@ class OptimalSetPathChecker(BaseOnlineChecker):
 #
 #  -1  1  -1  -1  -1  -1  -1  -1 ; -1  -1  1  -1  -1  -1  -1  -1 ; -1  -1  -1  -1  -1  -1  -1  -1 ; -1  -1  -1  -1  1  -1  1  -1 ; -1  -1  -1  -1  -1  1  -1  -1 ; -1  -1  -1  -1  -1  -1  -1  -1 ; -1  -1  -1  -1  -1  -1  -1  1 ; -1  -1  1  -1  -1  -1  -1  -1 
 # 2 3
+#
+# -1 1 -1 -1 -1; -1 -1 1 -1 -1; -1 -1 -1 1 -1; -1 -1 -1 -1 -1; -1 1 -1 -1 -1
+# 0 4
 
 _EMPTY = 0
-checker = OptimalSetPathChecker()
+optimalChecker = OptimalSetPathChecker()
+polyChecker = PolynomialPathChecker()
+defaultChecker = optimalChecker
+
+# Kinds of checkers
+polynomialCheckerFlag = "Polynomial"
+optimalCheckerFlag = "Optimal"
+suffixPolynomial = "_poly"
+suffixOptimal = "_opt"
+
+def getChecker(flag):
+    if flag==polynomialCheckerFlag:
+        return polyChecker
+    if flag==optimalCheckerFlag:
+        return optimalChecker
+    return defaultChecker
+
+def getElement(name, flag):
+    if flag==polynomialCheckerFlag:
+        return name+suffixPolynomial
+    if flag==optimalCheckerFlag:
+        return name+suffixOptimal
+    return name
+
 # placeholder oracle
 oracle = lambda matrix1, matrix2 : matrix1==matrix2
 
@@ -288,26 +357,32 @@ def getPathListString(pathList):
         string+='('+path1+' and '+path2+') '
     return string
 
-def getTime():
-    document.getElementById('time').innerHTML = (
+def getTime(checkerFlag):
+    checker = getChecker(checkerFlag)
+    elementName = getElement('time', checkerFlag)
+    document.getElementById(elementName).innerHTML = (
             checker.getComputeTime()+'s'
         )
 
-def getPathsToCheck():
+def getPathsToCheck(checkerFlag):
+    checker = getChecker(checkerFlag)
+    elementName = getElement('paths', checkerFlag)
     if (len(checker.graph)!=_EMPTY and len(checker.graph[0])!=_EMPTY) \
         and checker.newEdgeSource!=checker._invalid_node \
         and checker.newEdgeSink!=checker._invalid_node:
         paths = checker.getPathsToCheck()
-        document.getElementById('paths').innerHTML = (
+        document.getElementById(elementName).innerHTML = (
             getPathListString(paths)
         )
     else:
-        document.getElementById('paths').innerHTML = (
+        document.getElementById(elementName).innerHTML = (
             "Graph or new edge not yet set."
         )
 
-def setGraph():
-    graphString = document.getElementById('graph').value
+def setGraph(checkerFlag):
+    checker = getChecker(checkerFlag)
+    elementName = getElement('graph', checkerFlag)
+    graphString = document.getElementById(elementName).value
     rows = graphString.split(';')
     graph = [] 
     for rowString in rows:
@@ -320,8 +395,10 @@ def setGraph():
     # cells = [[int(edge) for edge in row.split()] for row in rows]
     checker.setGraph(graph)
 
-def setNewEdge():
-    edgeString = document.getElementById('edge').value
+def setNewEdge(checkerFlag):
+    checker = getChecker(checkerFlag)
+    elementName = getElement('edge', checkerFlag) 
+    edgeString = document.getElementById(elementName).value
     source, sink = edgeString.split()
     checker.setEdge(int(source), int(sink))
 
@@ -389,9 +466,9 @@ def verify(graph, graphValues, newEdge, oracle):
     -- graphValues: adjacency matrix of values of each edge. In this case, each edge is a matrix.
     -- newEdge: tuple or list where first entry is source nad second is sink.
     -- oracle: function of type matrix, matrix -> are these matrices equal."""
-    checker.setGraph(graph)
-    checker.setEdge(newEdge[0], newEdge[1])
-    pathsToCheck = checker.getPathsToCheck()
+    defaultChecker.setGraph(graph)
+    defaultChecker.setEdge(newEdge[0], newEdge[1])
+    pathsToCheck = defaultChecker.getPathsToCheck()
     return checkPaths(pathsToCheck, graphValues, newEdge, oracle)
 
 def gatorTest():

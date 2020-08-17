@@ -14,17 +14,17 @@ import traceback
 from typing import List
 
 NUM_TRIES = 10
-DO_ACYCLIC = True
+DO_ACYCLIC = False
 OUTFILE = ''
 
 densityStep = 0.5
 sizeStep = 1
-maxSize = 12
+maxSize = 5
 
 # densities = [i*densityStep for i in range(1, int(1.0/densityStep))] 
-densities = [0.4]
+densities = [0.1, 0.5, 0.9]
 # sizes = [i*sizeStep for i in range(1, int(maxSize/sizeStep))]
-sizes = [9]
+sizes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 
 evaluationList = [(density, size) for size in sizes for density in densities]
 
@@ -35,8 +35,8 @@ checkers : List[IPathChecker] = [
     # PolynomialPathChecker(),
     # OptimalSetPathChecker(),
     # NaiveChecker(),
-    # TwoFlipPathChecker(),
-    BatchChecker()
+    TwoFlipPathChecker(),
+    # BatchChecker()
 ]
 
 class attemptInfo:
@@ -144,7 +144,7 @@ def plot3d(checkerName, results):
     ax.set_zlabel('time')
 
     # plt.show()
-    fig.savefig("results/result3d{}{}.png".format(checkerName, datetime.utcnow()))
+    fig.savefig("results/result3d{}{}.pdf".format(checkerName, datetime.utcnow()))
     plt.clf()
 
 def plotTimeVsSize(checkerName, results, densities, scatterPoints=False,
@@ -168,8 +168,8 @@ errorBars=False, median=False):
                 for x in sizes:
                     result = results[(density, x)]
                     points = result.getTimes()
-                    # ax1.plot([x for point in points], points, '.', color=colors[i]) 
-                    ax1.plot([x for point in points], points, '.', color="grey") 
+                    ax1.plot([x for point in points], points, '.', color=colors[i]) 
+                    # ax1.plot([x for point in points], points, '.', color="grey") 
         except:
             print("Exception while plotting for density {}".format(density))
             print(traceback.print_stack())
@@ -177,7 +177,7 @@ errorBars=False, median=False):
     ax1.legend(handles, labels, loc='upper left',numpoints=1)
     plt.xlabel('Number of Nodes')
     plt.ylabel('Execution Time (seconds)')
-    plt.savefig("results/timeVsSize_{}_{}{}.png".format(NUM_TRIES, checkerName, datetime.utcnow()))
+    plt.savefig("results/timeVsSize_{}_{}{}.pdf".format(NUM_TRIES, checkerName, datetime.utcnow()))
     plt.clf()
 
 def plotTimeVsSizeForChecker(checkerNames, results, density, scatterPoints=False,
@@ -211,7 +211,7 @@ errorBars=False):
     if errorBars:
         #TODO plot standard deviation.
         pass
-    plt.savefig("results/timeVsSizeForChecker_{}_{}.png".format(NUM_TRIES, datetime.utcnow()))
+    plt.savefig("results/timeVsSizeForChecker_{}_{}.pdf".format(NUM_TRIES, datetime.utcnow()))
     plt.clf()
 
 def plot(checkerName, results):
