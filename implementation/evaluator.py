@@ -1,4 +1,5 @@
 from datetime import datetime
+import cProfile
 import functools
 import json
 import matplotlib.pyplot as plt
@@ -22,9 +23,9 @@ sizeStep = 1
 maxSize = 5
 
 # densities = [i*densityStep for i in range(1, int(1.0/densityStep))] 
-densities = [0.1, 0.5, 0.9]
+densities = [0.3]
 # sizes = [i*sizeStep for i in range(1, int(maxSize/sizeStep))]
-sizes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+sizes = [9]
 
 evaluationList = [(density, size) for size in sizes for density in densities]
 
@@ -232,16 +233,34 @@ def dumpResult(results: dict, runDetails: runDetails):
 def getFileEndString():
     return "_{}_{}".format(NUM_TRIES, datetime.utcnow())
 
-checkerToResults = dict()
-graphs = { (density, size) : generateGraphs(size, density, acyclic=DO_ACYCLIC) for
-    density in densities for size in sizes }
-for checker in checkers:
+def main():
+    graphs = { (density, size) : generateGraphs(size, density, acyclic=DO_ACYCLIC) for
+        density in densities for size in sizes }
+    for checker in checkers:
+        evaluateForChecker(checker, graphs)
+
+def evaluateForChecker(checker, graphs):
     evaluate = getEvaluateFunction(checker, NUM_TRIES)
     # dictionary from (density, size) to attemptInfo
     results = { (density, size) : evaluate(density, size, graphs=graphs[(density, size)]) for 
         density in densities for size in sizes }
-    checkerToResults[checker.__class__.__name__] = results
     details = runDetails()
     details.checkerName = checker.__class__.__name__
     plot(checker.__class__.__name__, results)
     dumpResult(results, details)
+
+def profileBatchChecker():
+    """Profile the batch checker!"""
+    checker = BatchChecker()
+    graphs = { (density, size) : generateGraphs(size, density, acyclic=True) for
+        density in densities for size in sizes }
+    evaluateForChecker(checker, graphs) 
+
+if __name__=="__main__":
+    # main()
+    # cProfile.run('profileBatchChecker()')
+    pr = cProfile.Profile()
+    pr.enable()
+    profileBatchChecker()
+    pr.disable()
+    pr.print_stats(sort='cumtime')

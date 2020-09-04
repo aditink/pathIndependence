@@ -1,6 +1,7 @@
 import setup
 from colorama import Fore
 import copy
+import cProfile
 from pathCheckers.naiveChecker import NaiveChecker
 from pathCheckers.baseOnlineChecker import BaseOnlineChecker
 from pathCheckers.batchTestCommonUtilities import addVectors
