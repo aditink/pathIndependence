@@ -1,0 +1,5 @@
+A list of things that the paper doesn't yet address that I would like to work in/major TODO points:
+
+- Make a better case for a verification tool for units of measure-ey programs
+- Explain when polynomial path checker is actually faster than optimal paths checker, an example might help.
+- Figure out what's up with batch checker
