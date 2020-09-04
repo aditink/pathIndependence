@@ -78,6 +78,36 @@ class BaseOnlineChecker():
             self.pathsToNode[node] = pathDict
         return visitedList
     
+    def getAllPredecessorsUnordered(self, node, memoize = True) -> Set[int]:
+        """Returns a list of nodes that are predecessors of this one.
+        Memoize if source of new edge."""
+        memoize = memoize or node == self.newEdgeSource
+        if memoize:
+            pathDict = dict()
+        visited = set()
+        currentNode = node
+        stack = [currentNode]
+        path = []
+        while (len(stack) > 0):
+            currentNode = stack.pop()
+            if currentNode == self._invalid_node:
+                path = path[1:]
+            elif currentNode not in visited:
+                visited.add(currentNode)
+                path = [currentNode] + path
+                if (memoize):
+                    pathDict[currentNode] = self.deepcopyList(path)
+                stack.append(self._invalid_node)
+                stack = self.extend(stack, self.compactBkdGraph[currentNode])
+        if self._debug:
+            print("getAllPredecessors: node: {} and visitedList: {}".format(
+                node, visited))
+        if node == self.newEdgeSource:
+            self.pathsToNewEdgeSource = pathDict
+        if memoize:
+            self.pathsToNode[node] = pathDict
+        return visited
+
     def getAllSuccessors(self, node) -> List[int]:
         """Returns a list of nodes that are successors of this one.
         Memoize if sink of new edge."""
@@ -142,7 +172,7 @@ class BaseOnlineChecker():
         if not bool(self.pathsFromNewEdgeSink):
             self.getAllSuccessors(self.newEdgeSink)
         if not bool(self.pathsToNewEdgeSource):
-            self.getAllPredecessors(self.newEdgeSource, memoize=False)
+            self.getAllPredecessors(self.newEdgeSource)
         firstSegment = self.pathsToNewEdgeSource[source]
         lastSegment = self.pathsFromNewEdgeSink[sink]
         (_, secondPath) = self.findPath(source, sink)
@@ -164,6 +194,8 @@ class BaseOnlineChecker():
         self.compactBkdGraph = []
         self.pathsToNewEdgeSource = dict()
         self.pathsFromNewEdgeSink = dict()
+        # sink node -> {source node -> path}
+        self.pathsToNode = dict()
         self._no_edge = _default_no_edge
         self.noIdentity = False
         self.pathsToNode = dict()
@@ -210,7 +242,7 @@ class OptimalSetPathChecker(BaseOnlineChecker):
         """Returns a set of pairs such that verifying a path between given
         source and sink implies also that all the pairs in the returned set are
         equal."""
-        predecessors = self.getAllPredecessors(source, memoize=False)
+        predecessors = self.getAllPredecessors(source)
         successors = self.getAllSuccessors(sink)
         if (self.noIdentity and source == sink):
             return {(src, snk) for src in predecessors for snk in successors 
@@ -225,7 +257,7 @@ class OptimalSetPathChecker(BaseOnlineChecker):
         the paths pairs of A must also be equal."""
         acceptedPairs = set()
         # Get set of all predecessors, successors.
-        predecessors = self.getAllPredecessors(self.newEdgeSource, memoize=False)
+        predecessors = self.getAllPredecessors(self.newEdgeSource)
         successors = self.getAllSuccessors(self.newEdgeSink)
         # Go through each element in predecessors X successors.
         potentialPairs = {(source, sink) for source in predecessors \
@@ -239,10 +271,16 @@ class OptimalSetPathChecker(BaseOnlineChecker):
                 currentPairSuccessors = self.getSuccessors(source, sink)
                 for redundantPair in acceptedPairs.intersection(
                     currentPairSuccessors):
-                    acceptedPairs = self.removePairFromList(acceptedPairs, redundantPair)
+                    try:
+                        acceptedPairs.remove(redundantPair)
+                    except:
+                        pass
                 for redundantPair in potentialPairs.intersection(
                     currentPairSuccessors):
-                    potentialPairs = self.removePairFromList(potentialPairs, redundantPair)
+                    try:
+                        potentialPairs.remove(redundantPair)
+                    except:
+                        pass
                 acceptedPairs.add((source, sink))
         return acceptedPairs        
 
@@ -414,17 +452,17 @@ def scalarMultiply(scalar, matrix):
         ans.append(ansRow)
     return ans
 
-def matrixMultiple(mat1, mat2):
+def matrixMultiply(mat1, mat2):
     """Takes scalars and metrices as parameters. Returns product."""
     if isinstance(mat1, list):
         if isinstance(mat2, list):
             # number of cols matrix1 must be equal to rows of matrix2
             assert(len(mat2) == len(mat1[0]))
             ans = []
-            for row in len(mat1):
+            for row in range(len(mat1)):
                 ansRow = []
                 vector1 = mat1[row]
-                for col in len(mat2[0]):
+                for col in range(len(mat2[0])):
                     vector2 = [mat2[i][row] for i in range(len(mat2))]
                     sumOfEntries = 0
                     for i in range(len(vector2)):
@@ -443,12 +481,13 @@ def matrixMultiple(mat1, mat2):
 
 def getMatrixOfPaths(path, graphValues):
     """Given a path get the matrix that is the product of all matrices along the path."""
-    productMatrix = 1
     if (len(path) < 2):
-        return productMatrix
-    for i in range(1, len(path)):
-        edgeMatrix = graphValues()
+        return 1
+    productMatrix = graphValues[path[0]][path[1]]
+    for i in range(2, len(path)):
+        edgeMatrix = graphValues[path[i-1]][path[i]]
         matrixMultiply(productMatrix, edgeMatrix)
+    return productMatrix
 
 def checkPaths(pathsToCheck, graphValues, oracle):
     """Given a list of paths to check, return true if all pairs are equal per oracle."""
@@ -456,6 +495,8 @@ def checkPaths(pathsToCheck, graphValues, oracle):
         (path1, path2) = pathPair
         matrix1 = getMatrixOfPaths(path1, graphValues)
         matrix2 = getMatrixOfPaths(path2, graphValues)
+        #print("path1: " + str(path1))
+        #print("path2: " + str(path2))
         if not oracle(matrix1, matrix2):
             return False
     return True
