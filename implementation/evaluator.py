@@ -23,9 +23,9 @@ sizeStep = 1
 maxSize = 5
 
 # densities = [i*densityStep for i in range(1, int(1.0/densityStep))] 
-densities = [0.3]
+densities = [0.1, 0.25, 0.4]
 # sizes = [i*sizeStep for i in range(1, int(maxSize/sizeStep))]
-sizes = [9]
+sizes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 
 evaluationList = [(density, size) for size in sizes for density in densities]
 
@@ -34,9 +34,9 @@ colors = ["black", "purple", "orange", "blue", "green", "red"]
 
 checkers : List[IPathChecker] = [
     # PolynomialPathChecker(),
-    # OptimalSetPathChecker(),
+    OptimalSetPathChecker(),
     # NaiveChecker(),
-    TwoFlipPathChecker(),
+    # TwoFlipPathChecker(),
     # BatchChecker()
 ]
 
@@ -242,7 +242,7 @@ def main():
 def evaluateForChecker(checker, graphs):
     evaluate = getEvaluateFunction(checker, NUM_TRIES)
     # dictionary from (density, size) to attemptInfo
-    results = { (density, size) : evaluate(density, size, graphs=graphs[(density, size)]) for 
+    results = { (density, size) : evaluate(density, size, graphs = graphs[(density, size)]) for 
         density in densities for size in sizes }
     details = runDetails()
     details.checkerName = checker.__class__.__name__
@@ -257,10 +257,9 @@ def profileBatchChecker():
     evaluateForChecker(checker, graphs) 
 
 if __name__=="__main__":
-    # main()
-    # cProfile.run('profileBatchChecker()')
-    pr = cProfile.Profile()
-    pr.enable()
-    profileBatchChecker()
-    pr.disable()
-    pr.print_stats(sort='cumtime')
+    main()
+    # pr = cProfile.Profile()
+    # pr.enable()
+    # profileBatchChecker()
+    # pr.disable()
+    # pr.print_stats(sort='cumtime')
