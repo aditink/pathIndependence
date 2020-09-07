@@ -661,28 +661,20 @@ Specifically, Gator introduces transformations between \textit{reference frames}
 There are several examples of reasonably complicated transformation graphs that we can pick from.  Gator includes several graphics examples as part of its examples package; for this evaluation, we looked at the \textit{phong}, \textit{reflection}, and \textit{shadow map} examples, sample images of which can be seen in Appendix~\ref{sec:gator-appendix}\xxx[as]{Either add text to appendix B or just reference a figure}.
 
 We implemented a system for interfacing between the optimal set path checker (Algorithm 4) in the open-source implementation of Gator.
-Using this algorithm, we found a bug in the reflection model, where a matrix was not being divided correctly by its determinant \xxx[dg]{List other things I find, if anything}\xxx[ak]{I think it may be nice to add more detail for at least one bug (code, what was the program doing, what the graph/conflict was, time taken, etc.)}.  We also inserted previous bugs to check the algorithm was working correctly, and it identified all inserted bugs\xxx[as]{This general observation is less interesting than specific bugs, and should be omitted to just use the specifics}.
+Using this algorithm, we found a bug in the reflection model, where a matrix was not being divided correctly by its determinant \xxx[dg]{List other things I find, if anything}\xxx[ak]{I think it may be nice to add more detail for at least one bug (code, what was the program doing, what the graph/conflict was, time taken, etc.)}.
 
 \subsection{Currency Graph}
 \label{sec:currency}
 
-\xxx[as]{To perhaps excuse why this section doesn't have a proper programming language attached, maybe we should briefly say that we are imagining a units-of-measure type system---but to make it more interesting and scale to large graphs easily, we are using currencies as units.}
-
-Consider a diagram with nodes as currencies and a directed edge being the
-conversion rate from its source node's currency to its sink node's currency.
-Since the transformation exchange rate of money from any given base currency to a target currency
-can be expected to be the same regardless of which intermediate currency transformations
-are used, this diagram should commute.
+We imagine a units-of-measure type system as being an interesting application of concurrency graphs; however, to make this more interesting and scale nicely to large graphs with existing data, we focus on the specific unit of currencies.
+Consider a diagram with nodes as currencies and a directed edge being the conversion rate from its source node's currency to its sink node's currency.
+Since the transformation exchange rate of money from any given base currency to a target currency can be expected to be the same regardless of which intermediate currency transformations are used, this diagram should commute.
 
 Using a web API\footnote{https://exchangeratesapi.io} for currency data, we built the fully connected diagram of exchange rates between 32 currencies on a given day.
 To ensure that it indeed commuted, we started with an empty diagram, and added in edges one by one.
 Before the addition of each edge, we used the algorithms (\ref{algo_online_polynomial} and ~\ref{algo_online_minimal}) \xxx[as]{remind the reader what these are: our algorithms? baselines? batch? incremental? etc.} to ensure the addition of a new edge did not introduce inconsistencies in the existing diagram.
-If a new edge was, in fact, problematic, the algorithms returned an example inconsistent
-pair that would arise from the addition of the edge.
-The pair would consist of two currency transformation sequences with the 
-same source currency and ultimate destination currency, but with different effective 
-exchange rates values, as computed by taking the product of all the exchange rates
-encountered through the chain.
+If a new edge was problematic, the algorithms returned an example inconsistent pair that would arise from the addition of the edge.
+The pair would consist of two currency transformation sequences with the same source currency and ultimate destination currency, but with different effective exchange rates values, as computed by taking the product of all the exchange rates encountered through the chain.
 
 We allowed an ``error tolerance'' so that differences reported would not be the trivial consequences of a floating point error.
 However, this relaxation of the equality oracle into imprecision meant that the mathematical reasoning that allow the algorithms to remove redundant path checks no longer applied.
