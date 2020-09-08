@@ -23,6 +23,32 @@
 
 \labelformat{algocf}{Algorithm~#1}
 
+%Cruft for Gator
+\lstdefinelanguage{Gator}{
+	keywords={void, float, int, with, auto,
+		if, abs, \#ifdef, \#else, \#endif, in, out, uniform,
+		varying, attribute, return, void, space, is, coord, canon, type,
+		declare, vec, mat, as, has, frame, object, dimension, coord},
+	comment=[l]{//},
+}
+\lstset{
+	language=Gator,
+	columns=fullflexible,
+	keepspaces=true,
+	showspaces=false,
+	showstringspaces=false,
+	keywordstyle=\bfseries,
+	basicstyle=\ttfamily\small,
+	basewidth=0.53em,
+	aboveskip=0.9\medskipamount,
+	belowskip=0.6\medskipamount,
+	mathescape=true,
+	lineskip={-2pt},
+	commentstyle=\color{gray},
+	% xleftmargin=\parindent,
+}
+
+% Shorthand for inline code
 \newcommand{\code}{\lstinline[keywordstyle=]}
 
 \begin{document}
@@ -646,22 +672,21 @@ Ultimately verification is performed by calling an equality oracle (that is beyo
 
 \section{Case Studies}
 
-\xxx[as]{Just a brief overview here to explain to the reader why these applications are important and appropriate (and what we hope to learn from the case studies).}
-
-To demonstrate our algorithms applied to a real world situation,
-we search for inconsistencies in diagrams of geometry transformations, and in a diagram of the exchange rate between currencies.
+To demonstrate our algorithms applied to a real world situation, we search for inconsistencies in diagrams of geometry transformations, and in a diagram of the exchange rate between currencies.
+Each of these applications use commutative diagrams, and the commutative nature of each is necessary to reason about some form of correctness.
+We explore these examples with the intent of showing that the algorithms discussed apply to realistic settings and potentially identify real-world examples of incorrect behavior.
 
 \subsection{Gator}
 \label{sec:gator}
 
-Gator is a domain specific language designed around Geometry types, which are used to describe properties and transformations of geometric objects~\cite{gator}.  A key feature of Gator is \code{in} expressions, which insert code to automatically transform between two geometry types.  For example, given a point \code{p} represented in 2-dimensional Cartesian coordinates (which has type \code{cart2}), we can transform this point into polar coordinates using the expression \underline{\code{p in polar}}.  These \code{in} expressions create a structure of commutative diagrams, allowing use as introduced in Section~\ref{introduction}.
+Gator is a domain specific language designed around Geometry types, which are used to describe properties and transformations of geometric objects~\cite{gator}.  A key feature of Gator is \code{in} expressions, which insert code to automatically transform between two geometry types.  For example, given a point \code{p} represented in 2-dimensional Cartesian coordinates (which has type \code{cart2}), we can transform this point into polar coordinates using the expression \code{p in polar}.  These \code{in} expressions create a structure of commutative diagrams, allowing use as introduced in Section~\ref{introduction}.
 
 Specifically, Gator introduces transformations between \textit{reference frames}, which are the geometry equivalent of transforming between linear algebra basis vectors.  Each edge on our transformation graph is a thus a matrix, with composition of edges as matrix multiplication and an oracle checking matrix equality (up to a rounding error $\epsilon$).  
 
-There are several examples of reasonably complicated transformation graphs that we can pick from.  Gator includes graphics examples as part of its examples package; for this evaluation, we looked at the \textit{phong}, \textit{reflection}, and \textit{shadow map} examples, sample images of which can be seen in Appendix~\ref{sec:gator-appendix}\xxx[as]{Either add text to appendix B or just reference a figure}.
+There are several examples of reasonably complicated transformation graphs that we can pick from.  Gator includes graphics examples as part of its examples package, all of which are in the Gator paper; for this evaluation, we looked at the \textit{phong}, \textit{reflection}, and \textit{shadow map} examples.
 
-We implemented a system for interfacing between the optimal set path checker (Algorithm 4) in the open-source implementation of Gator.
-The system was tested with intentional bugs, of which it found them all, although no "real" bugs were found.  The graphs used were of size 5 or less; for graphs of this size, the checker was able to run in real time with no noticeable loss of frames.  Since the program is running at 60 frames per second, the checker was running at a rate faster than .01 seconds.
+We implemented a system for interfacing between the optimal set path checker (\ref{algo_online_minimal}) in the open-source implementation of Gator.
+The system was tested with intentional bugs, of which it found them all, although no ``real'' bugs were found.  The graphs used were of size 5 or less; for graphs of this size, the checker was able to run in real time with no noticeable loss of frames.  Since the program is running at 60 frames per second, the checker was running at a rate faster than .01 seconds.
 
 \subsection{Currency Graph}
 \label{sec:currency}
@@ -672,7 +697,7 @@ Since the transformation exchange rate of money from any given base currency to 
 
 Using a web API\footnote{https://exchangeratesapi.io} for currency data, we built the fully connected diagram of exchange rates between 32 currencies on a given day.
 To ensure that it indeed commuted, we started with an empty diagram, and added in edges one by one.
-Before the addition of each edge, we used the algorithms (\ref{algo_online_polynomial} and ~\ref{algo_online_minimal}) \xxx[as]{remind the reader what these are: our algorithms? baselines? batch? incremental? etc.} to ensure the addition of a new edge did not introduce inconsistencies in the existing diagram.
+Before the addition of each edge, we used the algorithms (\ref{algo_online_polynomial} and ~\ref{algo_online_minimal}, the online polynomial and online minimal set algorithms, respectively) to ensure the addition of a new edge did not introduce inconsistencies in the existing diagram.
 If a new edge was problematic, the algorithms returned an example inconsistent pair that would arise from the addition of the edge.
 The pair would consist of two currency transformation sequences with the same source currency and ultimate destination currency, but with different effective exchange rates values, as computed by taking the product of all the exchange rates encountered through the chain.
 
@@ -683,7 +708,8 @@ When the algorithms reported no inconsistencies, it was still possible that the 
 Nonetheless, both algorithms were effective in catching inconsistencies. \ref{algo_online_polynomial} started finding inconsistencies at error tolerances to the order of $10^{-3}$, and \ref{algo_online_minimal}, which makes more invalid redundant path check removals, at error tolerances to the order of $10^{-7}$.
 
 Averaging over evaluation for the first 30 days of 2020, building and verifying a diagram to completion (inclusive of the time required by network calls) took 243$\pm$19 seconds using \ref{algo_online_minimal}, and in 133$\pm$13 seconds with \ref{algo_online_polynomial}.
-\xxx[as]{What is the conclusion the reader should take away?}
+For this large of a graph and data set, these times are reasonable and show these algorithms can be used in a realistic setting.
+Finding actual inconsistencies further shows the value of using these algorithms and commutative diagrams in the real world.
 
 \section{Evaluation}
 \label{sec:evaluation}
@@ -693,14 +719,12 @@ We compare performance of the following path checking algorithms:
 (3) the batch baseline,
 (4) \ref{algo_online_polynomial}, the non-minimal polynomial-time algorithm, and
 (5) \ref{algo_online_minimal}, the minimal set finding algorithm.
-\xxx[as]{Again, the reader probably needs a reminder about what the latter ones are.}
 The two metrics we evaluate are time for response and size of response set (smaller sets---tighter output results---would mean less calls to the oracle).
 We use randomly generated graphs of varying size: given a graph and a new edge, we time how long it takes for an algorithm to return the set of pairs that need to be verified.
 All computations were performed on a Macbook Pro 2015, 2.9 GHz Dual-Core Intel Core i5.
 
 \subsection{Comparison of Algorithm Time Cost}
 The average time taken by each algorithm over the course of 10 runs over randomly generated graphs with 9 nodes and 32 edges is listed in Table~\ref{tab:times}.
-\xxx[as]{Perhaps the previous paragraph summarizing the findings from this table should be moved here?}
 
 \begin{table}
 \begin{tabular}{|c|c|}
@@ -727,12 +751,9 @@ All implementations are sensitive to density, performing better when density is 
     
 \subsection{Scaling of Time with Input Size}
 
-\xxx[as]{In general, I recommend the syntax ``Figure X shows the time results. They are interesting.'' over ``The time results indicate something interesting, as Figure X shows.'' Putting the reference up front helps the reader immediately see what figure they should be cross-referencing. (Occurs in both paragraphs below.)} 
-
 Figure~\ref{fig:timeVsSize} shows that the algorithms time scales with size, as expected.
 \xxx[as]{The plots are weirdly tiny on my machine... any chance your plotting tool can output PDF images?}
-Both \ref{algo_online_minimal} and \ref{algo_minimal_spanning_set} exhibit graphs that are polynomial in appearance.
-\xxx[as]{\ref{algo_minimal_spanning_set} does not appear in the figure.}
+Both \ref{algo_online_minimal} and \ref{algo_online_polynomial} exhibit graphs that are polynomial in appearance.
 The na\"{i}ve baseline as well as the two flip tolerant baseline display quick growth.
 The batch algorithm also grows fast, though not as much as the online checking baselines.
 
@@ -818,7 +839,8 @@ Figure ~\ref{fig:variance} depicts the situation for ~\ref{algo_online_polynomia
 \subsection{Size of Output}
 Output size is a metric of interest, should the equality checking oracle be expensive.
 Table ~\ref{tab:sizes}, summarizes the number of output pairs that the algorithms returned on average over 10 runs, for graphs with 9 nodes and 32 edges.
-\xxx[as]{Conclusions. Are they as expected? If so, it's OK to just say why they were expected.}
+These results are essentially as expected, although it is interesting to note that Algorithm 3 produces around triple the number of pairs compared to the batch algorithm.
+Also note that Algorithm 4 produces the minimal number of paths, showing why it is the minimal set algorithm.
 
 \begin{table}
 \begin{tabular}{|c|c|}
@@ -852,10 +874,12 @@ The same is true for F\# which has support for units of measure ~\cite{unitsOfMe
 \section{Conclusion}
 
 Being able to verify if diagrams commute allows a compiler to make
-deterministic automatic type conversions and can catch inconsistencies of definition in a program with user defined conversions.  In this paper, we have presented verification algorithms that given a commuting diagram, a new edge, efficiently compute the set of paths that would equal to each other if and only if the diagram would still commute after addition of the edge.
+deterministic automatic type conversions and can catch inconsistencies of definition in a program with user defined conversions.  In this paper, we have presented verification algorithms that efficiently compute the set of paths that would equal to each other if and only if the diagram would still commute after addition of a new edge.
 
 Integrating conversion consistency checks into widely used languages such as Scala could provide a lot of value to the program.
-Beyond implementation work, this requires an answer to the question of how to write function equality oracles.\xxx[as]{Could we say a sentence or two about why this would be useful?  Also maybe use Scala as an example of a broader languages with this property}
+Since Scala and several other languages provide automatic conversions between types, it seems important to ensure that the choice of which path to take (an apparently arbitrary choice) does not effect the behavior of the program.
+Having an algorithm to ensure the commutativity of the resulting diagrams can ensure that behavior is correct and help prevent semantic confusion or errors when using such features.
+More engineering work still remains to implement this feature in a language such as Scala, but this paper provides the algorithms necessary to explore a solution.
 
 \bibliography{refs}
 \bibliographystyle{plain}
@@ -894,33 +918,5 @@ There are four paths to be considered, two from each pair. Those paths which do 
 Those paths which do include the new edge (S,T) can be reduced, by the case for multiple occurrences of a new edge, to a path with a single occurrence of the new edge as described in the preceding lemma \ref{one_occurence_lemma}. These new paths can be divided into three segments: the segment from the source to S, the new edge, and the segment from the last occurrence of T to the sink. The first segments of all paths are equal by assumption that the original diagram commutes. This is also true of the third segment of all the paths. The second segment consists of only the new edge and is the same for all paths. The composition of equal functions is equal, so all the paths passing through the new edge must be equal.
 Therefore it is sufficient to check one path that passes through the new edge and one that doesn't. Such a pair belongs to V by construction.
 \end{proof}
-
-\section{Example Gator Images}
-\label{sec:gator-appendix}
-\begin{figure}
-	\begin{subfigure}{\linewidth}
-		\includegraphics[width=\linewidth]{phong.png}
-		\caption{Phong Lighting Model}
-	\end{subfigure}
-	
-	\begin{subfigure}{\linewidth}
-		\includegraphics[width=\linewidth]{reflection.png}
-		\caption{Reflection Model}
-	\end{subfigure}
-	
-	\begin{subfigure}{\linewidth}
-		\includegraphics[width=\linewidth]{shadowmap.png}
-		\caption{Shadow Map Model}
-	\end{subfigure}
-	
-	% \begin{subfigure}{\linewidth}
-	%   \includegraphics[width=\linewidth]{variance_10_TwoFlip.png}
-	%   \caption{Two flip tolerant baseline}
-	%   \label{fig:sfigTwoFlipSpread}
-	% \end{subfigure}
-	
-	\caption{Example Images from Gator Programs}
-	\label{fig:gator-images}
-\end{figure}
 
 \end{document}
