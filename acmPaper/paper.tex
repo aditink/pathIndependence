@@ -503,7 +503,8 @@ In such an implementation, path finding from a given source node to all potentia
 
 In the case where equality checks are very expensive, we begin by finding the minimal set of (source, sink) pairs such that checking for these pairs logically implies having checked the full diagram.
 
-We observe that there are some redundancies in the diagram shown in Figure~\ref{figure_reduction_rule}.  
+If \ref{algo_online_polynomial} were applied to the diagram shown in Figure~\ref{figure_reduction_rule} there would be redundancies in the output.
+It turns out that verifying $g_2=f_2 \circ n \circ h_2$ is sufficient to ensure the diagram still commutes on the addition of $n$.
 \xxx[as]{This needs a bit more explanation. What is the reader looking for? Also, the caption of this figure could probably be a little clearer.}
 
 \begin{figure}
@@ -542,14 +543,16 @@ We observe that there are some redundancies in the diagram shown in Figure~\ref{
 \draw (51.19,-25.39) node [right] {$h_1$};
 \draw [black] (28,-23.1) -- (28,-41.9);
 \fill [black] (28,-41.9) -- (28.5,-41.1) -- (27.5,-41.1);
-\draw (27.5,-32.5) node [left] {$l$};
-\draw [black] (19.6,-34.06) -- (53.8,-33.64);
+\draw (27.5,-29.5) node [left] {$l$};
+\draw [dashed] (19.6,-34.06) -- (53.8,-33.64);
 \fill [black] (53.8,-33.64) -- (52.99,-33.15) -- (53.01,-34.15);
+\draw (36.25,-32.5) node [left] {$n$};
 \draw [black] (44.5,-41.9) -- (44.5,-23.1);
 \fill [black] (44.5,-23.1) -- (44,-23.9) -- (45,-23.9);
-\draw (45,-32.5) node [right] {$m$};
+\draw (42.5,-37.5) node [right] {$m$};
 \end{tikzpicture}
-Each arrow represents a path, where $(S,T)$ is the new edge being added.
+Each arrow represents a path, where $n$ is the new edge being added.
+While ~\ref{algo_online_polynomial} returns two pairs for verification, one from $P_1$ to $P_2$ and the other from $Q_1$ to $Q_2$, it actually suffices to just check a pair from $Q_1$ to $Q_2$ as demonstrated in theorem ~\ref{reductionRule}.
 \end{center}
 \caption{Reduction rule.}
 \label{figure_reduction_rule}
@@ -557,28 +560,32 @@ Each arrow represents a path, where $(S,T)$ is the new edge being added.
 
 \begin{theorem}
 \label{reductionRule}
-If parallel paths $g_2 = f_2; (S,T); h_2$ then it must be that $g_1 = f_1; (S,T); h_1$.
+If parallel paths $g_2 = f_2; n; h_2$ then it must be that $g_1 = f_1; n; h_1$.
 \end{theorem} 
 % monomorphisms
 \begin{proof}
 We use the fact that $f_1$=$l; f_2$ and $h_1$=$h_2; m$.
-\[g_2 = f_2; (S,T); h_2 \Rightarrow l; g_2 = l; f_2; (S,T) ; h_2 \]
-\[\Rightarrow l ; g_2 ; m = l ; f_2 ; (S,T) ; h_2 ; m \Rightarrow g_1 = f_1 ; (S,T) ; h_1\]
+\[g_2 = f_2; n; h_2 \Rightarrow l; g_2 = l; f_2; n ; h_2 \]
+\[\Rightarrow l ; g_2 ; m = l ; f_2 ; n ; h_2 ; m \Rightarrow g_1 = f_1 ; n ; h_1\]
 
 The proof is not affected if any of the paths used are the identity, e.g., if $f_1$ is the identity and $S$ and $P_1$ are the same node.
 \end{proof}
 
 We conclude that verifying a comparable pair of paths with end points ($P_1$, $P_2$) implies the verification of all path pairs ($Q_1$, $Q_2$) such that $Q_1$ is a successor of $P_1$ and $P_2$ is a successor of $Q_2$. A successor $S$ to node $N$ is any node such that there exists a path from $N$ to $S$. Nodes are also their own successors and predecessors.
 \xxx[as]{At some point, we have switched to capital letters for both paths and node variables... maybe make this consistent?} \xxx[dg]{I think these are all nodes, so it should be good}
+The rule effectively places an ordering on the informativeness of path pairs based on their terminal nodes.
+% If it is possible to draw a path from node $P_1$ to $P_2$ that passes through $Q_1$ and $Q_2$ then verifying a parallel pair from $Q_1$ to $Q_2$ implies that parallel pairs from $P_1$ to $P_2$ commute as well.
 
 \xxx[as]{I couldn't quite follow the following, perhaps because the figure is not quite enough for me to understand what the ``rule'' is here. Which makes it hard to see why ``operations'' are relevant in this context.}
-Under the assumption that the only path operations allowed are composition and replacement of one path by a different, equal path, as would be true when edges are generic functions, and no other information is available, so that $F$ is a semi-group, this ``reduction'' rule is also the only rule to reduce the set of path pairs to check by finding implications.
+ Given that a set of path pairs are equal, suppose that one attempts to derive the proposition that a different parallel pair of paths is equal with a step-by-step application of inference rules.
+ Under the assumption that edges are generic functions, and no other information is available, $F$ is a semi-group.
+ The only inference rules allowed are composition (given that $f_1=f_2$, it must be that $g \circ f_1 = g \circ f_2$) and replacement of one path by a different, equal path (given $f_1=f_2$ and $g \circ f_1 = h \circ f_1 $, it must be true that $g \circ f_1 = h \circ f_2$). Any permutation of the repeated application of these two rules results in the ``reduction rule'' already described; it is therefore the only rule that can be used to reduce the set of path pairs to check.
 
 That is to say, if verifying a comparable pair of paths with end points ($P_1$, $P_2$) implies the verification of a pair with endpoints ($Q_1$, $Q_2$), then it must be that $Q_1$ is a successor of $P_1$ and $P_2$ is a successor of $Q_2$. %TODO proof required?
 
 Using this information it is possible to choose a minimal subset of path pairs to verify, as in \ref{algo_online_minimal}.
 %
-To summarize this algorithm, we start by constructing a graph with a node for each possible (source, sink) pair in the graph: each node then represents a possible choice for parallel pair endpoint pairs, and we greedily search for the smallest set of nodes from which the entire graph would be reachable. The idea is to look for ``roots'' in the graph that have to be included in the ultimate verification set because they have no predecessor an cannot be verified ``through'' the verification of some other pair. Then all the successors whose verification is implied by the roots are eliminated.
+To summarize this algorithm conceptually, we start by constructing a graph with a node for each possible (source, sink) pair in the graph: each node then represents a possible choice for parallel pair endpoint pairs. Edges are drawn from node ($P_1$, $P_2$) to ($Q_1$, $Q_2$) if $Q_1$ is a successor of $P_1$ and $P_2$ is a successor of $Q_2$. We greedily search for the smallest set of nodes from which the entire graph would be reachable. The idea is to look for ``roots'' in the graph that have to be included in the ultimate verification set because they have no predecessor in the graph and cannot be verified ``through'' the verification of some other pair. Then all the successors whose verification is implied by the roots are eliminated.
 
 \begin{algorithm}
 \DontPrintSemicolon
@@ -623,26 +630,16 @@ verificationSet $\gets$ \{\}\;
 \label{algo_online_minimal}
 \end{algorithm}
 
-The result of the algorithm cannot be further reduced.
-\xxx[as]{Do we need an argument for why?} \xxx[dg]{Yeah, we probably do}
+At the end of the greedy graph reduction we are left with the unique set of root nodes.
+The only way to reduce the set of parallel pairs is to apply the reduction rule of theorem ~\ref{reductionRule}, but all the ways in which the rule is applicable was already captured in the edges of the graph. The leftover set has no edges and no scope for further reduction.
+
 Also, the verification of the parallel pairs returned in the algorithm implies that the output of the previous algorithm must commute, and transitively with Theorem~\ref{verifyingSet} that the entire diagram must commute.
 
 The run time of the first step is $O(|V|^4)$, and that of the second step is $O(|V|)$, so that the overall bound is $O(|V|^4)$.
 Space complexity remains $O(|V|^2)$.
 
 \subsection{Verification}
-Ultimately verification is performed by calling an equality oracle (that is beyond the scope of this work) for every comparable pair returned by the previous stage, as in \ref{algo_verification}\xxx[as]{This algorithm can probably be summarized in one sentence and doesn't seem that helpful} .
-
-\begin{algorithm}
-\DontPrintSemicolon
-\For{(path1, path2) $\in$ parallelPairs}{
-    \If{path1 $!$= path2}{
-        \KwRet{False}\;
-    }
-}
-\KwRet{True}\;
-\caption{Verification algorithm}\label{algo_verification}
-\end{algorithm}
+Ultimately verification is performed by calling an equality oracle (that is beyond the scope of this work) for every comparable pair returned by the previous stage.
 
 \section{Case Studies}
 
