@@ -655,31 +655,23 @@ Gator is a domain specific language designed around Geometry types, which are us
 
 Specifically, Gator introduces transformations between \textit{reference frames}, which are the geometry equivalent of transforming between linear algebra basis vectors.  Each edge on our transformation graph is a thus a matrix, with composition of edges as matrix multiplication and an oracle checking matrix equality (up to a rounding error $\epsilon$).  
 
-There are several examples of reasonably complicated transformation graphs that we can pick from.  Gator includes several graphics examples as part of its examples package; for this evaluation, we looked at the \textit{phong}, \textit{reflection}, and \textit{shadow map} examples, sample images of which can be seen in Appendix~\ref{sec:gator-appendix}\xxx[as]{Either add text to appendix B or just reference a figure}.
+There are several examples of reasonably complicated transformation graphs that we can pick from.  Gator includes graphics examples as part of its examples package; for this evaluation, we looked at the \textit{phong}, \textit{reflection}, and \textit{shadow map} examples, sample images of which can be seen in Appendix~\ref{sec:gator-appendix}\xxx[as]{Either add text to appendix B or just reference a figure}.
 
 We implemented a system for interfacing between the optimal set path checker (Algorithm 4) in the open-source implementation of Gator.
-Using this algorithm, we found a bug in the reflection model, where a matrix was not being divided correctly by its determinant \xxx[dg]{List other things I find, if anything}\xxx[ak]{I think it may be nice to add more detail for at least one bug (code, what was the program doing, what the graph/conflict was, time taken, etc.)}.  We also inserted previous bugs to check the algorithm was working correctly, and it identified all inserted bugs\xxx[as]{This general observation is less interesting than specific bugs, and should be omitted to just use the specifics}.
+The system was tested with intentional bugs, of which it found them all, although no "real" bugs were found.  The graphs used were of size 5 or less; for graphs of this size, the checker was able to run in real time with no noticeable loss of frames.  Since the program is running at 60 frames per second, the checker was running at a rate faster than .01 seconds.
 
 \subsection{Currency Graph}
 \label{sec:currency}
 
-\xxx[as]{To perhaps excuse why this section doesn't have a proper programming language attached, maybe we should briefly say that we are imagining a units-of-measure type system---but to make it more interesting and scale to large graphs easily, we are using currencies as units.}
-
-Consider a diagram with nodes as currencies and a directed edge being the
-conversion rate from its source node's currency to its sink node's currency.
-Since the transformation exchange rate of money from any given base currency to a target currency
-can be expected to be the same regardless of which intermediate currency transformations
-are used, this diagram should commute.
+We imagine a units-of-measure type system as being an interesting application of concurrency graphs; however, to make this more interesting and scale nicely to large graphs with existing data, we focus on the specific unit of currencies.
+Consider a diagram with nodes as currencies and a directed edge being the conversion rate from its source node's currency to its sink node's currency.
+Since the transformation exchange rate of money from any given base currency to a target currency can be expected to be the same regardless of which intermediate currency transformations are used, this diagram should commute.
 
 Using a web API\footnote{https://exchangeratesapi.io} for currency data, we built the fully connected diagram of exchange rates between 32 currencies on a given day.
 To ensure that it indeed commuted, we started with an empty diagram, and added in edges one by one.
 Before the addition of each edge, we used the algorithms (\ref{algo_online_polynomial} and ~\ref{algo_online_minimal}) \xxx[as]{remind the reader what these are: our algorithms? baselines? batch? incremental? etc.} to ensure the addition of a new edge did not introduce inconsistencies in the existing diagram.
-If a new edge was, in fact, problematic, the algorithms returned an example inconsistent
-pair that would arise from the addition of the edge.
-The pair would consist of two currency transformation sequences with the 
-same source currency and ultimate destination currency, but with different effective 
-exchange rates values, as computed by taking the product of all the exchange rates
-encountered through the chain.
+If a new edge was problematic, the algorithms returned an example inconsistent pair that would arise from the addition of the edge.
+The pair would consist of two currency transformation sequences with the same source currency and ultimate destination currency, but with different effective exchange rates values, as computed by taking the product of all the exchange rates encountered through the chain.
 
 We allowed an ``error tolerance'' so that differences reported would not be the trivial consequences of a floating point error.
 However, this relaxation of the equality oracle into imprecision meant that the mathematical reasoning that allow the algorithms to remove redundant path checks no longer applied.
@@ -696,22 +688,12 @@ We compare performance of the following path checking algorithms:
 (1) the na\"{i}ve baseline,
 (2) the less na\"{i}ve two-flip baseline,
 (3) the batch baseline,
-(4) \ref{algo_online_polynomial}, and
-(5) \ref{algo_online_minimal}.
+(4) \ref{algo_online_polynomial}, the non-minimal polynomial-time algorithm, and
+(5) \ref{algo_online_minimal}, the minimal set finding algorithm.
 \xxx[as]{Again, the reader probably needs a reminder about what the latter ones are.}
-The two aspects we look at are time for response and size of response set (smaller sets---tighter output results---would mean less calls to the oracle).
-We use randomly generated graphs for benchmarking, and vary their size.
-Given a graph and a new edge, we time how long it takes for an algorithm to return  the set of pairs that need to be verified.
-All computation was performed on a Macbook Pro 2015, 2.9 GHz Dual-Core Intel Core i5.
-
-The na\"{i}ve baseline performs poorly, taking well over a thousand seconds for even small graphs of 10 nodes.
-The batch algorithm brings timing down to seconds.
-However time cost still does not scale very well, with computation for a graph with 14 nodes and 0.4 density taking hours.
-Our implementation does not memoize the construction of the vector and matrix representation of paths in GF(2).
-Profiling reveals that this vector construction step is called many times and is chiefly responsible for the high time cost.
-\ref{algo_online_polynomial} performs only slightly better.
-Surprisingly, the optimal set algorithm cuts time cost by several orders of magnitude, and runs in milliseconds for small graphs.
-All implementations are sensitive to density, performing better when density is very low or very high.
+The two metrics we evaluate are time for response and size of response set (smaller sets---tighter output results---would mean less calls to the oracle).
+We use randomly generated graphs of varying size: given a graph and a new edge, we time how long it takes for an algorithm to return the set of pairs that need to be verified.
+All computations were performed on a Macbook Pro 2015, 2.9 GHz Dual-Core Intel Core i5.
 
 \subsection{Comparison of Algorithm Time Cost}
 The average time taken by each algorithm over the course of 10 runs over randomly generated graphs with 9 nodes and 32 edges is listed in Table~\ref{tab:times}.
@@ -733,18 +715,25 @@ The average time taken by each algorithm over the course of 10 runs over randoml
 \label{tab:times} %TODO debug and fix label not working.
 \end{table}
     
+The na\"{i}ve baseline performs poorly, taking well over a thousand seconds for even small graphs of 10 nodes.
+While the batch algorithm improves on this, it still does not scale very well, with computation for a graph with 14 nodes and 0.4 density taking hours.
+Our implementation does not memoize the construction of the vector and matrix representation of paths in GF(2); profiling indicates that this construction is a major factor in the high time cost for these algorithms.
+\ref{algo_online_polynomial} performs only slightly better than the batch algorithm.
+Surprisingly, the optimal set algorithm cuts time cost by several orders of magnitude, and runs in milliseconds for small graphs.
+All implementations are sensitive to density, performing better when density is low.
+    
 \subsection{Scaling of Time with Input Size}
 
-\xxx[as]{In general, I recommend the syntax ``Figure X shows the time results. They are interesting.'' over ``The time results indicate something interesting, as Figure X shows.'' Putting the reference up front helps the reader immediately see what figure they should be cross-referencing. (Occurs in both paragraphs below.)}
+\xxx[as]{In general, I recommend the syntax ``Figure X shows the time results. They are interesting.'' over ``The time results indicate something interesting, as Figure X shows.'' Putting the reference up front helps the reader immediately see what figure they should be cross-referencing. (Occurs in both paragraphs below.)} 
 
-Algorithms scale as expected with time, as seen in Figure~\ref{fig:timeVsSize}.
+Figure~\ref{fig:timeVsSize} shows that the algorithms time scales with size, as expected.
 \xxx[as]{The plots are weirdly tiny on my machine... any chance your plotting tool can output PDF images?}
 Both \ref{algo_online_minimal} and \ref{algo_minimal_spanning_set} exhibit graphs that are polynomial in appearance.
 \xxx[as]{\ref{algo_minimal_spanning_set} does not appear in the figure.}
 The na\"{i}ve baseline as well as the two flip tolerant baseline display quick growth.
 The batch algorithm also grows fast, though not as much as the online checking baselines.
 
-We define density to be the ratio of the number of edges in the graph to the total possible number of edges ($|V|^2$, where $|V|$ is the number of nodes).
+We define density to be the ratio of the number of edges in the graph to the total possible number of edges (which is $|V|^2$, where $|V|$ is the number of nodes).
 Run time relates to the density of edges in the input graph.
 The degree of the effect differs with the algorithms, as Figure~\ref{fig:timeVsSize} shows.
 Generally, denser graphs entail longer computation time.
