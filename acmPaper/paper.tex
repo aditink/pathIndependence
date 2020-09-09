@@ -97,10 +97,11 @@ To study the algorithms' scalability to large diagrams, we apply them to discove
 Many systems can be understood as diagrams: graphs where nodes represent domains and edges represent directed transformation functions between nodes.
 A type system with coercions, for example, corresponds to a graph whose nodes are types and whose edges are coercions.
 Figure~\ref{fig:typeExample} illustrates an example in a simple language with units-of-measure types.
-\xxx[as]{Refer here to some citations of real type systems for units of measure.}
+Such a type system is similar to existing type systems, such as that implemented in F\#~\cite{unitsOfMeasure} and a variety of C-like languages.
 In such a system, an important correctness criterion is that the diagram \emph{commutes:} when traversing the graph from any start node to any end node, applying every transformation along the path to any input value, the result is the same output value \emph{independent of the path chosen between the two nodes}.
 With our type coercion example, it is a problem if casting to a supposedly equivalent type as an intermediate step resulted in a different answer than a direct cast.
-\xxx[as]{Next, let's make the example specific: say that the expression ``(wugs) a'', for example, can produce value X or value Y, depending on whether the compiler uses path A or path B to do the conversion.}
+Specifically, given a variable \code{x} of type \code{meters}, applying the cast \code{(wugs) x} can be done in two ways: either \code{(wugs)(feet) x} or \code{(wugs)(miles) x}.
+Which path is taken depends on the compiler; we would like the choice of paths to be semantically equivalent so the compiler is free to make a choice.
 
 \begin{figure}[]
     \centering
@@ -162,27 +163,23 @@ Since diagrams may change over time in real systems, as new conversions are adde
 In Figure~\ref{fig:typeExample}, for example, a run-time system can catch the point where the programmer adds a bad conversion definition by verifying each new conversion edge as it is created.
 
 Efficient commutativity checking is not trivial.
-\xxx[as]{Let's flip these next two thoughts, because the first thing you have to deal with is resolving cycles---then you can worry about an efficient algorithm for acyclic graphs.}
-Na\"{i}vely checking if all path pairs that begin and end at the same node in a given diagram commute could require a number of function equality checks that grow as factorial in the number of nodes, because a path consists of an ordering of nodes.
-Further, the presence of cycles implies a potentially infinite number of paths.
+The presence of cycles implies a potentially infinite number of paths..
+Further, na\"{i}vely checking if all path pairs that begin and end at the same node in a given diagram commute could require a number of function equality checks that grow as factorial in the number of nodes, because a path consists of an ordering of nodes.
 Previous work ~\cite{commutative} has identified an $O(|E|^2|V|^4)$ algorithm to verify that a complete acyclic diagram commutes; however, it addresses neither online addition nor cyclic diagrams.
 
-\xxx[as]{Let's stick to present tense, even if it sounds a little weird. And we can state up front what the paper accomplishes. Something like this: ``This paper presents an algorithm for online checking of diagram commutativity and applies it to verifying systems of value conversions. We identify two key insights:''}
-In the course of efficiently verifying commutativity over online addition, we identified two key insights.
-The first was that in a commutative diagram, when a new edge is to be added, at most one path needs to be checked against \xxx[as]{can we rephrase this passive voice, which makes the sentence somewhat tricky to process?} for a given source and sink pair.
+In the course of efficiently verifying commutativity over online addition, we identify two key insights.
+First, for a given source and sink pair, at most one path need be checked against in a commutative diagram when a new edge is added.
 Because the diagram commutes, all the paths between a given source and sink are equal and a representative to check against can arbitrarily be chosen.
-It lead to an $O(|V|^2(|E|+|V|))$ algorithm to verify a diagram remains commutative over the course of online addition, assuming an oracle to check the equality of functions.
-The algorithm makes an asymptotically optimal number of calls to the oracle.
+This leads to an $O(|V|^2(|E|+|V|))$ algorithm to verify a diagram remains commutative over the course of online addition, assuming an oracle to check the equality of functions.
+The algorithm makes an \emph{asymptotically} optimal number of calls to the oracle.
 
-\xxx[as]{This paragraph is a little confusing to me. First, what is ``informativeness''? Maybe we can be a little more specific. Second, I thought the previous paragraph said we already had an optimal number of calls to the oracle, but the second half of this paragraphs says that we need an even more expensive algorithm to obtain that minimum.}
-The second insight was that there is a single rule that places a partial, transitive ordering on the informativeness of paths.
-It allowed for the creation of a greedy, $O(|V|^4)$ optimization step that results in the number of calls to the oracle being minimal.
+The second insight is  that there is a single rule that places a partial, transitive ordering on the amount of information about the paths in the graph contained in each path.
+It allowed for the creation of a greedy, $O(|V|^4)$ optimization step that results in the number of calls to the oracle being exactly minimal.
 The optimization is very useful when the equality checking oracle is expensive.
 
 We evaluate our algorithms against random graphs and use them in two case studies.
-\xxx[as]{Let's avoid passive voice in these next two sentences by saying ``we use the algorithm to do this'' instead of ``the algorithm is used to do this.''}
-First, our algorithm is used in the domain specific geometry type language \textit{Gator} ~\cite{gator} to ensure that user defined transformations between spaces stay consistent.
-Second, our algorithm is used to identify inefficiencies in a currency conversion graph.
+First, we use our algorithm in the domain specific geometry type language \textit{Gator} ~\cite{gator} to ensure that user defined transformations between spaces stay consistent.
+Second, we use our algorithm to identify inefficiencies in a currency conversion graph.
 
 We empirically compare our solution to three baseline implementations: a na\"{i}ve checking of all path pairs with only special handling for cycles, a check for all path pairs that involve the new edge, and an algorithm suggested by previous work to solve the batch version of the problem for acyclic diagrams.
 Our proposed algorithms run orders of magnitude faster than the baselines.
@@ -205,15 +202,14 @@ We write $\partial(p)^{+}$ for $p$'s start node, $\partial(p)^{-}$ for its end n
 $(\partial(p)^{+}, \partial(p)^{-})$.
 \xxx[as]{Simplified this explanation; I hope it's OK.}
 
-A pair of paths $p$ and $q$ is called \textit{parallel} iff their terminal nodes are the same, i.e., $\partial(p)=\partial(q)$.
+A pair of paths $p_1$ and $p_2$ is said to \textit{parallel} iff their terminal nodes are the same, i.e., $\partial(p_1)=\partial(p_2)$.
 $\partial$, $\partial^{+}$ and $\partial^{-}$ are extended to apply to parallel pairs.
-\xxx[as]{Let's use a name other than $p$, which we have already used for paths, for pairs. (Or use something else for paths above.) Also, since we just used $p$ and $q$ for two paths, maybe that would be better than $p_1$ and $p_2$.}
-For parallel pair $p$ = ($p_1$, $p_2$), $\partial(p)=\partial(p_1)=\partial(p_2)=(\partial(p)^{+}, \partial(p)^{-})$.
+For parallel pair $\phi$ = ($p_1$, $p_2$), $\partial(\phi)=\partial(p_1)=\partial(p_2)=(\partial(\phi)^{+}, \partial(\phi)^{-})$.
 
 Let $R_{all}$ be the set of all parallel pairs of paths in a given diagram.
 The diagram commutes iff
-$\forall (p,q)\in R_{all}$,
-$f(p)=f(q)$; that is, the composition of maps along any path connecting any pair $u$ to $v$ is independent of path choice.
+$\forall (p_1,p_2)\in R_{all}$,
+$f(p_1)=f(p_2)$; that is, the composition of maps along any path connecting any pair $u$ to $v$ is independent of path choice.
 
 \paragraph{Problems.}
 
@@ -222,15 +218,11 @@ Checking function equality is a domain specific, potentially hard problem, depen
 For our case study in graphics programming (see Section~\ref{sec:gator}), edges are matrices and nodes are vector spaces, so function composition uses matrix multiplication and equivalence checking simply compares matrix values.
 We therefore assume some oracle for checking transformation function equivalence that will vary by domain.
 %
-We therefore reduce the \textsc{Online addition problem} to the \textsc{Verification set problem}.
-\xxx[as]{Although it's not technically a ``reduction,'' is it? Maybe better to say that the latter is what we solve, and we assume an oracle that uses those results to solve the former.}
-The latter, when given a diagram and a new edge, returns the set of parallel pairs of paths, such that if and only if the members in each pair are equal, then the new graph must commute.
-\xxx[as]{Let's be precise around the ``equal'' terminology in the previous and next sentences. It's not that the pairs are equal---it's that we check function equivalence for the pairs' corresponding functions.}
-The output to the \textsc{Online addition problem} can then be obtained as whether equality checking for all pairs succeeds.
+We therefore collapse the \textsc{Online addition problem} to the \textsc{Verification set problem}; we solve the latter and assume an oracle with the results to produce the former.
+The latter, when given a diagram and a new edge, returns the set of parallel pairs of paths, such that if and only if the members in each pair have function equivalence, then the new graph must commute.
+The output to the \textsc{Online addition problem} can then be obtained as whether function equivalence checking for all pairs succeeds.
 
-The algorithms in the rest of the paper assume that the function equivalence oracle is reflexive, symmetric, and transitive.
-\xxx[as]{The following is a little tricky to understand here... maybe this is best left to the currency section?}
-For example, the oracle for currency graph (Section~\ref{sec:currency}) only approximately preserves transitivity because of floating point error magnification, so while the algorithm catches mistakes, it does not guarantee that the diagram commutes.
+The formal algorithms in the rest of the paper assume that the function equivalence oracle is reflexive, symmetric, and transitive.
 
 \section{Baseline Algorithms}
 
@@ -238,18 +230,16 @@ To examine the efficacy of our proposed solution to the \textsc{Verification set
 Specifically, we examine a na\"{i}ve factorial algorithm, a slightly less na\"{i}ve factorial algorithm which we identify to be a two-flip tolerant path search, and Murota's historical batch solution~\cite{commutative}.
 
 \subsection{Na\"{i}ve Baseline Algorithm}
+Our first goal is to develop a baseline (exponential) algorithm that can reason about cycles without producing an infinite set of paths.  This algorithm will first pare the structure of the graph down to remove cycles, extract the pairs of paths in the graph, and finally reason about each pair to check commutativity.  This algorithm produces the two components $C$ and $Q$: the cycle verification pairs and acyclic parallel pairs, respectively.
 
-\xxx[as]{Start with an overview of the steps. Something like: deal with cycles, then deal with the remaining paths in an acyclic graph. Maybe also give overall context to say that this algorithm is going to be exponential but at least it will be finite, unlike trying to check ``all paths.'' Then break up the discussion so there is one paragraph per step instead of one long paragraph.}
-
-We start with the set of all parallel pairs in the diagram (with the new edge added in) \xxx[as]{clarify: is this a batch or incremental algorithm? If it's a batch algorithm, then there is no need to discuss a ``new edge''}, and pare it down to be finite by handling cycles.
-Then, using a procedure like Johnson's algorithm~\cite{johnson}, we find all simple cycles in the diagram. \xxx[as]{I'm a tad confused here because this sentence says ``then...'' as if we had moved on from the previous step, but the previous step says it handled cycles already?}
-We create a cycle verification set, $C$, and verify for each cycle that a single traversal is equal to the identity function by adding $(v \rightarrow v, 1)$ for each node v in the cycle to $C$.
-\xxx[as]{It seems important to have already explained the ``type'' of $C$ (i.e., the output format of the algorithm?}
+We start with the set of all parallel pairs in the diagram.
+We pare it down to be finite by handling cycles: using a procedure like Johnson's algorithm~\cite{johnson}, we find all simple cycles in the diagram.
+Specifically, we create a cycle verification set, $C$, and verify for each cycle that a single traversal is equal to the identity function by adding $(v \rightarrow v, 1)$ for each node v in the cycle to $C$.
 Here, $v \rightarrow v$ is a simple cycle starting and ending at $v$, 1 is the identity function, and these must be verified to be equal to each other.
+
 We then create a set $P$ of all the paths in the diagram with no cycles, and filter the set $P \times P$, excluding pairs where the paths begin or end on different nodes, or are identical, to get the set of all cycle-free parallel pairs $Q$.
-The output of the algorithm is $C \cup Q$, the cycle verification pairs and acyclic parallel pairs.
-After verifying $C$, it is sufficient to verify only $Q$ (Lemma~\ref{one_occurence_lemma}) because cycles must now be the identity, so for any pair in the set of all parallel paths, any instance of a cycle can be removed to obtain an equivalent pair with shorter, cycle-free paths.
-\xxx[as]{What does it mean to ``verify only $Q$''? This could be a bit more precise...}
+After verifying $C$, it is sufficient to verify only $Q$ (as opposed to all pairs, per Lemma~\ref{one_occurence_lemma}) because cycles must now be the identity, so for any pair in the set of all parallel paths, any instance of a cycle can be removed to obtain an equivalent pair with shorter, cycle-free paths.
+
 If the shorter pair has equal paths then the paths in the original pair must also be equal to each other.
 It is therefore safe to remove all pairs of paths with cycles, leaving only parallel pairs where neither path has a cycle.
 $P$ is finite, bounded by $2^{|V|}$, as a path without cycles is an ordering on nodes, each node occurring at most once.
@@ -258,12 +248,11 @@ Thus the algorithm terminates and returns a finite (if large) set.
 
 \subsection{Baseline Incremental Algorithm}
 
-Our second baseline refines the output of the na\"{i}ve baseline.
-\xxx[as]{But even before saying that, let's give some overall context: remind the reader what the incremental setup looks like. Then we can explain that we are going to use something like the previous section. Perhaps we can also be a little more precise than ``refining'' the output, which could mean many things.}
-Like before, it start by creating a cycle verification set $C'$, but includes only the simple cycles that pass through the new edge.
+For an incremental algorithm, we explore how the addition of an edge can change the baseline to looking at a subset of the graph rather than every pair of paths.  In achieving this, this second baseline essentially refines the results of the na\"{i}ve; a similar structure, but with a substantially reduced set of paths to examine.
+
+Like before, we start by creating a cycle verification set $C'$, but includes only the simple cycles that pass through the new edge.
 Then, instead of $Q$, the set of all non-cyclic parallel pairs, the algorithm obtains its subset $Q'$ consisting of all non-cyclic parallel pairs such that exactly one path in each pair passes through the new edge.
-To this end, the algorithm performs a \textit{two-flip tolerant path search} whose output is passed into a \textit{path extraction algorithm}.
-\xxx[as]{Maybe we can give a one-phrase explanation of what TFTPS does: it finds all the parallel pairs of which only one path includes the new edge, right?}
+To this end, the algorithm performs a \textit{two-flip tolerant path search} whose output is passed into a \textit{path extraction algorithm}; this search finds all parallel pairs for which only one path includes the new edge.
 The result of the path extraction algorithm to get the final output $Q' \cup C'$.
 
 This narrowing can be done because the original diagram commutes.
@@ -277,12 +266,10 @@ The second segments, consisting of the same edge, would also have to be equal be
 Therefore, the two paths of the pair, a composition of these three equal components, would be equal, since the oracle would preserve transitivity of equality.
 We are left only with parallel pairs where exactly one of the paths passes through the new edge.
 
-\xxx[as]{Maybe a quick paragraph here to remind the reader what is still coming in the rest of this section?}
+To resolve this algorithm fully, we will need to define the specifics of the two-flip tolerant path search and how to narrow down the results of this search into an actual set of paths to verify.
 
 \paragraph{Two flip tolerant path search}
 We use a ``two-flip tolerant'' path search from the source ($S$) to the sink ($T$) of the new edge to identify the pairs of paths where exactly one path includes the new edge.
-The idea is that every such pair corresponds to a two flip tolerant path from $S$ to $T$.
-\xxx[as]{However, ``two flip tolerant path'' has not yet been defined, so this remark sounds a little strange.}
 
 In a normal directed graph path search, only forward edges, i.e., edges that go outward from the current node while executing the search are considered.
 A \textit{two flip path} consists of up to three phases: in the first phase, only backward edges---pointing inward to the source of the search---are accepted.
@@ -293,7 +280,7 @@ The node between the first two phases we refer to as the \textit{first flipping 
 We present the idea diagrammatically in Figure~\ref{figure_two_flip}.
 Squiggly arrows represent path phases (these are the composition of zero or more edges, not a single edge).
 The new edge is represented with a dashed arrow.
-Here, $f_1 \circ f_2 \circ f_3$ is a two flip path, and $f_1 \circ (S, T) \circ f_2$ \xxx[as]{should that be $f_2$ at the end?} is a new path created because of the addition of ($S$,$T$) that forms a parallel pair with ($f_2$).
+Here, $f_1 \circ f_2 \circ f_3$ is a two flip path, and $f_1 \circ (S, T) \circ f_3$ is a new path created because of the addition of ($S$,$T$) that forms a parallel pair with $f_2$.
 
 \begin{figure}
 \begin{center}
@@ -333,16 +320,18 @@ Given a set of two flip tolerant paths from the new edge source to sink, the alg
 
 Let the new edge added to the diagram be $(S, T)$ and the input set of paths, $P$.
 The algorithm processes every two flip tolerant path $p$ in $P$ case-wise to obtain pairs to add to the output set.
-\xxx[as]{Bullet points (itemize) are often a good way to lay out cases?}
-In the case where p has two flips, $t_1(p) \circ (S, T) \circ t_3(p)$ and $t_2(p)$ form a parallel pair.
-When p has only the first flip (which is to say, the third phase of the path is missing), the parallel paths are $t_1(p) \circ (S, T)$ and $t_2(p)$.
-Similarly when only the second flipping point is present (so that there is no first phase), then the parallel pair is  $(S, T) \circ t_3(p)$ and $t_2(p)$.
-Finally when no flipping points are present, there are two possibilities.
+\begin{itemize}
+\item In the case where p has two flips, $t_1(p) \circ (S, T) \circ t_3(p)$ and $t_2(p)$ form a parallel pair.
+\item When p has only the first flip (which is to say, the third phase of the path is missing), the parallel paths are $t_1(p) \circ (S, T)$ and $t_2(p)$.
+\item Similarly when only the second flipping point is present (so that there is no first phase), then the parallel pair is  $(S, T) \circ t_3(p)$ and $t_2(p)$.
+\item Finally when no flipping points are present, there are two possibilities:
 Either $p$ is a path from $S$ to $T$, in which case the parallel paths are simply the edge $(S, T)$ and $p$, or $p$ is a path from $T$ to $S$.
 In this case, we have found a cycle, $p \circ (S,T)$, to be paired with the identity function.
 Like with the na\"{i}ve algorithm, for every node $v$ in the cycle, we add the pair $(v \rightarrow v, 1)$, where $v \rightarrow v$ is the cycle $p \circ (S,T)$ written to start and end at $v$.
+\end{itemize}
 
-\xxx[as]{A little signposting here might be helpful... maybe a new {\textbackslash}paragraph and a brief reminder to the reader about why we need a theorem to tie things up?}
+\paragraph{Resolving the Incremental Algorithm}
+We conclude our discussion of this incremental algorithm by proving that the result is the same as if we were running the na\"{i}ve baseline algorithm.  This in turn shows that we have found a more efficient algorithm to achieve the same result of providing a set of paths which can be used to check commutativity.
 
 \begin{theorem}
     Perform the two-flip tolerant path search from the source to sink node of the edge that is to be added followed, and on the output, apply the path extraction algorithm. 
@@ -384,9 +373,7 @@ Define $r_1>r_2$ for bilinkings $r_1$ = $\{p_1,q_1\}$, $r_2$= $\{p_2, q_2)$ $\in
 Define $\langle\rangle$ as:
 $\langle r \rangle = \{ s\in R_0| r>s\}$.
 
-For bilinking $s$, let $F(s)$ be the vector in $\text{GF}(2)^{|E|}$ representing the edges present in s (the $n^{\text{th}}$ dimension of $F(s)$ is 1 if the corresponding edge is in $s$, and 0 otherwise).
-\xxx[AK]{GF(2) or $\mathbb{F}_2$ is standard notation for the Galois field of two elements. Do I need to write more about it here?}
-\xxx[as]{Probably just to briefly tell the reader what it is, not to fully explain it.}
+For bilinking $s$, let $F(s)$ be the vector in $\text{GF}(2)^{|E|}$ (where $\text{GF}(2)$ is the Galois field, that is, finite field of two elements) representing the edges present in s (the $n^{\text{th}}$ dimension of $F(s)$ is 1 if the corresponding edge is in $s$, and 0 otherwise).
 Let this function be extended to sets, so that for some set of bilinkings $S, F(S) = \{ F(s) | s\in S \}$. A notion of linear independence in this vector field exists.
 
 For a set of bilinkings $R$, the closure function $cl$ is defined as:
@@ -398,8 +385,8 @@ Using these two functions, we finally define the function $\sigma$ on a set of b
 $\sigma(R) = \{s \in R_0 | s\in cl(R\cap \langle s \rangle) \}$.
 This is the function used to capture all the pairs whose equivalence is implied by the equivalence of pairs in $R$.
 %
-$\sigma$ is used \xxx[as]{passive voice, and a somewhat awkward start to the sentence} to iteratively check if a given pair is redundant.
-Bilinkings are eliminated until a minimum ``spanning'' subset is reached.
+We use $\sigma$ to iteratively check if a given pair is redundant.
+We eliminate Bilinkings until a minimum ``spanning'' subset is reached.
 
 Roughly, the algorithm proceeds by first efficiently finding a \textit{spanning} set of bilinkings (a subset whose verification implies the verification of all bilinkings in the graph).
 It does this by, starting at every node, finding the reachable subsection of the graph, and a spanning tree for the subsection.
