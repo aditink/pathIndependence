@@ -388,7 +388,7 @@ Roughly, the algorithm proceeds by first efficiently finding a \textit{spanning}
 It does this by, starting at every node, finding the reachable subsection of the graph, and a spanning tree for the subsection.
 From each edges in the reachable section that is not a part of the tree, it generates a bilinking using the edge and a path in the tree that is parallel to the edge (\ref{algo_spanning_set}).
 
-\begin{algorithm}
+\begin{algorithm}[t]
 \label{alg_spanning_set}
 \DontPrintSemicolon
 \KwResult{Find a spanning set Rs = [$r_1$, ... ,$r_k$].}
@@ -406,7 +406,7 @@ $R_s$ $\gets$ \{\}\;
 }
 \KwRet{$R_s$}\;
 
-\caption{finding spanning set}\label{algo_spanning_set}
+\caption{Finding a spanning set.}\label{algo_spanning_set}
 \end{algorithm}
 
 With the spanning set thus initialized, it greedily tries to remove each pair from the spanning set if the set remains spanning even after removing the edge (~\ref{algo_minimal_spanning_set}).
@@ -439,7 +439,7 @@ R $\gets$ Rs\;
 }
 \KwRet{R}\;
 
-\caption{Minimal spanning set}\label{algo_minimal_spanning_set}
+\caption{Finding a minimal spanning set.}\label{algo_minimal_spanning_set}
 \end{algorithm}
 
 The proof of correctness can be found in Murota\cite{commutative}.
@@ -697,7 +697,7 @@ We compare performance of the following path checking algorithms:
 (5) \ref{algo_online_minimal}, the minimal set finding algorithm.
 The two metrics we evaluate are time for response and size of response set (smaller sets---tighter output results---would mean less calls to the oracle).
 We use randomly generated graphs of varying size: given a graph and a new edge, we time how long it takes for an algorithm to return the set of pairs that need to be verified.
-All computations were performed on a Macbook Pro 2015, 2.9 GHz Dual-Core Intel Core i5.
+All computations were performed on a MacBook Pro 2015, 2.9 GHz dual-core Intel Core i5.
 
 \subsection{Comparison of Algorithm Time Cost}
 The average time taken by each algorithm over the course of 10 runs over randomly generated graphs with 9 nodes and 32 edges is listed in Table~\ref{tab:times}.
@@ -714,7 +714,7 @@ The average time taken by each algorithm over the course of 10 runs over randoml
     ~\ref{algo_online_minimal} & 0.00086 \\
     \hline
 \end{tabular}
-\caption{Computation time for 9 node graph of density 0.4, averaged over ten runs}
+\caption{Computation time for 9-node graph of density 0.4, averaged over ten runs.}
 \label{tab:times} %TODO debug and fix label not working.
 \end{table}
     
