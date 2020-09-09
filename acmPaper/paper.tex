@@ -93,12 +93,11 @@ To study the algorithms' scalability to large diagrams, we apply them to discove
 
 \section{Introduction}
 \label{introduction}
-Many systems can be understood as diagrams: graphs where nodes represent domains and edges represent directed transformation functions between nodes.
+Many systems use diagrams: graphs where nodes are domains and edges are transformation functions.
 A type system with coercions, for example, corresponds to a graph whose nodes are types and whose edges are coercions.
-Figure~\ref{fig:typeExample} illustrates an example in a simple language with units-of-measure types.
-Such a type system is similar to existing type systems, such as that implemented in F\#~\cite{unitsOfMeasure} and a variety of C-like languages.
+Figure~\ref{fig:typeExample} illustrates an example in a simple language with units-of-measure types~\cite{unitsOfMeasure}.
 In such a system, an important correctness criterion is that the diagram \emph{commutes:} when traversing the graph from any start node to any end node, applying every transformation along the path to any input value, the result is the same output value \emph{independent of the path chosen between the two nodes}.
-With our type coercion example, it is a problem if casting to a supposedly equivalent type as an intermediate step resulted in a different answer than a direct cast.
+With our coercion example, it is a problem if casting to a supposedly equivalent type as an intermediate step resulted in a different answer than a direct cast.
 Specifically, given a variable \code{x} of type \code{meters}, applying the cast \code{(wugs) x} can be done in two ways: either \code{(wugs)(feet) x} or \code{(wugs)(miles) x}.
 Which path is taken depends on the compiler; we would like the choice of paths to be semantically equivalent so the compiler is free to make a choice.
 
