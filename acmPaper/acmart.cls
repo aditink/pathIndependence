@@ -1345,7 +1345,7 @@
     \g@addto@macro\addresses{\email{#1}{#2}}%
   \fi}
 \def\orcid#1{\unskip\ignorespaces}
-\def\authorsaddresses#1{\def\@authorsaddresses{#1}}
+\def\authorsaddresses#1{\def\@authorsaddresses{}}
 \authorsaddresses{\@mkauthorsaddresses}
 \def\@titlenotes{}
 \def\titlenote#1{%
