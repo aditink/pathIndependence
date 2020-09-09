@@ -1,5 +1,6 @@
 \newcount\draft\draft=1 % set to 0 for submission or publication
-\documentclass[sigplan,review,anonymous]{acmart}
+% \documentclass[sigplan,review,anonymous]{acmart}
+\documentclass[sigplan,review]{acmart}
 \setcopyright{none}
 %
 \usepackage{tikz}
@@ -59,21 +60,27 @@
 % If the paper title is too long for the running head, you can set
 % an abbreviated paper title here
 %
-\author{First Author}
-\email{email}
-\author{Second Author}
-\authornotemark[1]
-\email{email 2}
+\author{Aditi Kabra}
+\email{ank55@cornell.edu}
+\author{Dietrich Geisler}
+\email{dag368@cornell.edu}
+\author{Adrian Sampson}
+\email{asampson@cs.cornell.edu}
 \affiliation{%
   \institution{Cornell University}
-  \streetaddress{address}
   \city{Ithaca}
   \state{New York}
   \postcode{14850}
 }
-
-\author{Third Author}
-\email{email 3}
+% ACM publication cruft.
+\acmJournal{PACMPL}
+\acmVolume{1}
+\acmNumber{TAPAS}
+\acmArticle{1}
+\acmYear{2020}
+\acmMonth{1}
+\acmDOI{} % \acmDOI{10.1145/nnnnnnn.nnnnnnn}
+\startPage{1}
 
 \begin{abstract}
 Systems of transformations arise in many programming systems, such as in type graphs of implicit type conversion functions.
