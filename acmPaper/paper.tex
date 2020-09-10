@@ -96,7 +96,7 @@ To study the algorithms' scalability to large diagrams, we apply them to discove
 Many systems use diagrams: graphs where nodes are domains and edges are transformation functions.
 A type system with coercions, for example, corresponds to a graph whose nodes are types and whose edges are coercions.
 Figure~\ref{fig:typeExample} illustrates an example in a simple language with units-of-measure types~\cite{unitsOfMeasure}.
-In such a system, an important correctness criterion is that the diagram \emph{commutes:} when traversing the graph from any start node to any end node, applying every transformation along the path to any input value, the result is the same output value \emph{independent of the path chosen between the two nodes}.
+In such a system, an important correctness criterion is that the diagram \emph{commutes}: when traversing the graph from any start node to any end node, applying every transformation along the path to any input value, the result is the same output value \emph{independent of the path chosen between the two nodes}.
 With our coercion example, it is a problem if casting to a supposedly equivalent type as an intermediate step resulted in a different answer than a direct cast.
 Specifically, given a variable \code{x} of type \code{meters}, applying the cast \code{(wugs) x} can be done in two ways: either \code{(wugs)(feet) x} or \code{(wugs)(miles) x}.
 Which path is taken depends on the compiler; we would like the choice of paths to be semantically equivalent so the compiler is free to make a choice.
@@ -156,7 +156,7 @@ Which path is taken depends on the compiler; we would like the choice of paths t
     \label{fig:typeExample}
 \end{figure}
 
-This paper is about efficiently checking diagrams that arise in real systems for commutativity.
+This paper is about efficiently checking commutativity in diagrams that arise in real systems.
 We assume a simple equivalence checker for individual transformation functions: in our type system example, for instance, it is possible to check transformation equivalence by comparing the conversion factors.
 Our aim is to analyze the graph of transformations and minimize the number of times we need to perform an equivalence check.
 Since diagrams may change over time in real systems, as new conversions are added, and verifying the entire system from scratch may be computationally expensive, we want an online method that only checks the impact of new edges.
@@ -222,7 +222,7 @@ We therefore collapse the \textsc{Online addition problem} to the \textsc{Verifi
 The latter, when given a diagram and a new edge, returns the set of parallel pairs of paths, such that if and only if the members in each pair have function equivalence, then the new graph must commute.
 The output to the \textsc{Online addition problem} can then be obtained as whether function equivalence checking for all pairs succeeds.
 
-The formal algorithms in the rest of the paper assume that the function equivalence oracle is reflexive, symmetric, and transitive.
+The algorithms in this paper assume that the function equivalence oracle is reflexive, symmetric, and transitive.
 
 \section{Baseline Algorithms}
 
@@ -230,7 +230,7 @@ To examine the efficacy of our proposed solution to the \textsc{Verification set
 Specifically, we examine a na\"{i}ve factorial algorithm, a slightly less na\"{i}ve factorial algorithm which we identify to be a two-flip tolerant path search, and Murota's historical batch solution~\cite{commutative}.
 
 \subsection{Na\"{i}ve Baseline Algorithm}
-Our first goal is to develop a baseline (exponential) algorithm that can reason about cycles without producing an infinite set of paths.  This algorithm will first pare the structure of the graph down to remove cycles, extract the pairs of paths in the graph, and finally reason about each pair to check commutativity.  This algorithm produces the two components $C$ and $Q$: the cycle verification pairs and acyclic parallel pairs, respectively.
+Our first goal is to develop a baseline (exponential) algorithm that can reason about cycles without producing an infinite set of paths.  This algorithm will first pare the structure of the graph down to remove cycles, extract the pairs of paths in the graph, and finally reason about each pair to check commutativity.  This results in two components $C$ and $Q$: the cycle verification pairs and acyclic parallel pairs, respectively.
 
 We start with the set of all parallel pairs in the diagram.
 We pare it down to be finite by handling cycles: using a procedure like Johnson's algorithm~\cite{johnson}, we find all simple cycles in the diagram.
@@ -238,7 +238,7 @@ Specifically, we create a cycle verification set, $C$, and verify for each cycle
 Here, $v \rightarrow v$ is a simple cycle starting and ending at $v$, 1 is the identity function, and these must be verified to be equal to each other.
 
 We then create a set $P$ of all the paths in the diagram with no cycles, and filter the set $P \times P$, excluding pairs where the paths begin or end on different nodes, or are identical, to get the set of all cycle-free parallel pairs $Q$.
-After verifying $C$, it is sufficient to verify only $Q$ (as opposed to all pairs, per Lemma~\ref{one_occurence_lemma}) because cycles must now be the identity, so for any pair in the set of all parallel paths, any instance of a cycle can be removed to obtain an equivalent pair with shorter, cycle-free paths.
+After verifying $C$, it is sufficient to verify only $Q$ (as opposed to all pairs) because cycles must now be the identity, so for any pair in the set of all parallel paths, any instance of a cycle can be removed to obtain an equivalent pair with shorter, cycle-free paths.
 
 If the shorter pair has equal paths then the paths in the original pair must also be equal to each other.
 It is therefore safe to remove all pairs of paths with cycles, leaving only parallel pairs where neither path has a cycle.
@@ -260,7 +260,7 @@ Pairs where both paths do not involve the new edge would remain equal (this woul
 Also, pairs where both paths involved the new edge would have to be equal.
 To see why this is true, each path could be thought of as consisting of the composition of three segments.
 For path pair $p$, and new edge from node $S$ to node $T$, the first segment extends from $\partial(p)^+$ to the $S$, the second, the new edge $(S, T)$ itself, and the third, from $T$ to $\partial(p)^-$.
-The new edge could only appear once because cycles have already been dealt with so only pairs where the path includes the new edge once need be checked (Lemma~\ref{one_occurence_lemma}).
+The new edge could only appear once because cycles have already been dealt with so only pairs where the path includes the new edge once need be checked.
 The first segment of both pairs would have to be equal because they existed as parallel pairs in the original diagram, and similarly the third segments would also have to be equal.
 The second segments, consisting of the same edge, would also have to be equal because the equivalence oracle is reflexive.
 Therefore, the two paths of the pair, a composition of these three equal components, would be equal, since the oracle would preserve transitivity of equality.
@@ -312,7 +312,7 @@ Here, $f_1 ; f_2 ; f_3$ is a two flip path, and $f_1 ; (S, T) ; f_3$ is a new pa
 \label{figure_two_flip}
 \end{figure}
 
-The two flip tolerant path search returns the set of all paths between a given source and sink that have up to two flips (paths that omit one or more of the three phases are also accepted).
+The two flip tolerant path search returns the set of all paths between a given source and sink that have up to two flips (paths with zero or one flip are also accepted).
 
 \paragraph{Path extraction algorithm}
 Next, the \textit{path extraction algorithm} then transforms the output of the two flip path search to the verification set, $Q' \cup C'$.
@@ -358,8 +358,8 @@ Empirical results are presented in Section~\ref{sec:evaluation}.
 
 \label{sec:batchBaseline}
 
-Murota's main result~\cite{commutative} is a solution to a batch version of \textsc{verification set}; given an acyclic diagram, it returns the minimal set of equality checks that would succeed if and only if the diagram commutes.
-The paper describes an algorithm to find the ($|V|^2|E|$ bounded) minimal set of pairs that needs to be checked.
+Murota's main result~\cite{commutative} solves the batch version of \textsc{verification set}: given an acyclic diagram, it returns the minimal set of equality checks that succeed if and only if the diagram commutes.
+Murota describes an algorithm to find the ($|V|^2|E|$ bounded) minimal set of pairs that need be checked.
 
 The approach in this algorithm, at a high level, is to define a function that takes in a subset of pairs and returns the subset of pairs whose equivalence is implied by the equivalence of the pairs in the input set.
 Then the algorithm greedily eliminates redundancies until a minimal set is reached.
@@ -375,16 +375,16 @@ For bilinking $s$, let $F(s)$ be the vector in $\text{GF}(2)^{|E|}$ (where $\tex
 Let this function be extended to sets, so that for some set of bilinkings $S, F(S) = \{ F(s) | s\in S \}$. A notion of linear independence in this vector field exists.
 
 For a set of bilinkings $R$, the closure function $cl$ is defined as:
-$cl(R) = \{ s\in R_0| s$ is linearly {dependent on $F(R) \}$.
+$cl(R) = \{ s\in R_0| s$ is linearly dependent on $F(R) \}$.
 %
-The closure function on $R$ basically captures all the pairs that can be made by made by composing or ``gluing together'' the bilinkings in $R$. 
+The closure function on $R$ captures all the pairs that can be made by made by composing or ``gluing together'' the bilinkings in $R$. 
 %
-Using these two functions, we finally define the function $\sigma$ on a set of bilinkings $R$ as
+Using these two functions, we define the function $\sigma$ on a set of bilinkings $R$ as
 $\sigma(R) = \{s \in R_0 | s\in cl(R\cap \langle s \rangle) \}$.
 This is the function used to capture all the pairs whose equivalence is implied by the equivalence of pairs in $R$.
 %
 We use $\sigma$ to iteratively check if a given pair is redundant.
-We eliminate Bilinkings until a minimum ``spanning'' subset is reached.
+We eliminate Bilinkings until we reach a minimum ``spanning'' subset.
 
 Roughly, the algorithm proceeds by first efficiently finding a \textit{spanning} set of bilinkings (a subset whose verification implies the verification of all bilinkings in the graph).
 It does this by, starting at every node, finding the reachable subsection of the graph, and a spanning tree for the subsection.
@@ -449,13 +449,14 @@ The number of checks returned by the algorithm is at worst $O(|V|^2|E|)$. The ov
 
 \section{Solving the Online Addition Problem}
 
-We present a polynomial time solution to the \textsc{verification set problem} .
+We present a polynomial time solution to the \textsc{verification set problem}.
 As in the online baseline algorithm, we do not concern ourselves with parallel pairs where neither or both paths pass through the new edge.
-The key observation allowing us to improve on the online baseline is a result of Theorem~\ref{reductionRule} (which will be expanded on later): for a given source and sink pair, only a single parallel pair needs to be verified.
-Theorem~\ref{verifyingSet} shows that, should our selected set of pairs and cycles passing through the new edge be verified commutative, the entire diagram must commute.
-Algorithm \ref{algo_online_polynomial} uses this strategy of identifying a parallel pair with exactly one path through the edge for each (source, sink) pair.
 
-\begin{algorithm}
+The key observation allowing us to improve on the online baseline is a result of Theorem~\ref{reductionRule} (which we expand on later): for a given source and sink pair, only a single parallel pair needs to be verified.
+It is straightforward to see that, should our selected set of pairs and cycles passing through the new edge be verified commutative, the entire diagram must commute.
+\ref{algo_online_polynomial} uses this strategy of identifying a parallel pair with exactly one path through the edge for each (source, sink) pair.
+
+\begin{algorithm}[t]
 \DontPrintSemicolon
 \KwData{existing graph, new edge.}
 \KwResult{Set of parallel pairs to verify.}
@@ -499,10 +500,10 @@ parallelPairs $\gets$ \{\}\;
 \label{algo_online_polynomial}
 \end{algorithm}
 
-The try block is executed at most $O(|V|^2)$ times, which is also the bound on the number of pairs verified.
+The \code{try} block is executed at most $O(|V|^2)$ times, which is also the bound on the number of pairs verified.
 %
 This bound is asymptotically tight, as can be seen in the case where the graph contains $2N$ nodes along $S$ and $T$.
-We imagine dividing the nodes into two groups of $N$ nodes each. Every node in group 1 has a forward node to every node in group 2 as well as to $S$. $T$ has a forward edge to every node in group 2. In this diagram, on the addition of edge $(S, T)$, $N^2$ paths need to be verified which is polynomial in the total number of nodes, $2N+2$.
+Imagine dividing the nodes into two groups of $N$ nodes each. Every node in group 1 has a forward edge to every node in group 2 and to $S$. $T$ has a forward edge to every node in group 2. In this diagram, when adding edge $(S, T)$, $N^2$ paths need to be verified which is polynomial in the total number of nodes, $2N+2$.
 
 If trying to optimize for path length (say, if composing functions is expensive) then ``find any path'' can be replaced with ``find the shortest path.''
 
@@ -576,15 +577,15 @@ If parallel paths $g_2 = f_2; n; h_2$ then it must be that $g_1 = f_1; n; h_1$.
 We use the fact that $f_1$=$l; f_2$ and $h_1$=$h_2; m$.
 \[g_2 = f_2; n; h_2 \Rightarrow l; g_2 = l; f_2; n ; h_2 \]
 \[\Rightarrow l ; g_2 ; m = l ; f_2 ; n ; h_2 ; m \Rightarrow g_1 = f_1 ; n ; h_1\]
-
-The proof is not affected if any of the paths used are the identity, e.g., if $f_1$ is the identity and $S$ and $P_1$ are the same node.
+%
+The proof holds if any of the paths used are the identity, e.g., if $f_1$ is the identity so $S$ and $P_1$ are the same node.
 \end{proof}
 
 We conclude that verifying a comparable pair of paths with end points ($P_1$, $P_2$) implies the verification of all path pairs ($Q_1$, $Q_2$) such that $Q_1$ is a successor of $P_1$ and $P_2$ is a successor of $Q_2$. A successor $S$ to node $N$ is any node such that there exists a path from $N$ to $S$. Nodes are also their own successors and predecessors.
 The rule effectively places an ordering on the informativeness of path pairs based on their terminal nodes.
 % If it is possible to draw a path from node $P_1$ to $P_2$ that passes through $Q_1$ and $Q_2$ then verifying a parallel pair from $Q_1$ to $Q_2$ implies that parallel pairs from $P_1$ to $P_2$ commute as well.
 
- Given that a set of path pairs are equal, suppose that one attempts to derive the proposition that a different parallel pair of paths is equal with a step-by-step application of inference rules.
+Given that a set of path pairs are equal, suppose we attempt to derive the proposition that a different parallel pair of paths is equal with a step-by-step application of inference rules.
  Under the assumption that edges are generic functions, and no other information is available, $F$ is a semi-group.
  The only inference rules allowed are composition (given that $f_1=f_2$, it must be that $g ; f_1 = g ; f_2$) and replacement of one path by a different, equal path (given $f_1=f_2$ and $g ; f_1 = h ; f_1 $, it must be true that $g ; f_1 = h ; f_2$). Any permutation of the repeated application of these two rules results in the ``reduction rule'' already described; it is therefore the only rule that can be used to reduce the set of path pairs to check.
 
@@ -640,7 +641,7 @@ verificationSet $\gets$ \{\}\;
 At the end of the greedy graph reduction we are left with the unique set of root nodes.
 The only way to reduce the set of parallel pairs is to apply the reduction rule of theorem ~\ref{reductionRule}, but all the ways in which the rule is applicable was already captured in the edges of the graph. The leftover set has no edges and no scope for further reduction.
 
-Also, the verification of the parallel pairs returned in the algorithm implies that the output of the previous algorithm must commute, and transitively with Theorem~\ref{verifyingSet} that the entire diagram must commute.
+Also, the verification of the parallel pairs returned in the algorithm implies that the output of the previous algorithm must commute and that the entire diagram must commute.
 
 The run time of the first step is $O(|V|^4)$, and that of the second step is $O(|V|)$, so that the overall bound is $O(|V|^4)$.
 Space complexity remains $O(|V|^2)$.
@@ -861,40 +862,5 @@ More engineering work still remains to implement this feature in a language such
 
 \bibliography{refs}
 \bibliographystyle{plain}
-
-\appendix
-
-\section{Theorems and Additional Cases}
-
-Consider all the cycles in the graph that pass through the new edge, unique to their terminal point.
-Define a cycle-pair corresponding to cycle c to mean the pair of paths (c, identity on terminal node of c).
-Let $C$ be the set of all cycle-pairs (unique to their terminal point) corresponding to cycles that pass through the new edge.
-
-Let $V$, the set of pairs to verify, be $C \cup R_0$.
-
-\begin{lemma}
-\label{one_occurence_lemma}
-A path that involves the new edge more than once is equal to a path without multiple occurrences of the edge, under the assumption that the pairs in C are verified.
-\end{lemma}
-\begin{proof}
-Consider the part of the path between the first occurrence of the new edge and the second. This forms a cycle, which has a corresponding check in $C$ and must be verified to be equal to the identity.
-This means that the loops containing the multiple occurrences of the new edge may be ignored and the path with a single occurrence of the new edge with the cycles removed is equal to this path.
-\end{proof}
-
-\begin{theorem}
-\label{verifyingSet}
-Verifying that all pairs in V commute implies that all pairs in $R_{all}$ commute.
-\end{theorem}
-\begin{proof}
-
-Each pair in $R_{all}$ that is not in V would fall into one of these categories:
-
-Case A: pairs that do not involve the new edge: By assumption that the original diagram commutes, these pairs must commute.
-
-Case B: Cases where there is a different pair corresponding to this choice of (source, sink) in V already.
-There are four paths to be considered, two from each pair. Those paths which do not include the new edge must already be equal by the assumption that the original diagram commutes.
-Those paths which do include the new edge (S,T) can be reduced, by the case for multiple occurrences of a new edge, to a path with a single occurrence of the new edge as described in the preceding lemma \ref{one_occurence_lemma}. These new paths can be divided into three segments: the segment from the source to S, the new edge, and the segment from the last occurrence of T to the sink. The first segments of all paths are equal by assumption that the original diagram commutes. This is also true of the third segment of all the paths. The second segment consists of only the new edge and is the same for all paths. The composition of equal functions is equal, so all the paths passing through the new edge must be equal.
-Therefore it is sufficient to check one path that passes through the new edge and one that doesn't. Such a pair belongs to V by construction.
-\end{proof}
 
 \end{document}
