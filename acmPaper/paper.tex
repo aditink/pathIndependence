@@ -449,13 +449,13 @@ The number of checks returned by the algorithm is at worst $O(|V|^2|E|)$. The ov
 
 \section{Solving the Online Addition Problem}
 
-We present a polynomial time solution to the \textsc{verification set problem} .
+We present a polynomial time solution to the \textsc{verification set problem}.
 As in the online baseline algorithm, we do not concern ourselves with parallel pairs where neither or both paths pass through the new edge.
-The key observation allowing us to improve on the online baseline is a result of Theorem~\ref{reductionRule} (which will be expanded on later): for a given source and sink pair, only a single parallel pair needs to be verified.
+The key observation allowing us to improve on the online baseline is a result of Theorem~\ref{reductionRule} (which we expand on later): for a given source and sink pair, only a single parallel pair needs to be verified.
 Theorem~\ref{verifyingSet} shows that, should our selected set of pairs and cycles passing through the new edge be verified commutative, the entire diagram must commute.
-Algorithm \ref{algo_online_polynomial} uses this strategy of identifying a parallel pair with exactly one path through the edge for each (source, sink) pair.
+\ref{algo_online_polynomial} uses this strategy of identifying a parallel pair with exactly one path through the edge for each (source, sink) pair.
 
-\begin{algorithm}
+\begin{algorithm}[t]
 \DontPrintSemicolon
 \KwData{existing graph, new edge.}
 \KwResult{Set of parallel pairs to verify.}
@@ -499,10 +499,10 @@ parallelPairs $\gets$ \{\}\;
 \label{algo_online_polynomial}
 \end{algorithm}
 
-The try block is executed at most $O(|V|^2)$ times, which is also the bound on the number of pairs verified.
+The \code{try} block is executed at most $O(|V|^2)$ times, which is also the bound on the number of pairs verified.
 %
 This bound is asymptotically tight, as can be seen in the case where the graph contains $2N$ nodes along $S$ and $T$.
-We imagine dividing the nodes into two groups of $N$ nodes each. Every node in group 1 has a forward node to every node in group 2 as well as to $S$. $T$ has a forward edge to every node in group 2. In this diagram, on the addition of edge $(S, T)$, $N^2$ paths need to be verified which is polynomial in the total number of nodes, $2N+2$.
+Imagine dividing the nodes into two groups of $N$ nodes each. Every node in group 1 has a forward edge to every node in group 2 and to $S$. $T$ has a forward edge to every node in group 2. In this diagram, when adding edge $(S, T)$, $N^2$ paths need to be verified which is polynomial in the total number of nodes, $2N+2$.
 
 If trying to optimize for path length (say, if composing functions is expensive) then ``find any path'' can be replaced with ``find the shortest path.''
 
@@ -576,15 +576,15 @@ If parallel paths $g_2 = f_2; n; h_2$ then it must be that $g_1 = f_1; n; h_1$.
 We use the fact that $f_1$=$l; f_2$ and $h_1$=$h_2; m$.
 \[g_2 = f_2; n; h_2 \Rightarrow l; g_2 = l; f_2; n ; h_2 \]
 \[\Rightarrow l ; g_2 ; m = l ; f_2 ; n ; h_2 ; m \Rightarrow g_1 = f_1 ; n ; h_1\]
-
-The proof is not affected if any of the paths used are the identity, e.g., if $f_1$ is the identity and $S$ and $P_1$ are the same node.
+%
+The proof holds if any of the paths used are the identity, e.g., if $f_1$ is the identity so $S$ and $P_1$ are the same node.
 \end{proof}
 
 We conclude that verifying a comparable pair of paths with end points ($P_1$, $P_2$) implies the verification of all path pairs ($Q_1$, $Q_2$) such that $Q_1$ is a successor of $P_1$ and $P_2$ is a successor of $Q_2$. A successor $S$ to node $N$ is any node such that there exists a path from $N$ to $S$. Nodes are also their own successors and predecessors.
 The rule effectively places an ordering on the informativeness of path pairs based on their terminal nodes.
 % If it is possible to draw a path from node $P_1$ to $P_2$ that passes through $Q_1$ and $Q_2$ then verifying a parallel pair from $Q_1$ to $Q_2$ implies that parallel pairs from $P_1$ to $P_2$ commute as well.
 
- Given that a set of path pairs are equal, suppose that one attempts to derive the proposition that a different parallel pair of paths is equal with a step-by-step application of inference rules.
+Given that a set of path pairs are equal, suppose we attempt to derive the proposition that a different parallel pair of paths is equal with a step-by-step application of inference rules.
  Under the assumption that edges are generic functions, and no other information is available, $F$ is a semi-group.
  The only inference rules allowed are composition (given that $f_1=f_2$, it must be that $g ; f_1 = g ; f_2$) and replacement of one path by a different, equal path (given $f_1=f_2$ and $g ; f_1 = h ; f_1 $, it must be true that $g ; f_1 = h ; f_2$). Any permutation of the repeated application of these two rules results in the ``reduction rule'' already described; it is therefore the only rule that can be used to reduce the set of path pairs to check.
 
