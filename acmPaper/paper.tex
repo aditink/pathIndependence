@@ -719,7 +719,7 @@ The average time taken by each algorithm over the course of 10 runs over randoml
     
 The na\"{i}ve baseline performs poorly, taking well over a thousand seconds for even small graphs of 10 nodes.
 While the batch algorithm improves on this, it still does not scale very well, with computation for a graph with 14 nodes and 0.4 density taking hours.
-Our implementation does not memoize the construction of the vector and matrix representation of paths in GF(2); profiling indicates that this construction is a major factor in the high time cost for these algorithms.
+Our implementation does not memoize the construction of the vector and matrix representation of paths in GF(2); profiling indicates that this construction is a major factor in the high time cost for this algorithm.
 \ref{algo_online_polynomial} performs only slightly better than the batch algorithm.
 Surprisingly, the optimal set algorithm cuts time cost by several orders of magnitude, and runs in milliseconds for small graphs.
 All implementations are sensitive to density, performing better when density is low.
