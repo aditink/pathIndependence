@@ -96,7 +96,7 @@ To study the algorithms' scalability to large diagrams, we apply them to discove
 Many systems use diagrams: graphs where nodes are domains and edges are transformation functions.
 A type system with coercions, for example, corresponds to a graph whose nodes are types and whose edges are coercions.
 Figure~\ref{fig:typeExample} illustrates an example in a simple language with units-of-measure types~\cite{unitsOfMeasure}.
-In such a system, an important correctness criterion is that the diagram \emph{commutes:} when traversing the graph from any start node to any end node, applying every transformation along the path to any input value, the result is the same output value \emph{independent of the path chosen between the two nodes}.
+In such a system, an important correctness criterion is that the diagram \emph{commutes}: when traversing the graph from any start node to any end node, applying every transformation along the path to any input value, the result is the same output value \emph{independent of the path chosen between the two nodes}.
 With our coercion example, it is a problem if casting to a supposedly equivalent type as an intermediate step resulted in a different answer than a direct cast.
 Specifically, given a variable \code{x} of type \code{meters}, applying the cast \code{(wugs) x} can be done in two ways: either \code{(wugs)(feet) x} or \code{(wugs)(miles) x}.
 Which path is taken depends on the compiler; we would like the choice of paths to be semantically equivalent so the compiler is free to make a choice.
@@ -156,7 +156,7 @@ Which path is taken depends on the compiler; we would like the choice of paths t
     \label{fig:typeExample}
 \end{figure}
 
-This paper is about efficiently checking diagrams that arise in real systems for commutativity.
+This paper is about efficiently checking commutativity in diagrams that arise in real systems.
 We assume a simple equivalence checker for individual transformation functions: in our type system example, for instance, it is possible to check transformation equivalence by comparing the conversion factors.
 Our aim is to analyze the graph of transformations and minimize the number of times we need to perform an equivalence check.
 Since diagrams may change over time in real systems, as new conversions are added, and verifying the entire system from scratch may be computationally expensive, we want an online method that only checks the impact of new edges.
@@ -222,7 +222,7 @@ We therefore collapse the \textsc{Online addition problem} to the \textsc{Verifi
 The latter, when given a diagram and a new edge, returns the set of parallel pairs of paths, such that if and only if the members in each pair have function equivalence, then the new graph must commute.
 The output to the \textsc{Online addition problem} can then be obtained as whether function equivalence checking for all pairs succeeds.
 
-The formal algorithms in the rest of the paper assume that the function equivalence oracle is reflexive, symmetric, and transitive.
+The algorithms in this paper assume that the function equivalence oracle is reflexive, symmetric, and transitive.
 
 \section{Baseline Algorithms}
 
@@ -230,7 +230,7 @@ To examine the efficacy of our proposed solution to the \textsc{Verification set
 Specifically, we examine a na\"{i}ve factorial algorithm, a slightly less na\"{i}ve factorial algorithm which we identify to be a two-flip tolerant path search, and Murota's historical batch solution~\cite{commutative}.
 
 \subsection{Na\"{i}ve Baseline Algorithm}
-Our first goal is to develop a baseline (exponential) algorithm that can reason about cycles without producing an infinite set of paths.  This algorithm will first pare the structure of the graph down to remove cycles, extract the pairs of paths in the graph, and finally reason about each pair to check commutativity.  This algorithm produces the two components $C$ and $Q$: the cycle verification pairs and acyclic parallel pairs, respectively.
+Our first goal is to develop a baseline (exponential) algorithm that can reason about cycles without producing an infinite set of paths.  This algorithm will first pare the structure of the graph down to remove cycles, extract the pairs of paths in the graph, and finally reason about each pair to check commutativity.  This results in two components $C$ and $Q$: the cycle verification pairs and acyclic parallel pairs, respectively.
 
 We start with the set of all parallel pairs in the diagram.
 We pare it down to be finite by handling cycles: using a procedure like Johnson's algorithm~\cite{johnson}, we find all simple cycles in the diagram.
@@ -312,7 +312,7 @@ Here, $f_1 ; f_2 ; f_3$ is a two flip path, and $f_1 ; (S, T) ; f_3$ is a new pa
 \label{figure_two_flip}
 \end{figure}
 
-The two flip tolerant path search returns the set of all paths between a given source and sink that have up to two flips (paths that omit one or more of the three phases are also accepted).
+The two flip tolerant path search returns the set of all paths between a given source and sink that have up to two flips (paths with zero or one flip are also accepted).
 
 \paragraph{Path extraction algorithm}
 Next, the \textit{path extraction algorithm} then transforms the output of the two flip path search to the verification set, $Q' \cup C'$.
@@ -358,8 +358,8 @@ Empirical results are presented in Section~\ref{sec:evaluation}.
 
 \label{sec:batchBaseline}
 
-Murota's main result~\cite{commutative} is a solution to a batch version of \textsc{verification set}; given an acyclic diagram, it returns the minimal set of equality checks that would succeed if and only if the diagram commutes.
-The paper describes an algorithm to find the ($|V|^2|E|$ bounded) minimal set of pairs that needs to be checked.
+Murota's main result~\cite{commutative} solves the batch version of \textsc{verification set}: given an acyclic diagram, it returns the minimal set of equality checks that succeed if and only if the diagram commutes.
+Murota describes an algorithm to find the ($|V|^2|E|$ bounded) minimal set of pairs that need be checked.
 
 The approach in this algorithm, at a high level, is to define a function that takes in a subset of pairs and returns the subset of pairs whose equivalence is implied by the equivalence of the pairs in the input set.
 Then the algorithm greedily eliminates redundancies until a minimal set is reached.
@@ -375,16 +375,16 @@ For bilinking $s$, let $F(s)$ be the vector in $\text{GF}(2)^{|E|}$ (where $\tex
 Let this function be extended to sets, so that for some set of bilinkings $S, F(S) = \{ F(s) | s\in S \}$. A notion of linear independence in this vector field exists.
 
 For a set of bilinkings $R$, the closure function $cl$ is defined as:
-$cl(R) = \{ s\in R_0| s$ is linearly {dependent on $F(R) \}$.
+$cl(R) = \{ s\in R_0| s$ is linearly dependent on $F(R) \}$.
 %
-The closure function on $R$ basically captures all the pairs that can be made by made by composing or ``gluing together'' the bilinkings in $R$. 
+The closure function on $R$ captures all the pairs that can be made by made by composing or ``gluing together'' the bilinkings in $R$. 
 %
-Using these two functions, we finally define the function $\sigma$ on a set of bilinkings $R$ as
+Using these two functions, we define the function $\sigma$ on a set of bilinkings $R$ as
 $\sigma(R) = \{s \in R_0 | s\in cl(R\cap \langle s \rangle) \}$.
 This is the function used to capture all the pairs whose equivalence is implied by the equivalence of pairs in $R$.
 %
 We use $\sigma$ to iteratively check if a given pair is redundant.
-We eliminate Bilinkings until a minimum ``spanning'' subset is reached.
+We eliminate Bilinkings until we reach a minimum ``spanning'' subset.
 
 Roughly, the algorithm proceeds by first efficiently finding a \textit{spanning} set of bilinkings (a subset whose verification implies the verification of all bilinkings in the graph).
 It does this by, starting at every node, finding the reachable subsection of the graph, and a spanning tree for the subsection.
