@@ -104,14 +104,15 @@ Which path is taken depends on the compiler; we would like the choice of paths t
 \begin{figure}[]
     \centering
     \begin{subfigure}{0.4\textwidth}
+        \centering
         \begin{verbatim}
-            var a : meters = 1;
-            var b : miles = (miles) a;
-            var c : feet = (feet) a;
-            define wugs:
-                1 mile = 10000 wugs;
-                1 foot = 10 wugs;
-            var d : wugs = (wugs) a;
+        var a : meters = 1;
+        var b : miles = (miles) a;
+        var c : feet = (feet) a;
+        define wugs:
+            1 mile = 10000 wugs;
+            1 foot = 10 wugs;
+        var d : wugs = (wugs) a;
         \end{verbatim}
         \vspace{-3ex}
         \caption{A sample program with user defined type conversion.}
@@ -166,21 +167,22 @@ The presence of cycles implies a potentially infinite number of paths..
 Further, na\"{i}vely checking if all path pairs that begin and end at the same node in a given diagram commute could require a number of function equality checks that grow as factorial in the number of nodes, because a path consists of an ordering of nodes.
 Previous work ~\cite{commutative} has identified an $O(|E|^2|V|^4)$ algorithm to verify that a complete acyclic diagram commutes; however, it addresses neither online addition nor cyclic diagrams.
 
-In the course of efficiently verifying commutativity over online addition, we identify two key insights.
-First, for a given source and sink pair, at most one path need be checked against in a commutative diagram when a new edge is added.
+For verifying commutativity over online addition, we identify two key insights.
+First, when a new edge is added,
+only one path per source and sink pair needs to be checked against the existing commutative diagram.
 Because the diagram commutes, all the paths between a given source and sink are equal and a representative to check against can arbitrarily be chosen.
 This leads to an $O(|V|^2(|E|+|V|))$ algorithm to verify a diagram remains commutative over the course of online addition, assuming an oracle to check the equality of functions.
 The algorithm makes an \emph{asymptotically} optimal number of calls to the oracle.
 
-The second insight is  that there is a single rule that places a partial, transitive ordering on the amount of information about the paths in the graph contained in each path.
-It allowed for the creation of a greedy, $O(|V|^4)$ optimization step that results in the number of calls to the oracle being exactly minimal.
-The optimization is very useful when the equality checking oracle is expensive.
+The second insight is that there is a single rule that places a partial, transitive ordering on paths indicating the amount of information they contain about other paths.
+This insight yields a greedy $O(|V|^4)$ optimization step that results in the number of oracle calls being exactly minimal.
+The optimization is critical when equality checking is expensive.
 
 We evaluate our algorithms against random graphs and use them in two case studies.
 First, we use our algorithm in the domain specific geometry type language \textit{Gator} ~\cite{gator} to ensure that user defined transformations between spaces stay consistent.
 Second, we use our algorithm to identify inefficiencies in a currency conversion graph.
-
-We empirically compare our solution to three baseline implementations: a na\"{i}ve checking of all path pairs with only special handling for cycles, a check for all path pairs that involve the new edge, and an algorithm suggested by previous work to solve the batch version of the problem for acyclic diagrams.
+%
+We empirically compare our solution to three baseline implementations: a na\"{i}ve cycle-sensitive all-pairs check, a check for all path pairs that involve the new edge, and an algorithm suggested by previous work to solve the batch version of the problem for acyclic diagrams.
 Our proposed algorithms run orders of magnitude faster than the baselines.
 
 \section{Formal Problem Setup and Terminology}
@@ -411,7 +413,7 @@ $R_s$ $\gets$ \{\}\;
 
 With the spanning set thus initialized, it greedily tries to remove each pair from the spanning set if the set remains spanning even after removing the edge (~\ref{algo_minimal_spanning_set}).
 
-\begin{algorithm}
+\begin{algorithm}[t]
 \DontPrintSemicolon
 \KwResult{Find a minimal spanning set R.}
 
