@@ -452,7 +452,7 @@ The number of checks returned by the algorithm is at worst $O(|V|^2|E|)$. The ov
 We present a polynomial time solution to the \textsc{verification set problem} .
 As in the online baseline algorithm, we do not concern ourselves with parallel pairs where neither or both paths pass through the new edge.
 The key observation allowing us to improve on the online baseline is a result of Theorem~\ref{reductionRule} (which will be expanded on later): for a given source and sink pair, only a single parallel pair needs to be verified.
-Theorem~\ref{verifyingSet} shows that, should our selected set of pairs and cycles passing through the new edge be verified commutative, the entire diagram must commute.
+It is straightforward to see that, should our selected set of pairs and cycles passing through the new edge be verified commutative, the entire diagram must commute.
 Algorithm \ref{algo_online_polynomial} uses this strategy of identifying a parallel pair with exactly one path through the edge for each (source, sink) pair.
 
 \begin{algorithm}
@@ -640,7 +640,7 @@ verificationSet $\gets$ \{\}\;
 At the end of the greedy graph reduction we are left with the unique set of root nodes.
 The only way to reduce the set of parallel pairs is to apply the reduction rule of theorem ~\ref{reductionRule}, but all the ways in which the rule is applicable was already captured in the edges of the graph. The leftover set has no edges and no scope for further reduction.
 
-Also, the verification of the parallel pairs returned in the algorithm implies that the output of the previous algorithm must commute, and transitively with Theorem~\ref{verifyingSet} that the entire diagram must commute.
+Also, the verification of the parallel pairs returned in the algorithm implies that the output of the previous algorithm must commute and that the entire diagram must commute.
 
 The run time of the first step is $O(|V|^4)$, and that of the second step is $O(|V|)$, so that the overall bound is $O(|V|^4)$.
 Space complexity remains $O(|V|^2)$.
@@ -861,31 +861,5 @@ More engineering work still remains to implement this feature in a language such
 
 \bibliography{refs}
 \bibliographystyle{plain}
-
-\appendix
-
-\section{Theorems and Additional Cases}
-
-Consider all the cycles in the graph that pass through the new edge, unique to their terminal point.
-Define a cycle-pair corresponding to cycle c to mean the pair of paths (c, identity on terminal node of c).
-Let $C$ be the set of all cycle-pairs (unique to their terminal point) corresponding to cycles that pass through the new edge.
-
-Let $V$, the set of pairs to verify, be $C \cup R_0$.
-
-\begin{theorem}
-\label{verifyingSet}
-Verifying that all pairs in V commute implies that all pairs in $R_{all}$ commute.
-\end{theorem}
-\begin{proof}
-
-Each pair in $R_{all}$ that is not in V would fall into one of these categories:
-
-Case A: pairs that do not involve the new edge: By assumption that the original diagram commutes, these pairs must commute.
-
-Case B: Cases where there is a different pair corresponding to this choice of (source, sink) in V already.
-There are four paths to be considered, two from each pair. Those paths which do not include the new edge must already be equal by the assumption that the original diagram commutes.
-Those paths which do include the new edge (S,T) can be reduced, by the case for multiple occurrences of a new edge, to a path with a single occurrence of the new edge as described in the preceding lemma \ref{one_occurence_lemma}. These new paths can be divided into three segments: the segment from the source to S, the new edge, and the segment from the last occurrence of T to the sink. The first segments of all paths are equal by assumption that the original diagram commutes. This is also true of the third segment of all the paths. The second segment consists of only the new edge and is the same for all paths. The composition of equal functions is equal, so all the paths passing through the new edge must be equal.
-Therefore it is sufficient to check one path that passes through the new edge and one that doesn't. Such a pair belongs to V by construction.
-\end{proof}
 
 \end{document}
