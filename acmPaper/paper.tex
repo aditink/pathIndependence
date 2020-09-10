@@ -1,4 +1,4 @@
-\newcount\draft\draft=1 % set to 0 for submission or publication
+\newcount\draft\draft=0 % set to 0 for submission or publication
 % \documentclass[sigplan,review,anonymous]{acmart}
 \documentclass[sigplan,review,nonacm=true]{acmart}
 \setcopyright{none}
@@ -168,13 +168,12 @@ Further, na\"{i}vely checking if all path pairs that begin and end at the same n
 Previous work ~\cite{commutative} has identified an $O(|E|^2|V|^4)$ algorithm to verify that a complete acyclic diagram commutes; however, it addresses neither online addition nor cyclic diagrams.
 
 For verifying commutativity over online addition, we identify two key insights.
-First, when a new edge is added,
-only one path per source and sink pair needs to be checked against the existing commutative diagram.
+First, when a new edge is added, only one path per source and sink pair needs to be checked against the existing commutative diagram.
 Because the diagram commutes, all the paths between a given source and sink are equal and a representative to check against can arbitrarily be chosen.
 This leads to an $O(|V|^2(|E|+|V|))$ algorithm to verify a diagram remains commutative over the course of online addition, assuming an oracle to check the equality of functions.
 The algorithm makes an \emph{asymptotically} optimal number of calls to the oracle.
 
-The second insight is that there is a single rule that places a partial, transitive ordering on paths indicating the amount of information they contain about other paths.
+Second, there is a single rule that places a partial, transitive ordering on paths indicating the amount of information they contain about other paths.
 This insight yields a greedy $O(|V|^4)$ optimization step that results in the number of oracle calls being exactly minimal.
 The optimization is critical when equality checking is expensive.
 
@@ -183,7 +182,7 @@ First, we use our algorithm in the domain specific geometry type language \texti
 Second, we use our algorithm to identify inefficiencies in a currency conversion graph.
 %
 We empirically compare our solution to three baseline implementations: a na\"{i}ve cycle-sensitive all-pairs check, a check for all path pairs that involve the new edge, and an algorithm suggested by previous work to solve the batch version of the problem for acyclic diagrams.
-Our proposed algorithms run orders of magnitude faster than the baselines.
+Our proposed algorithms run orders of magnitude faster than the baseline implementations.
 
 \section{Formal Problem Setup and Terminology}
 
@@ -192,7 +191,7 @@ We start by formalizing the notion of a diagram, drawing terminology from the pr
 \paragraph{Notation.}
 
 We start with a directed graph $G=(V,E)$, where $V$ corresponds to sets of elements and edges $(u, v)$ in $E$ correspond to functions that maps elements of $u$ to elements in $v$.
-All these functions form a semigroup $F$, where multiplication is function composition.
+These functions form a semigroup $F$, where multiplication is function composition.
 A semigroup consists of a set and an associative binary operation, which we use to capture function composition.
 %
 The correspondence between edges and functions is stored as a mapping $f:E\rightarrow F$, where $f$ maps each edge to the function it represents.
@@ -215,7 +214,7 @@ $f(p_1)=f(p_2)$; that is, the composition of maps along any path connecting any 
 
 The \textsc{Online addition problem}, given a commuting diagram and a new edge, returns whether the diagram commutes.
 Checking function equality is a domain specific, potentially hard problem, dependent on the nature of the graph.
-For our case study in graphics programming (see Section~\ref{sec:gator}), edges are matrices and nodes are vector spaces, so function composition uses matrix multiplication and equivalence checking simply compares matrix values.
+For example, in our case study in graphics programming (see Section~\ref{sec:gator}), edges are matrices and nodes are vector spaces, so function composition uses matrix multiplication and equivalence checking simply compares matrix values.
 We therefore assume some oracle for checking transformation function equivalence that will vary by domain.
 %
 We therefore collapse the \textsc{Online addition problem} to the \textsc{Verification set problem}; we solve the latter and assume an oracle with the results to produce the former.
@@ -227,14 +226,14 @@ The algorithms in this paper assume that the function equivalence oracle is refl
 \section{Baseline Algorithms}
 
 To examine the efficacy of our proposed solution to the \textsc{Verification set problem}, we compare it to some potential alternatives.
-Specifically, we examine a na\"{i}ve factorial algorithm, a slightly less na\"{i}ve factorial algorithm which we identify to be a two-flip tolerant path search, and Murota's historical batch solution~\cite{commutative}.
+Specifically, we examine a na\"{i}ve factorial algorithm, a slightly less na\"{i}ve factorial algorithm which we identify to be a two-flip tolerant path search, and Murota's previous batch solution~\cite{commutative}.
 
 \subsection{Na\"{i}ve Baseline Algorithm}
 Our first goal is to develop a baseline (exponential) algorithm that can reason about cycles without producing an infinite set of paths.  This algorithm will first pare the structure of the graph down to remove cycles, extract the pairs of paths in the graph, and finally reason about each pair to check commutativity.  This results in two components $C$ and $Q$: the cycle verification pairs and acyclic parallel pairs, respectively.
 
 We start with the set of all parallel pairs in the diagram.
 We pare it down to be finite by handling cycles: using a procedure like Johnson's algorithm~\cite{johnson}, we find all simple cycles in the diagram.
-Specifically, we create a cycle verification set, $C$, and verify for each cycle that a single traversal is equal to the identity function by adding $(v \rightarrow v, 1)$ for each node v in the cycle to $C$.
+We create a cycle verification set, $C$, and verify for each cycle that a single traversal is equal to the identity function by adding $(v \rightarrow v, 1)$ for each node v in the cycle to $C$.
 Here, $v \rightarrow v$ is a simple cycle starting and ending at $v$, 1 is the identity function, and these must be verified to be equal to each other.
 
 We then create a set $P$ of all the paths in the diagram with no cycles, and filter the set $P \times P$, excluding pairs where the paths begin or end on different nodes, or are identical, to get the set of all cycle-free parallel pairs $Q$.
@@ -259,11 +258,11 @@ This narrowing can be done because the original diagram commutes.
 Pairs where both paths do not involve the new edge would remain equal (this would apply to cycles too; cycles that do not pass through the new edge must be the identity).
 Also, pairs where both paths involved the new edge would have to be equal.
 To see why this is true, each path could be thought of as consisting of the composition of three segments.
-For path pair $p$, and new edge from node $S$ to node $T$, the first segment extends from $\partial(p)^+$ to the $S$, the second, the new edge $(S, T)$ itself, and the third, from $T$ to $\partial(p)^-$.
+For path pair $p$, and new edge from node $S$ to node $T$, the first segment extends from $\partial(p)^+$ to $S$, the second, the new edge $(S, T)$ itself, and the third, from $T$ to $\partial(p)^-$.
 The new edge could only appear once because cycles have already been dealt with so only pairs where the path includes the new edge once need be checked.
-The first segment of both pairs would have to be equal because they existed as parallel pairs in the original diagram, and similarly the third segments would also have to be equal.
-The second segments, consisting of the same edge, would also have to be equal because the equivalence oracle is reflexive.
-Therefore, the two paths of the pair, a composition of these three equal components, would be equal, since the oracle would preserve transitivity of equality.
+The first segment of both pairs would have to be equal because they existed as parallel pairs in the original diagram, and similarly the third segment would also have to be equal.
+The second segment, consisting of the same edge, would also have to be equal because the equivalence oracle is reflexive.
+A composition of these three equal components would be then be equal, since the oracle would preserve transitivity of equality.
 We are left only with parallel pairs where exactly one of the paths passes through the new edge.
 
 To resolve this algorithm fully, we will need to define the specifics of the two-flip tolerant path search and how to narrow down the results of this search into an actual set of paths to verify.
@@ -315,7 +314,7 @@ Here, $f_1 ; f_2 ; f_3$ is a two flip path, and $f_1 ; (S, T) ; f_3$ is a new pa
 The two flip tolerant path search returns the set of all paths between a given source and sink that have up to two flips (paths with zero or one flip are also accepted).
 
 \paragraph{Path extraction algorithm}
-Next, the \textit{path extraction algorithm} then transforms the output of the two flip path search to the verification set, $Q' \cup C'$.
+Next, the \textit{path extraction algorithm} then transforms the output of the two flip path search into the verification set, $Q' \cup C'$.
 Given a set of two flip tolerant paths from the new edge source to sink, the algorithm outputs a set of pairs to verify.
 
 Let the new edge added to the diagram be $(S, T)$ and the input set of paths, $P$.
@@ -365,7 +364,7 @@ The approach in this algorithm, at a high level, is to define a function that ta
 Then the algorithm greedily eliminates redundancies until a minimal set is reached.
 
 A bilinking is defined to be a parallel pair that is disjoint but for their terminal nodes. The set of all bilinkings is $R_0$.
-In an acyclic diagram, if all bilinkings are equal, all parallel pairs must also be equal since they any given pair can be expressed as a composition of bilinkings.
+In an acyclic diagram, if all bilinkings are equal, all parallel pairs must also be equal since any given pair can be expressed as a composition of bilinkings.
 
 Define $r_1>r_2$ for bilinkings $r_1$ = $\{p_1,q_1\}$, $r_2$= $\{p_2, q_2)$ $\in$ $R_0$, if there exists a path $p$ such that $\partial(p) = \partial(r_1)$ and $p$ contains $p_2$.
 Define $\langle\rangle$ as:
@@ -387,7 +386,7 @@ We use $\sigma$ to iteratively check if a given pair is redundant.
 We eliminate Bilinkings until we reach a minimum ``spanning'' subset.
 
 Roughly, the algorithm proceeds by first efficiently finding a \textit{spanning} set of bilinkings (a subset whose verification implies the verification of all bilinkings in the graph).
-It does this by, starting at every node, finding the reachable subsection of the graph, and a spanning tree for the subsection.
+It does this, starting at every node, by finding the reachable subsection of the graph, and a spanning tree for the subsection.
 From each edges in the reachable section that is not a part of the tree, it generates a bilinking using the edge and a path in the tree that is parallel to the edge (\ref{algo_spanning_set}).
 
 \begin{algorithm}[t]
@@ -646,9 +645,6 @@ Also, the verification of the parallel pairs returned in the algorithm implies t
 The run time of the first step is $O(|V|^4)$, and that of the second step is $O(|V|)$, so that the overall bound is $O(|V|^4)$.
 Space complexity remains $O(|V|^2)$.
 
-\subsection{Verification}
-Ultimately verification is performed by calling an equality oracle (that is beyond the scope of this work) for every comparable pair returned by the previous stage.
-
 \section{Case Studies}
 
 To demonstrate our algorithms applied to a real world situation, we search for inconsistencies in diagrams of geometry transformations, and in a diagram of the exchange rate between currencies.
@@ -658,9 +654,9 @@ We explore these examples with the intent of showing that the algorithms discuss
 \subsection{Gator}
 \label{sec:gator}
 
-Gator is a domain specific language designed around Geometry types, which are used to describe properties and transformations of geometric objects~\cite{gator}.  A key feature of Gator is \code{in} expressions, which insert code to automatically transform between two geometry types.  For example, given a point \code{p} represented in 2-dimensional Cartesian coordinates (which has type \code{cart2}), we can transform this point into polar coordinates using the expression \code{p in polar}.  These \code{in} expressions create a structure of commutative diagrams, allowing use as introduced in Section~\ref{introduction}.
+Gator is a domain specific language designed around geometry types, which are used to describe properties and transformations of geometric objects~\cite{gator}.  A key feature of Gator is \code{in} expressions, which insert code to automatically transform between two geometry types.  For example, given a point \code{p} represented in 2-dimensional Cartesian coordinates (which has type \code{cart2}), we can transform this point into polar coordinates using the expression \code{p in polar}.  These \code{in} expressions create a structure of commutative diagrams, allowing use as introduced in Section~\ref{introduction}.
 
-Specifically, Gator introduces transformations between \textit{reference frames}, which are the geometry equivalent of transforming between linear algebra basis vectors.  Each edge on our transformation graph is a thus a matrix, with composition of edges as matrix multiplication and an oracle checking matrix equality (up to a rounding error $\epsilon$).  
+Specifically, Gator introduces transformations between \textit{reference frames}, which are the geometry equivalent of transforming between linear algebra basis vectors.  Each edge on our transformation graph is thus a matrix, with composition of edges as matrix multiplication and an oracle checking matrix equality (up to a rounding error $\epsilon$).  
 
 There are several examples of reasonably complicated transformation graphs that we can pick from.  Gator includes graphics examples as part of its examples package, all of which are in the Gator paper; for this evaluation, we looked at the \textit{phong}, \textit{reflection}, and \textit{shadow map} examples.
 
@@ -672,7 +668,7 @@ The system was tested with intentional bugs, of which it found them all, althoug
 
 We imagine a units-of-measure type system as being an interesting application of concurrency graphs; however, to make this more interesting and scale nicely to large graphs with existing data, we focus on the specific unit of currencies.
 Consider a diagram with nodes as currencies and a directed edge being the conversion rate from its source node's currency to its sink node's currency.
-Since the transformation exchange rate of money from any given base currency to a target currency can be expected to be the same regardless of which intermediate currency transformations are used, this diagram should commute.
+Since the exchange rate of money from any given base currency to a target currency can be expected to be the same regardless of which intermediate currency transformations are used, this diagram should commute.
 
 Using a web API\footnote{https://exchangeratesapi.io} for currency data, we built the fully connected diagram of exchange rates between 32 currencies on a given day.
 To ensure that it indeed commuted, we started with an empty diagram, and added in edges one by one.
@@ -730,7 +726,7 @@ All implementations are sensitive to density, performing better when density is 
     
 \subsection{Scaling of Time with Input Size}
 
-Figure~\ref{fig:timeVsSize} shows that the algorithms time scales with size, as expected.
+Figure~\ref{fig:timeVsSize} shows that the algorithms' time scales with size, as expected.
 \xxx[as]{The plots are weirdly tiny on my machine... any chance your plotting tool can output PDF images?}
 Both \ref{algo_online_minimal} and \ref{algo_online_polynomial} exhibit graphs that are polynomial in appearance.
 The na\"{i}ve baseline as well as the two flip tolerant baseline display quick growth.
