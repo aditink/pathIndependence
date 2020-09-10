@@ -236,7 +236,7 @@ Specifically, we create a cycle verification set, $C$, and verify for each cycle
 Here, $v \rightarrow v$ is a simple cycle starting and ending at $v$, 1 is the identity function, and these must be verified to be equal to each other.
 
 We then create a set $P$ of all the paths in the diagram with no cycles, and filter the set $P \times P$, excluding pairs where the paths begin or end on different nodes, or are identical, to get the set of all cycle-free parallel pairs $Q$.
-After verifying $C$, it is sufficient to verify only $Q$ (as opposed to all pairs, per Lemma~\ref{one_occurence_lemma}) because cycles must now be the identity, so for any pair in the set of all parallel paths, any instance of a cycle can be removed to obtain an equivalent pair with shorter, cycle-free paths.
+After verifying $C$, it is sufficient to verify only $Q$ (as opposed to all pairs) because cycles must now be the identity, so for any pair in the set of all parallel paths, any instance of a cycle can be removed to obtain an equivalent pair with shorter, cycle-free paths.
 
 If the shorter pair has equal paths then the paths in the original pair must also be equal to each other.
 It is therefore safe to remove all pairs of paths with cycles, leaving only parallel pairs where neither path has a cycle.
@@ -258,7 +258,7 @@ Pairs where both paths do not involve the new edge would remain equal (this woul
 Also, pairs where both paths involved the new edge would have to be equal.
 To see why this is true, each path could be thought of as consisting of the composition of three segments.
 For path pair $p$, and new edge from node $S$ to node $T$, the first segment extends from $\partial(p)^+$ to the $S$, the second, the new edge $(S, T)$ itself, and the third, from $T$ to $\partial(p)^-$.
-The new edge could only appear once because cycles have already been dealt with so only pairs where the path includes the new edge once need be checked (Lemma~\ref{one_occurence_lemma}).
+The new edge could only appear once because cycles have already been dealt with so only pairs where the path includes the new edge once need be checked.
 The first segment of both pairs would have to be equal because they existed as parallel pairs in the original diagram, and similarly the third segments would also have to be equal.
 The second segments, consisting of the same edge, would also have to be equal because the equivalence oracle is reflexive.
 Therefore, the two paths of the pair, a composition of these three equal components, would be equal, since the oracle would preserve transitivity of equality.
@@ -869,15 +869,6 @@ Define a cycle-pair corresponding to cycle c to mean the pair of paths (c, ident
 Let $C$ be the set of all cycle-pairs (unique to their terminal point) corresponding to cycles that pass through the new edge.
 
 Let $V$, the set of pairs to verify, be $C \cup R_0$.
-
-\begin{lemma}
-\label{one_occurence_lemma}
-A path that involves the new edge more than once is equal to a path without multiple occurrences of the edge, under the assumption that the pairs in C are verified.
-\end{lemma}
-\begin{proof}
-Consider the part of the path between the first occurrence of the new edge and the second. This forms a cycle, which has a corresponding check in $C$ and must be verified to be equal to the identity.
-This means that the loops containing the multiple occurrences of the new edge may be ignored and the path with a single occurrence of the new edge with the cycles removed is equal to this path.
-\end{proof}
 
 \begin{theorem}
 \label{verifyingSet}
