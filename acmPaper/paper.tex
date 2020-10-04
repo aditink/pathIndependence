@@ -106,13 +106,15 @@ Which path is taken depends on the compiler; we would like the choice of paths t
     \begin{subfigure}{0.4\textwidth}
         \centering
         \begin{verbatim}
-        var a : meters = 1;
-        var b : miles = (miles) a;
-        var c : feet = (feet) a;
+        var x : meters = 1;
+        define foot:
+            1 meter = 3.28 feet;
+        define miles:
+            1 meter = 0.000621 miles;
         define wugs:
             1 mile = 10000 wugs;
             1 foot = 10 wugs;
-        var d : wugs = (wugs) a;
+        var y : wugs = (wugs) x;
         \end{verbatim}
         \vspace{-3ex}
         \caption{A sample program with user defined type conversion.}
