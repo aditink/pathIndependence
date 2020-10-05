@@ -401,32 +401,32 @@ $R_s$ $\gets$ \{\}\;
 \ForEach{node v in V}{
     S $\gets$ existingGraph.extractReachableSection(v)\;
     T $\gets$ createMinimumSpanningTree(S)\;
-    excludedEdges = S.edges - T.edges\;
+    excludedEdges = edges in subgraph S - edges in T\;
     \ForEach{edge e $\in$ excludedEdges}{
         firstPath = T.findPath(source: e.source, sink: e.sink)\;
-        $R_s$.addElement(new Bilinking(firstPath, e)\;
+        $R_s$.addElement((firstPath, e))\;
     } 
 }
 \KwRet{$R_s$}\;
 
-\caption{Finding a spanning set.}\label{algo_spanning_set}
+\caption{Finding a spanning set of path pairs.}\label{algo_spanning_set}
 \end{algorithm}
 
 With the spanning set thus initialized, it greedily tries to remove each pair from the spanning set if the set remains spanning even after removing the edge (~\ref{algo_minimal_spanning_set}).
 
 \begin{algorithm}[t]
 \DontPrintSemicolon
-\KwResult{Find a minimal spanning set R.}
+\KwResult{Find a minimal spanning set of path pairs (bilinkings) R.}
 
 \SetKwFunction{FSigma}{$\sigma$}
 \SetKwProg{Fn}{Function}{:}{}
-\Fn{\FSigma{inputSet S, codomain Rs}}{
+\Fn{\FSigma{input set S, spanning set Rs}}{
     output $\gets$ \{\}\;
     \For{bilinking $\in$ Rs}{
-        \tcc{Get fragments that could build up to the bilinking.}
-        smallerPairs $\gets$ getSmallerPairs(bilinking)\;
+        \tcc{Get fragments that could build up to the bilinking. Corresponds to applying <> function.}
+        smallerPairs $\gets$ allShorterPieces(bilinking)\;
         consideredPieces $\gets$ smallerPairs $\cap$ S \;
-        \tcc{See if bilinking can be built from these pieces.}
+        \tcc{Now see if bilinking can be built from these pieces.}
         \If{linearlyDependent(consideredPieces, bilinking)}{
             output.add(bilinking)\;
         }
@@ -467,31 +467,31 @@ Graph existingGraph;
 Edge newEdge;
 
 parallelPairs $\gets$ \{\}\;
-\For{S in existingGraph.Nodes}{
-    \For{T in existingGraph}{
+\For{src in existingGraph.Nodes}{
+    \For{snk in existingGraph}{
         \try{}{
             Path pathWithNewEdge $\gets$ FindPath(
-                graph: existingGraph, 
-                sourceNode: S,
-                sinkNode: newEdge.Source()) +\;
+                % graph: existingGraph, 
+                sourceNode: src,
+                sinkNode: newEdge.Source +\;
             newEdge as Path +\;
             FindPath(
-                graph: existingGraph, 
-                sourceNode: newEdge.Sink(), 
-                sinkNode: T)\;
-            \If{S == T}{
-                pathInOldGraph $\gets$ identity(S)\;
+                % graph: exisingGraph, 
+                sourceNode: newEdge.Sink, 
+                sinkNode: snk)\;
+            \If{src == snk}{
+                pathInOldGraph $\gets$ identity(src)\;
             }
             \Else(){
                 Path pathInOldGraph $\gets$ FindPath(
-                    graph: existingGraph, 
-                    sourceNode: S, 
-                    sinkNode: T)\;
+                    % graph: existingGraph, 
+                    sourceNode: src, 
+                    sinkNode: snk)\;
             }
             parallelPairs.add((pathInOldGraph, pathWithNewEdge))\;
         }
         \catch{PathFindingFailedException}{
-           \tcc{No comparable pairs from node S to node T that need to be checked}
+           \tcc{No comparable pairs from node src to node snk that need to be checked}
            continue\;
         }
     }
@@ -603,36 +603,31 @@ To summarize this algorithm conceptually, we start by constructing a graph with 
 Graph existingGraph\;
 Edge (S, T)\;
         
-predecessors $\gets$ S.predecessors(existingGraph)\;
-successors $\gets$ T.successors(existingGraph)\;
+predecessors $\gets$ predecessors of S in existingGraph\;
+successors $\gets$ successors of T in existingGraph\;
 
-Graph terminalPairGraph\;
+Graph terminalPairGraph $\gets$ empty \;
 \For{q $\in$ successors}{
     \For{p $\in$ predecessors}{
-        terminalPairGraph.addNode(q, p)\;
-        \For{qPred $\in$ q.predecessors(existingGraph)}{
-            \For{pSucc $\in$ p.successors(existingGraph)}{
-                terminalPairGraph.addEdge((qPred, pSucc))\;
+        terminalPairGraph.addNode((q, p))\;
+        \For{predecessor $\in$ predecessors of q in existingGraph}{
+            \For{successor $\in$ predecessors of p in existingGraph}{
+                terminalPairGraph.addEdge((predecessor, successor))\;
             }
         }
     }
 }
 
 verificationSet $\gets$ \{\}\;
-\While{len(terminalPairGraph.nodes) $>$ 0}{
-    currentNode $\gets$ terminalPairGraph.nodes[0]\;
-    visitedNodes $\gets$ \{\}\;
-    \While{len(currentNode.parents()) $>$ 0}{
-        visitedNodes.add(currentNode)\;
-        currentNode $\gets$ currentNode.parents()[0]\;
-        \If{currentNode $\in$ visitedNodes}{
-            edges $\gets$ getAllEdges(visitedNodes, terminalPairGraph)\;
-            terminalPairGraph.removeNodes(visitedNodes)\;
-            terminalPairGraph.addNode(currentNode, edges)\; 
-        }
+\While{terminalPairGraph.nodes not empty}{
+    currentNode $\gets$ terminalPairGraph.node\;
+    \tcp*{an arbitrarily chosen node of terminalPairGraph}
+    \While{currentNode has predecessors}{
+        currentNode $\gets$ predecessor\;
+        \tcp*{an arbitrarily chosen predecessor of current Node}
     }
     verificationSet.add(currentNode)\;
-    terminalPairGraph.removeNodes( currentNode.successors(terminalPairGraph))\;
+    terminalPairGraph.removeAllSuccessors(currentNode)\;
 }
 \KwRet{verificationSet}\;
 \caption{Minimal set finding algorithm}
