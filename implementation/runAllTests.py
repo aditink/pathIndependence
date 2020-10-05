@@ -20,3 +20,4 @@ for tests in objectsToRun:
         tests()
     except:
         continue
+    print('\033[0m' + "") # Reset output color.
