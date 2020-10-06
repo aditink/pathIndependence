@@ -20,12 +20,12 @@ OUTFILE = ''
 
 densityStep = 0.5
 sizeStep = 1
-maxSize = 12
+maxSize = 10
 
 # densities = [i*densityStep for i in range(1, int(1.0/densityStep))] 
 densities = [0.1, 0.25, 0.4]
-sizes = [i*sizeStep for i in range(1, int(maxSize/sizeStep))]
-# sizes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+# sizes = [i*sizeStep for i in range(1, int(maxSize/sizeStep))]
+sizes = [2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 evaluationList = [(density, size) for size in sizes for density in densities]
 

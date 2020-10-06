@@ -28,9 +28,6 @@ class BatchChecker(NaiveChecker, BaseOnlineChecker):
     def __init__(self):
         super().__init__()
         BaseOnlineChecker.__init__(self)
-        self.vectors = dict()
-        self.matrices = dict()
-        self.gaussianReduceResults = dict()
 
     #### Utility functions ####
 
@@ -41,12 +38,9 @@ class BatchChecker(NaiveChecker, BaseOnlineChecker):
 
     def vectorize(self, path):
         """Get a vector corresponding to a path."""
-        if tuple(path) in self.vectors:
-            return self.vectors[path]
         vector = [0 for i in range(len(self.graph)**2)]
         for i in range(len(path)-1):
             vector[self.getIndex(path[i], path[i+1])] = (vector[self.getIndex(i, i+1)] + 1) % 2
-        self.vectors[tuple(path)] = vector
         return vector
 
     def vectorizePair(self, pair):
@@ -109,9 +103,6 @@ class BatchChecker(NaiveChecker, BaseOnlineChecker):
         column vector is linearly dependent on all others."""
         if len(matrix) == 0:
             return True
-        key = (tuple(row) for row in matrix)
-        if key in self.gaussianReduceResults:
-            return self.gaussianReduceResults[key]
         pivot = 0
         for column in range(len(matrix[0])-1):
             if matrix[pivot][column] == 0:
@@ -128,9 +119,7 @@ class BatchChecker(NaiveChecker, BaseOnlineChecker):
                 pivot += 1
         for row in range(pivot, len(matrix)):
             if matrix[row][-1] == 1:
-                self.gaussianReduceResults[key] = False
                 return False
-        self.gaussianReduceResults[key] = True
         return True
 
     def sigma(self, subst: List[Tuple[List, List]], allPairs: List[Tuple[List, List]]) -> List:
@@ -159,10 +148,6 @@ class BatchChecker(NaiveChecker, BaseOnlineChecker):
     def matrixify(self, pieces, lastPair):
         """Given a list of pairs and the last pair in the problem, create the
         corresponding matrix in order to Gaussian reduce."""
-        piecesTuple = (tuple(piece) for piece in pieces)
-        key = (piecesTuple, tuple(lastPair))
-        if key in self.matrices:
-            return self.matrices[key]
         matrix = []
         pieces = [self.vectorizePair(piece) for piece in pieces]
         pair = self.vectorizePair(lastPair)
@@ -170,7 +155,6 @@ class BatchChecker(NaiveChecker, BaseOnlineChecker):
             rowEntries = [piece[row] for piece in pieces]
             rowEntries += [pair[row]]
             matrix += [rowEntries]
-        self.matrices[key] = matrix
         return matrix
 
     def getSuccessors(self, node):
