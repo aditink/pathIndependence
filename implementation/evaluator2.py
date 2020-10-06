@@ -15,15 +15,15 @@ import traceback
 from typing import List
 
 NUM_TRIES = 10
-DO_ACYCLIC = False
+DO_ACYCLIC = True
 OUTFILE = ''
 
 densityStep = 0.5
 sizeStep = 1
-maxSize = 250
+maxSize = 12
 
 # densities = [i*densityStep for i in range(1, int(1.0/densityStep))] 
-densities = [0.1, 0.5, 0.9]
+densities = [0.1, 0.25, 0.4]
 sizes = [i*sizeStep for i in range(1, int(maxSize/sizeStep))]
 # sizes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 
@@ -33,11 +33,11 @@ evaluationList = [(density, size) for size in sizes for density in densities]
 colors = ["black", "purple", "orange", "blue", "green", "red"]
 
 checkers : List[IPathChecker] = [
-    PolynomialPathChecker(),
-    OptimalSetPathChecker(),
+    # PolynomialPathChecker(),
+    # OptimalSetPathChecker(),
     # NaiveChecker(),
     # TwoFlipPathChecker(),
-    # BatchChecker()
+    BatchChecker()
 ]
 
 class attemptInfo:

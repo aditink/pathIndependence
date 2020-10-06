@@ -20,7 +20,7 @@ OUTFILE = ''
 
 densityStep = 0.5
 sizeStep = 1
-maxSize = 250
+maxSize = 10
 
 # densities = [i*densityStep for i in range(1, int(1.0/densityStep))] 
 densities = [0.1, 0.5, 0.9]
@@ -33,10 +33,10 @@ evaluationList = [(density, size) for size in sizes for density in densities]
 colors = ["black", "purple", "orange", "blue", "green", "red"]
 
 checkers : List[IPathChecker] = [
-    PolynomialPathChecker(),
-    OptimalSetPathChecker(),
-    # NaiveChecker(),
-    # TwoFlipPathChecker(),
+    # PolynomialPathChecker(),
+    # OptimalSetPathChecker(),
+    NaiveChecker(),
+    TwoFlipPathChecker()
     # BatchChecker()
 ]
 

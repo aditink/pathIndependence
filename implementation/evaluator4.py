@@ -23,7 +23,7 @@ sizeStep = 1
 maxSize = 250
 
 # densities = [i*densityStep for i in range(1, int(1.0/densityStep))] 
-densities = [0.1, 0.5, 0.9]
+densities = [0.5]
 sizes = [i*sizeStep for i in range(1, int(maxSize/sizeStep))]
 # sizes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 
@@ -34,7 +34,7 @@ colors = ["black", "purple", "orange", "blue", "green", "red"]
 
 checkers : List[IPathChecker] = [
     PolynomialPathChecker(),
-    OptimalSetPathChecker(),
+    OptimalSetPathChecker()
     # NaiveChecker(),
     # TwoFlipPathChecker(),
     # BatchChecker()
@@ -169,8 +169,8 @@ errorBars=False, median=False):
                 for x in sizes:
                     result = results[(density, x)]
                     points = result.getTimes()
-                    ax1.plot([x for point in points], points, '.', color=colors[i]) 
-                    # ax1.plot([x for point in points], points, '.', color="grey") 
+                    # ax1.plot([x for point in points], points, '.', color=colors[i]) 
+                    ax1.plot([x for point in points], points, '.', color="grey") 
         except:
             print("Exception while plotting for density {}".format(density))
             print(traceback.print_stack())
@@ -218,8 +218,8 @@ errorBars=False):
 def plot(checkerName, results):
     # plot3d(checkerName, results)
     # Modify densities to plot only a subset of those computed.
-    # plotTimeVsSize(checkerName, results, densities, True, True)
-    plotTimeVsSize(checkerName, results, densities, False, False)
+    plotTimeVsSize(checkerName, results, densities, True, True)
+    # plotTimeVsSize(checkerName, results, densities, False, False)
 
 def dumpResult(results: dict, runDetails: runDetails):
     """Write results to file."""
