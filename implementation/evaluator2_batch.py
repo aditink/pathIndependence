@@ -20,7 +20,7 @@ OUTFILE = ''
 
 densityStep = 0.5
 sizeStep = 1
-maxSize = 10
+maxSize = 13
 
 # densities = [i*densityStep for i in range(1, int(1.0/densityStep))] 
 densities = [0.1, 0.25, 0.4]
