@@ -1,6 +1,7 @@
 \newcount\draft\draft=0 % set to 0 for submission or publication
 % \documentclass[sigplan,review,anonymous]{acmart}
-\documentclass[sigplan,review,nonacm=true]{acmart}
+% \documentclass[sigplan,nonacm=true]{acmart}
+\documentclass[sigplan]{acmart}
 \setcopyright{none}
 %
 \usepackage{tikz}
@@ -49,6 +50,40 @@
 	% xleftmargin=\parindent,
 }
 
+
+%%% The following is specific to TAPAS '20 and the paper
+%%% 'Online Verification of Commutativity'
+%%% by Aditi Kabra, Dietrich Geisler, and Adrian Sampson.
+%%%
+\setcopyright{acmlicensed}
+\acmPrice{15.00}
+\acmDOI{10.1145/3427764.3428322}
+\acmYear{2020}
+\copyrightyear{2020}
+\acmSubmissionID{splashws20tapasmain-id5-p}
+\acmISBN{978-1-4503-8189-5/20/11}
+\acmConference[TAPAS '20]{Proceedings of the 11th ACM SIGPLAN International Workshop on Tools for Automatic Program Analysis}{November 17, 2020}{Virtual, USA}
+\acmBooktitle{Proceedings of the 11th ACM SIGPLAN International Workshop on Tools for Automatic Program Analysis (TAPAS '20), November 17, 2020, Virtual, USA}
+
+
+\begin{CCSXML}
+    <ccs2012>
+       <concept>
+           <concept_id>10003752.10003766.10003776</concept_id>
+           <concept_desc>Theory of computation~Regular languages</concept_desc>
+           <concept_significance>500</concept_significance>
+           </concept>
+       <concept>
+           <concept_id>10003752.10003809.10003635.10010038</concept_id>
+           <concept_desc>Theory of computation~Dynamic graph algorithms</concept_desc>
+           <concept_significance>500</concept_significance>
+           </concept>
+     </ccs2012>
+\end{CCSXML}
+    
+\ccsdesc[500]{Theory of computation~Regular languages}
+\ccsdesc[500]{Theory of computation~Dynamic graph algorithms}
+
 % Shorthand for inline code
 \newcommand{\code}{\lstinline[keywordstyle=]}
 
@@ -64,14 +99,7 @@
 \affiliation{%
   \institution{Cornell University}
 }
-% ACM publication cruft.
-\acmJournal{PACMPL}
-\acmVolume{1}
-\acmNumber{TAPAS}
-\acmArticle{1}
-\acmYear{2020}
-\acmMonth{1}
-\acmDOI{} % \acmDOI{10.1145/nnnnnnn.nnnnnnn}
+
 \startPage{1}
 
 \begin{abstract}
@@ -88,6 +116,8 @@ For the case when checking the equality of paths is expensive, we also present a
 We implement the algorithms and compare them to batch baselines, and we demonstrate their practical application in the compiler of a domain-specific language for geometry types.
 To study the algorithms' scalability to large diagrams, we apply them to discover discrepancies in currency conversion graphs.
 \end{abstract}
+
+\keywords{commuting diagrams, automatic type conversion, online verification}
 
 \maketitle
 
