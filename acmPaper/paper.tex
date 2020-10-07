@@ -9,8 +9,10 @@
 \usepackage[norelsize]{algorithm2e}
 \usepackage{xxx}
 \usepackage{fncylab}
+\usepackage{caption}
 \usepackage{subcaption}
 \usepackage{listings}
+\usepackage{microtype}
 %
 \usepackage{graphicx}
 % Used for displaying a sample figure. If possible, figure files should
@@ -429,17 +431,17 @@ From each edges in the reachable section that is not a part of the tree, it gene
 Graph existingGraph\;
 $R_s$ $\gets$ \{\}\;
 \ForEach{node v in V}{
-    S $\gets$ existingGraph.extractReachableSection(v)\;
-    T $\gets$ createMinimumSpanningTree(S)\;
-    excludedEdges = edges in subgraph S - edges in T\;
+    Subgraph $\gets$ existingGraph.extractReachableSection(v)\;
+    Tree $\gets$ createMinimumSpanningTree(Subgraph)\;
+    excludedEdges = edges in Subgraph - edges in Tree\;
     \ForEach{edge e $\in$ excludedEdges}{
-        firstPath = T.findPath(source: e.source, sink: e.sink)\;
+        firstPath = Tree.findPath(source: e.source, sink: e.sink)\;
         $R_s$.addElement((firstPath, e))\;
     } 
 }
 \KwRet{$R_s$}\;
 
-\caption{Finding a spanning set of path pairs.}\label{algo_spanning_set}
+\caption{Finding a spanning set of path pairs, as in section ~\ref{sec:batchBaseline}}\label{algo_spanning_set}
 \end{algorithm}
 
 With the spanning set thus initialized, it greedily tries to remove each pair from the spanning set if the set remains spanning even after removing the edge (~\ref{algo_minimal_spanning_set}).
@@ -472,7 +474,7 @@ R $\gets$ Rs\;
 }
 \KwRet{R}\;
 
-\caption{Finding a minimal spanning set.}\label{algo_minimal_spanning_set}
+\caption{Finding a minimal spanning set, as described in section ~\ref{sec:batchBaseline}}\label{algo_minimal_spanning_set}
 \end{algorithm}
 
 The proof of correctness can be found in Murota\cite{commutative}.
@@ -729,6 +731,7 @@ All computations were performed on a MacBook Pro 2015, 2.9 GHz dual-core Intel C
 The average time taken by each algorithm over the course of 10 runs over randomly generated graphs with 9 nodes and 32 edges is listed in Table~\ref{tab:times}.
 
 \begin{table}
+    \caption{Computation time for 9-node graph of density 0.4, averaged over ten runs.}
 \begin{tabular}{|c|c|}
     \hline
     Algorithm & average seconds of computation \\
@@ -740,7 +743,6 @@ The average time taken by each algorithm over the course of 10 runs over randoml
     ~\ref{algo_online_minimal} & 0.00086 \\
     \hline
 \end{tabular}
-\caption{Computation time for 9-node graph of density 0.4, averaged over ten runs.}
 \label{tab:times} %TODO debug and fix label not working.
 \end{table}
     
@@ -845,6 +847,7 @@ These results are essentially as expected, although it is interesting to note th
 Also note that Algorithm 4 produces the minimal number of paths, showing why it is the minimal set algorithm.
 
 \begin{table}
+    \caption{Output size for 9 node graph of density 0.4, averaged over ten runs}
 \begin{tabular}{|c|c|}
     \hline
     Algorithm & average number of output pairs \\
@@ -856,7 +859,6 @@ Also note that Algorithm 4 produces the minimal number of paths, showing why it 
     ~\ref{algo_online_minimal} & 1 \\
     \hline
 \end{tabular}
-\caption{Output size for 9 node graph of density 0.4, averaged over ten runs}
 \label{tab:sizes}
 \end{table}
 
