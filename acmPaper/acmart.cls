@@ -2242,10 +2242,10 @@
   \gdef\and{}}%
   \def\email##1##2{\ifx\@currentaffiliation\@empty
     \gdef\@currentaffiliation{\bgroup
-      \mathchardef\UrlBreakPenalty=10000\nolinkurl{##2}\egroup}%
+      \mathchardef\UrlBreakPenalty=10000\texttt{##2}\egroup}%
   \else
     \g@addto@macro\@currentaffiliation{\par\bgroup
-      \mathchardef\UrlBreakPenalty=10000\nolinkurl{##2}\egroup}%
+      \mathchardef\UrlBreakPenalty=10000\texttt{##2}\egroup}%
   \fi}%
   \def\affiliation##1##2{\ifx\@currentaffiliation\@empty
     \gdef\@currentaffiliation{%

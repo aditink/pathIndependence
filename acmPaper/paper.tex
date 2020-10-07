@@ -4,6 +4,7 @@
 \documentclass[sigplan]{acmart}
 \setcopyright{none}
 %
+
 \usepackage{tikz}
 \usetikzlibrary{snakes}
 \usepackage[norelsize]{algorithm2e}
@@ -98,7 +99,7 @@
 % an abbreviated paper title here
 %
 \author{Aditi Kabra \quad Dietrich Geisler \quad Adrian Sampson}
-\email{{ank55, dag368}@cornell.edu, asampson@cs.cornell.edu}
+\email{\{ank55, dag368\}@cornell.edu \qquad asampson@cs.cornell.edu}
 \affiliation{%
   \institution{Cornell University}
   \city{Ithaca}
@@ -775,19 +776,19 @@ For the batch algorithm we use lower densities since the input graph must be acy
 \begin{figure}
     % TODO format nicely.
     \begin{subfigure}{\linewidth}
-      \includegraphics[width=\linewidth]{timeVsSize_10_OptimalSet.png}
+      \includegraphics[width=\linewidth]{timeVsSize_10_OptimalSet.pdf}
       \caption{~\ref{algo_online_minimal}}
       \label{fig:sfigOptimalTvsS}
     \end{subfigure}
 
     \begin{subfigure}{\linewidth}
-      \includegraphics[width=\linewidth]{timeVsSize_10_Polynomial.png}
+      \includegraphics[width=\linewidth]{timeVsSize_10_Polynomial.pdf}
       \caption{~\ref{algo_online_polynomial}}
       \label{fig:sfigPolynomialTvsS}
     \end{subfigure}
     
     \begin{subfigure}{\linewidth}
-      \includegraphics[width=\linewidth]{timeVsSize_10_NaiveChecker.png}
+      \includegraphics[width=\linewidth]{timeVsSize_10_NaiveChecker.pdf}
       \caption{Naive baseline}
       \label{fig:sfigNa\"{i}veTvsS}
     \end{subfigure}
@@ -796,13 +797,13 @@ For the batch algorithm we use lower densities since the input graph must be acy
 \begin{figure}\ContinuedFloat
 
     \begin{subfigure}{\linewidth}
-      \includegraphics[width=\linewidth]{timeVsSize_10_TwoFlipPathChecker.png}
+      \includegraphics[width=\linewidth]{timeVsSize_10_TwoFlipPathChecker.pdf}
       \caption{Two flip tolerant baseline}
       \label{fig:sfigTwoFlipTvsS}
     \end{subfigure}
 
     \begin{subfigure}{\linewidth}
-      \includegraphics[width=\linewidth]{timeVsSize_10_BatchChecker.png}
+      \includegraphics[width=\linewidth]{timeVsSize_10_BatchChecker.pdf}
       \caption{Batch algorithm baseline}
       \label{fig:sfigBatchTvsS}
     \end{subfigure}
@@ -823,7 +824,7 @@ Figure ~\ref{fig:variance} depicts the situation for ~\ref{algo_online_polynomia
 \begin{figure}
     % TODO format nicely.
     \begin{subfigure}{\linewidth}
-      \includegraphics[width=\linewidth]{variance_10_OptimalSet.png}
+      \includegraphics[width=\linewidth]{variance_10_OptimalSet.pdf}
       \caption{~\ref{algo_online_minimal}}
       \label{fig:sfigOptimalSpread}
     \end{subfigure}
@@ -835,7 +836,7 @@ Figure ~\ref{fig:variance} depicts the situation for ~\ref{algo_online_polynomia
     \end{subfigure}
     
     % \begin{subfigure}{\linewidth}
-    %   \includegraphics[width=\linewidth]{variance_10_TwoFlip.png}
+    %   \includegraphics[width=\linewidth]{variance_10_TwoFlip.pdf}
     %   \caption{Two flip tolerant baseline}
     %   \label{fig:sfigTwoFlipSpread}
     % \end{subfigure}
