@@ -162,7 +162,5 @@ dmypy.json
 *.synctex.gz
 *.synctex(busy)
 
-*.pdf
-
 # Results folder in evaluation
 results/
