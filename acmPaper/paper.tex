@@ -75,10 +75,16 @@
            <concept_desc>Theory of computation~Dynamic graph algorithms</concept_desc>
            <concept_significance>500</concept_significance>
            </concept>
+           <concept>
+           <concept_id>10003752.10010124.10010138.10010142</concept_id>
+           <concept_desc>Theory of computation~Program verification</concept_desc>
+           <concept_significance>500</concept_significance>
+           </concept>
      </ccs2012>
 \end{CCSXML}
     
 \ccsdesc[500]{Theory of computation~Dynamic graph algorithms}
+\ccsdesc[500]{Theory of computation~Program verification}
 
 % Shorthand for inline code
 \newcommand{\code}{\lstinline[keywordstyle=]}
@@ -198,7 +204,7 @@ Which path is taken depends on the compiler; we would like the choice of paths t
             \fill [black] (35.36,-34.07) -- (36.13,-34.6) -- (36.18,-33.6);
             \draw (49.23,-21.46) node [right] {$\times 6.21$};
             \end{tikzpicture}
-        \caption{Diagram for the type conversions in the program}
+        \caption{Diagram for the type conversions in the program.}
     \end{subfigure}
     \vspace{-2ex}
     \caption{In this sample program, the user implicitly defines two ways to cast variable a from meters to the new unit wugs.
@@ -457,7 +463,7 @@ $R_s$ $\gets$ \{\}\;
 }
 \KwRet{$R_s$}\;
 
-\caption{Finding a spanning set of path pairs, as in section ~\ref{sec:batchBaseline}}\label{algo_spanning_set}
+\caption{Finding a spanning set of path pairs, as in section ~\ref{sec:batchBaseline}.}\label{algo_spanning_set}
 \end{algorithm}
 
 With the spanning set thus initialized, it greedily tries to remove each pair from the spanning set if the set remains spanning even after removing the edge (~\ref{algo_minimal_spanning_set}).
@@ -490,7 +496,7 @@ R $\gets$ Rs\;
 }
 \KwRet{R}\;
 
-\caption{Finding a minimal spanning set, as described in section ~\ref{sec:batchBaseline}}\label{algo_minimal_spanning_set}
+\caption{Finding a minimal spanning set, as described in section ~\ref{sec:batchBaseline}.}\label{algo_minimal_spanning_set}
 \end{algorithm}
 
 The proof of correctness can be found in Murota\cite{commutative}.
@@ -545,7 +551,7 @@ parallelPairs $\gets$ \{\}\;
     }
 }
 \KwRet{parallelPairs}\;
-\caption{Online polynomial time algorithm to find parallel pair set}
+\caption{Online polynomial time algorithm to find parallel pair set.}
 \label{algo_online_polynomial}
 \end{algorithm}
 
@@ -678,7 +684,7 @@ verificationSet $\gets$ \{\}\;
     terminalPairGraph.removeAllSuccessors(currentNode)\;
 }
 \KwRet{verificationSet}\;
-\caption{Minimal set finding algorithm}
+\caption{Minimal set finding algorithm.}
 \label{algo_online_minimal}
 \end{algorithm}
 
@@ -788,19 +794,19 @@ For the batch algorithm we use lower densities since the input graph must be acy
     % TODO format nicely.
     \begin{subfigure}{\linewidth}
       \includegraphics[width=\linewidth]{timeVsSize_10_OptimalSet.pdf}
-      \caption{~\ref{algo_online_minimal}}
+      \caption{~\ref{algo_online_minimal}.}
       \label{fig:sfigOptimalTvsS}
     \end{subfigure}
 
     \begin{subfigure}{\linewidth}
       \includegraphics[width=\linewidth]{timeVsSize_10_Polynomial.pdf}
-      \caption{~\ref{algo_online_polynomial}}
+      \caption{~\ref{algo_online_polynomial}.}
       \label{fig:sfigPolynomialTvsS}
     \end{subfigure}
     
     \begin{subfigure}{\linewidth}
       \includegraphics[width=\linewidth]{timeVsSize_10_NaiveChecker.pdf}
-      \caption{Naive baseline}
+      \caption{Naive baseline.}
       \label{fig:sfigNa\"{i}veTvsS}
     \end{subfigure}
 
@@ -809,16 +815,16 @@ For the batch algorithm we use lower densities since the input graph must be acy
 
     \begin{subfigure}{\linewidth}
       \includegraphics[width=\linewidth]{timeVsSize_10_TwoFlipPathChecker.pdf}
-      \caption{Two flip tolerant baseline}
+      \caption{Two flip tolerant baseline.}
       \label{fig:sfigTwoFlipTvsS}
     \end{subfigure}
 
     \begin{subfigure}{\linewidth}
       \includegraphics[width=\linewidth]{timeVsSize_10_BatchChecker.pdf}
-      \caption{Batch algorithm baseline}
+      \caption{Batch algorithm baseline.}
       \label{fig:sfigBatchTvsS}
     \end{subfigure}
-    \caption{Plots of scaling of time with input size and density}
+    \caption{Plots of scaling of time with input size and density.}
     \label{fig:timeVsSize}
 \end{figure}
 
@@ -836,13 +842,13 @@ Figure ~\ref{fig:variance} depicts the situation for ~\ref{algo_online_polynomia
     % TODO format nicely.
     \begin{subfigure}{\linewidth}
       \includegraphics[width=\linewidth]{variance_10_OptimalSet.pdf}
-      \caption{~\ref{algo_online_minimal}}
+      \caption{~\ref{algo_online_minimal}.}
       \label{fig:sfigOptimalSpread}
     \end{subfigure}
 
     \begin{subfigure}{\linewidth}
       \includegraphics[width=\linewidth]{variance_10_Polynomial.pdf}
-      \caption{~\ref{algo_online_polynomial}}
+      \caption{~\ref{algo_online_polynomial}.}
       \label{fig:sfigPolynomialSpread}
     \end{subfigure}
     
@@ -852,7 +858,7 @@ Figure ~\ref{fig:variance} depicts the situation for ~\ref{algo_online_polynomia
     %   \label{fig:sfigTwoFlipSpread}
     % \end{subfigure}
 
-    \caption{Plots of spread of results}
+    \caption{Plots of spread of results.}
     \label{fig:variance}
 \end{figure}
 
@@ -863,7 +869,7 @@ These results are essentially as expected, although it is interesting to note th
 Also note that Algorithm 4 produces the minimal number of paths, showing why it is the minimal set algorithm.
 
 \begin{table}
-    \caption{Output size for 9 node graph of density 0.4, averaged over ten runs}
+    \caption{Output size for 9 node graph of density 0.4, averaged over ten runs.}
 \begin{tabular}{|c|c|}
     \hline
     Algorithm & average number of output pairs \\
