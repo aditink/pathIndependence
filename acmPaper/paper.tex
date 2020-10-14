@@ -13,6 +13,9 @@
 \usepackage{subcaption}
 \usepackage{listings}
 \usepackage{microtype}
+\usepackage{float}
+% \usepackage{endfloat}
+% \usepackage{afterpage}
 %
 \usepackage{graphicx}
 % Used for displaying a sample figure. If possible, figure files should
@@ -75,10 +78,16 @@
            <concept_desc>Theory of computation~Dynamic graph algorithms</concept_desc>
            <concept_significance>500</concept_significance>
            </concept>
+           <concept>
+           <concept_id>10003752.10010124.10010138.10010142</concept_id>
+           <concept_desc>Theory of computation~Program verification</concept_desc>
+           <concept_significance>500</concept_significance>
+           </concept>
      </ccs2012>
 \end{CCSXML}
     
 \ccsdesc[500]{Theory of computation~Dynamic graph algorithms}
+\ccsdesc[500]{Theory of computation~Program verification}
 
 % Shorthand for inline code
 \newcommand{\code}{\lstinline[keywordstyle=]}
@@ -198,7 +207,7 @@ Which path is taken depends on the compiler; we would like the choice of paths t
             \fill [black] (35.36,-34.07) -- (36.13,-34.6) -- (36.18,-33.6);
             \draw (49.23,-21.46) node [right] {$\times 6.21$};
             \end{tikzpicture}
-        \caption{Diagram for the type conversions in the program}
+        \caption{Diagram for the type conversions in the program.}
     \end{subfigure}
     \vspace{-2ex}
     \caption{In this sample program, the user implicitly defines two ways to cast variable a from meters to the new unit wugs.
@@ -439,7 +448,7 @@ Roughly, the algorithm proceeds by first efficiently finding a \textit{spanning}
 It does this, starting at every node, by finding the reachable subsection of the graph, and a spanning tree for the subsection.
 From each edges in the reachable section that is not a part of the tree, it generates a bilinking using the edge and a path in the tree that is parallel to the edge (\ref{algo_spanning_set}).
 
-\begin{algorithm}[t]
+\begin{algorithm}[tb]
 \label{alg_spanning_set}
 \DontPrintSemicolon
 \KwResult{Find a spanning set Rs = [$r_1$, ... ,$r_k$].}
@@ -447,22 +456,23 @@ From each edges in the reachable section that is not a part of the tree, it gene
 Graph existingGraph\;
 $R_s$ $\gets$ \{\}\;
 \ForEach{node v in V}{
-    Subgraph $\gets$ existingGraph.extractReachableSection(v)\;
-    Tree $\gets$ createMinimumSpanningTree(Subgraph)\;
-    excludedEdges = edges in Subgraph - edges in Tree\;
+    subgraph $\gets$ existingGraph.extractReachableSection(v)\;
+    \tcc{Get the portion of the graph that can be reached starting from v.}
+    tree $\gets$ createMinimumSpanningTree(subgraph)\;
+    excludedEdges = edges in subgraph - edges in tree\;
     \ForEach{edge e $\in$ excludedEdges}{
-        firstPath = Tree.findPath(source: e.source, sink: e.sink)\;
+        firstPath = tree.findPath(source: e.source, sink: e.sink)\;
         $R_s$.addElement((firstPath, e))\;
     } 
 }
 \KwRet{$R_s$}\;
 
-\caption{Finding a spanning set of path pairs, as in section ~\ref{sec:batchBaseline}}\label{algo_spanning_set}
+\caption{Finding a spanning set of path pairs, as in section ~\ref{sec:batchBaseline}.}\label{algo_spanning_set}
 \end{algorithm}
 
 With the spanning set thus initialized, it greedily tries to remove each pair from the spanning set if the set remains spanning even after removing the edge (~\ref{algo_minimal_spanning_set}).
 
-\begin{algorithm}[t]
+\begin{algorithm}[tb]
 \DontPrintSemicolon
 \KwResult{Find a minimal spanning set of path pairs (bilinkings) R.}
 
@@ -471,10 +481,11 @@ With the spanning set thus initialized, it greedily tries to remove each pair fr
 \Fn{\FSigma{input set S, spanning set Rs}}{
     output $\gets$ \{\}\;
     \For{bilinking $\in$ Rs}{
-        \tcc{Get fragments that could build up to the bilinking. Corresponds to applying <> function.}
         smallerPairs $\gets$ allShorterPieces(bilinking)\;
+        \tcc{Get fragments that could build up to the bilinking. Corresponds to applying <> function.}
         consideredPieces $\gets$ smallerPairs $\cap$ S \;
         \tcc{Now see if bilinking can be built from these pieces.}
+        \tcc{Linear independence is in GF(2) as in algorithm description.}
         \If{linearlyDependent(consideredPieces, bilinking)}{
             output.add(bilinking)\;
         }
@@ -490,7 +501,7 @@ R $\gets$ Rs\;
 }
 \KwRet{R}\;
 
-\caption{Finding a minimal spanning set, as described in section ~\ref{sec:batchBaseline}}\label{algo_minimal_spanning_set}
+\caption{Finding a minimal spanning set, as described in section ~\ref{sec:batchBaseline}.}\label{algo_minimal_spanning_set}
 \end{algorithm}
 
 The proof of correctness can be found in Murota\cite{commutative}.
@@ -505,7 +516,7 @@ The key observation allowing us to improve on the online baseline is a result of
 It is straightforward to see that, should our selected set of pairs and cycles passing through the new edge be verified commutative, the entire diagram must commute.
 \ref{algo_online_polynomial} uses this strategy of identifying a parallel pair with exactly one path through the edge for each (source, sink) pair.
 
-\begin{algorithm}[t]
+\begin{algorithm}[tb]
 \DontPrintSemicolon
 \KwData{existing graph, new edge.}
 \KwResult{Set of parallel pairs to verify.}
@@ -518,17 +529,19 @@ parallelPairs $\gets$ \{\}\;
 \For{src in existingGraph.Nodes}{
     \For{snk in existingGraph}{
         \try{}{
+            \tcc{Use any standard path finding algorithm such as BFS to find a path in the existing graph from the specified source to sink.}
             Path pathWithNewEdge $\gets$ FindPath(
                 % graph: existingGraph, 
                 sourceNode: src,
-                sinkNode: newEdge.Source +\;
-            newEdge as Path +\;
+                sinkNode: newEdge.Source) +\;
+            newEdge +\;
             FindPath(
                 % graph: exisingGraph, 
                 sourceNode: newEdge.Sink, 
                 sinkNode: snk)\;
             \If{src == snk}{
-                pathInOldGraph $\gets$ identity(src)\;
+                \tcc{Assign the nullary path from src to snk.}
+                pathInOldGraph $\gets$ src\;
             }
             \Else(){
                 Path pathInOldGraph $\gets$ FindPath(
@@ -545,7 +558,7 @@ parallelPairs $\gets$ \{\}\;
     }
 }
 \KwRet{parallelPairs}\;
-\caption{Online polynomial time algorithm to find parallel pair set}
+\caption{Online polynomial time algorithm to find parallel pair set.}
 \label{algo_online_polynomial}
 \end{algorithm}
 
@@ -644,7 +657,7 @@ Using this information it is possible to choose a minimal subset of path pairs t
 %
 To summarize this algorithm conceptually, we start by constructing a graph with a node for each possible (source, sink) pair in the graph: each node then represents a possible choice for parallel pair endpoint pairs. Edges are drawn from node ($P_1$, $P_2$) to ($Q_1$, $Q_2$) if $Q_1$ is a successor of $P_1$ and $P_2$ is a successor of $Q_2$. We greedily search for the smallest set of nodes from which the entire graph would be reachable. The idea is to look for ``roots'' in the graph that have to be included in the ultimate verification set because they have no predecessor in the graph and cannot be verified ``through'' the verification of some other pair. Then all the successors whose verification is implied by the roots are eliminated.
 
-\begin{algorithm}
+\begin{algorithm}[tb]
 \DontPrintSemicolon
 \KwData{Existing graph, new edge.}
 \KwResult{Set of parallel pairs to verify.}
@@ -671,14 +684,14 @@ verificationSet $\gets$ \{\}\;
     currentNode $\gets$ terminalPairGraph.node\;
     \tcp*{an arbitrarily chosen node of terminalPairGraph}
     \While{currentNode has predecessors}{
-        currentNode $\gets$ predecessor\;
+        currentNode $\gets$ predecessorOfCurrentNode\;
         \tcp*{an arbitrarily chosen predecessor of current Node}
     }
     verificationSet.add(currentNode)\;
     terminalPairGraph.removeAllSuccessors(currentNode)\;
 }
 \KwRet{verificationSet}\;
-\caption{Minimal set finding algorithm}
+\caption{Minimal set finding algorithm.}
 \label{algo_online_minimal}
 \end{algorithm}
 
@@ -784,43 +797,44 @@ Generally, denser graphs entail longer computation time.
 For the batch algorithm we use lower densities since the input graph must be acyclic. This puts an upper bound on density that approaches 0.5 in large graphs.
 % Our proposed algorithms, ~\ref{algo_minimal_spanning_set} and ~\ref{algo_online_polynomial} are less affected because they aggressively remove redundancies.
 
-\begin{figure}
+\begin{figure*}
     % TODO format nicely.
-    \begin{subfigure}{\linewidth}
+    \begin{subfigure}{0.3\linewidth}
       \includegraphics[width=\linewidth]{timeVsSize_10_OptimalSet.pdf}
-      \caption{~\ref{algo_online_minimal}}
+      \caption{~\ref{algo_online_minimal}.}
       \label{fig:sfigOptimalTvsS}
     \end{subfigure}
-
-    \begin{subfigure}{\linewidth}
+    ~
+    \begin{subfigure}{0.3\linewidth}
       \includegraphics[width=\linewidth]{timeVsSize_10_Polynomial.pdf}
-      \caption{~\ref{algo_online_polynomial}}
+      \caption{~\ref{algo_online_polynomial}.}
       \label{fig:sfigPolynomialTvsS}
     \end{subfigure}
-    
-    \begin{subfigure}{\linewidth}
+    ~
+    \begin{subfigure}{0.3\linewidth}
       \includegraphics[width=\linewidth]{timeVsSize_10_NaiveChecker.pdf}
-      \caption{Naive baseline}
+      \caption{Naive baseline.}
       \label{fig:sfigNa\"{i}veTvsS}
     \end{subfigure}
 
-\end{figure}
-\begin{figure}\ContinuedFloat
+    ~
+% \end{figure}
+% \begin{figure}\ContinuedFloat
 
-    \begin{subfigure}{\linewidth}
+    \begin{subfigure}{0.3\linewidth}
       \includegraphics[width=\linewidth]{timeVsSize_10_TwoFlipPathChecker.pdf}
-      \caption{Two flip tolerant baseline}
+      \caption{Two flip tolerant baseline.}
       \label{fig:sfigTwoFlipTvsS}
     \end{subfigure}
-
-    \begin{subfigure}{\linewidth}
+    ~
+    \begin{subfigure}{0.3\linewidth}
       \includegraphics[width=\linewidth]{timeVsSize_10_BatchChecker.pdf}
-      \caption{Batch algorithm baseline}
+      \caption{Batch algorithm baseline.}
       \label{fig:sfigBatchTvsS}
     \end{subfigure}
-    \caption{Plots of scaling of time with input size and density}
+    \caption{Plots of scaling of time with input size and density.}
     \label{fig:timeVsSize}
-\end{figure}
+\end{figure*}
 
 \subsection{Variance}
 The periodic spikes in Figure ~\ref{fig:sfigOptimalTvsS} are striking. 
@@ -836,13 +850,13 @@ Figure ~\ref{fig:variance} depicts the situation for ~\ref{algo_online_polynomia
     % TODO format nicely.
     \begin{subfigure}{\linewidth}
       \includegraphics[width=\linewidth]{variance_10_OptimalSet.pdf}
-      \caption{~\ref{algo_online_minimal}}
+      \caption{~\ref{algo_online_minimal}.}
       \label{fig:sfigOptimalSpread}
     \end{subfigure}
 
     \begin{subfigure}{\linewidth}
       \includegraphics[width=\linewidth]{variance_10_Polynomial.pdf}
-      \caption{~\ref{algo_online_polynomial}}
+      \caption{~\ref{algo_online_polynomial}.}
       \label{fig:sfigPolynomialSpread}
     \end{subfigure}
     
@@ -852,7 +866,7 @@ Figure ~\ref{fig:variance} depicts the situation for ~\ref{algo_online_polynomia
     %   \label{fig:sfigTwoFlipSpread}
     % \end{subfigure}
 
-    \caption{Plots of spread of results}
+    \caption{Plots of spread of results.}
     \label{fig:variance}
 \end{figure}
 
@@ -863,7 +877,7 @@ These results are essentially as expected, although it is interesting to note th
 Also note that Algorithm 4 produces the minimal number of paths, showing why it is the minimal set algorithm.
 
 \begin{table}
-    \caption{Output size for 9 node graph of density 0.4, averaged over ten runs}
+    \caption{Output size for 9 node graph of density 0.4, averaged over ten runs.}
 \begin{tabular}{|c|c|}
     \hline
     Algorithm & average number of output pairs \\

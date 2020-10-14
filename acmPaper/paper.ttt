@@ -1,0 +1,32 @@
+\begin{table}
+    \caption{Computation time for 9-node graph of density 0.4, averaged over ten runs.}
+\begin{tabular}{|c|c|}
+    \hline
+    Algorithm & average seconds of computation \\
+    \hline
+    Na\"{i}ve baseline & 0.77 \\
+    Two Flip tolerant & 0.075 \\
+    Batch algorithm & 7.55 \\
+    ~\ref{algo_online_polynomial} & 0.0038 \\
+    ~\ref{algo_online_minimal} & 0.00086 \\
+    \hline
+\end{tabular}
+\label{tab:times} %TODO debug and fix label not working.
+\end{table}
+\efloatseparator
+ 
+\begin{table}
+    \caption{Output size for 9 node graph of density 0.4, averaged over ten runs.}
+\begin{tabular}{|c|c|}
+    \hline
+    Algorithm & average number of output pairs \\
+    \hline
+    Na\"{i}ve baseline & 39754.9 \\
+    Two Flip tolerant & 748.9 \\
+    Batch algorithm & 23 \\
+    ~\ref{algo_online_polynomial} & 78.3 \\
+    ~\ref{algo_online_minimal} & 1 \\
+    \hline
+\end{tabular}
+\label{tab:sizes}
+\end{table}
