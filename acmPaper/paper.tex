@@ -774,28 +774,6 @@ The average time taken by each algorithm over the course of 10 runs over randoml
 \end{tabular}
 \label{tab:times} %TODO debug and fix label not working.
 \end{table}
-    
-The na\"{i}ve baseline performs poorly, taking well over a thousand seconds for even small graphs of 10 nodes.
-While the batch algorithm improves on this, it still does not scale very well, with computation for a graph with 14 nodes and 0.4 density taking hours.
-Our implementation does not memoize the construction of the vector and matrix representation of paths in GF(2); profiling indicates that this construction is a major factor in the high time cost for this algorithm.
-\ref{algo_online_polynomial} performs only slightly better than the batch algorithm.
-Surprisingly, the optimal set algorithm cuts time cost by several orders of magnitude, and runs in milliseconds for small graphs.
-All implementations are sensitive to density, performing better when density is low.
-    
-\subsection{Scaling of Time with Input Size}
-
-Figure~\ref{fig:timeVsSize} shows that the algorithms' time scales with size, as expected.
-\xxx[as]{The plots are weirdly tiny on my machine... any chance your plotting tool can output PDF images?}
-Both \ref{algo_online_minimal} and \ref{algo_online_polynomial} exhibit graphs that are polynomial in appearance.
-The na\"{i}ve baseline as well as the two flip tolerant baseline display quick growth.
-The batch algorithm also grows fast, though not as much as the online checking baselines.
-
-We define density to be the ratio of the number of edges in the graph to the total possible number of edges (which is $|V|^2$, where $|V|$ is the number of nodes).
-Run time relates to the density of edges in the input graph.
-The degree of the effect differs with the algorithms, as Figure~\ref{fig:timeVsSize} shows.
-Generally, denser graphs entail longer computation time.
-For the batch algorithm we use lower densities since the input graph must be acyclic. This puts an upper bound on density that approaches 0.5 in large graphs.
-% Our proposed algorithms, ~\ref{algo_minimal_spanning_set} and ~\ref{algo_online_polynomial} are less affected because they aggressively remove redundancies.
 
 \begin{figure*}
     % TODO format nicely.
@@ -835,6 +813,29 @@ For the batch algorithm we use lower densities since the input graph must be acy
     \caption{Running time for various algorithms as input graph size and density scale.}
     \label{fig:timeVsSize}
 \end{figure*}
+    
+The na\"{i}ve baseline performs poorly, taking well over a thousand seconds for even small graphs of 10 nodes.
+While the batch algorithm improves on this, it still does not scale very well, with computation for a graph with 14 nodes and 0.4 density taking hours.
+Our implementation does not memoize the construction of the vector and matrix representation of paths in GF(2); profiling indicates that this construction is a major factor in the high time cost for this algorithm.
+\ref{algo_online_polynomial} performs only slightly better than the batch algorithm.
+Surprisingly, the optimal set algorithm cuts time cost by several orders of magnitude, and runs in milliseconds for small graphs.
+All implementations are sensitive to density, performing better when density is low.
+    
+\subsection{Scaling of Time with Input Size}
+
+Figure~\ref{fig:timeVsSize} shows that the algorithms' time scales with size, as expected.
+\xxx[as]{The plots are weirdly tiny on my machine... any chance your plotting tool can output PDF images?}
+Both \ref{algo_online_minimal} and \ref{algo_online_polynomial} exhibit graphs that are polynomial in appearance.
+The na\"{i}ve baseline as well as the two flip tolerant baseline display quick growth.
+The batch algorithm also grows fast, though not as much as the online checking baselines.
+
+We define density to be the ratio of the number of edges in the graph to the total possible number of edges (which is $|V|^2$, where $|V|$ is the number of nodes).
+Run time relates to the density of edges in the input graph.
+The degree of the effect differs with the algorithms, as Figure~\ref{fig:timeVsSize} shows.
+Generally, denser graphs entail longer computation time.
+For the batch algorithm we use lower densities since the input graph must be acyclic. This puts an upper bound on density that approaches 0.5 in large graphs.
+% Our proposed algorithms, ~\ref{algo_minimal_spanning_set} and ~\ref{algo_online_polynomial} are less affected because they aggressively remove redundancies.
+
 
 \subsection{Variance}
 The periodic spikes in Figure ~\ref{fig:sfigOptimalTvsS} are striking. 
