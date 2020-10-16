@@ -1,7 +1,5 @@
 \newcount\draft\draft=0 % set to 0 for submission or publication
-% \documentclass[sigplan,review,anonymous]{acmart}
-% \documentclass[sigplan,nonacm=true]{acmart}
-\documentclass[sigplan]{acmart}
+\documentclass[sigplan, scree, balance]{acmart}
 %
 
 \usepackage{tikz}
@@ -14,16 +12,10 @@
 \usepackage{listings}
 \usepackage{microtype}
 \usepackage{float}
-% \usepackage{endfloat}
-% \usepackage{afterpage}
+\usepackage{balance}
 %
 \usepackage{graphicx}
-% Used for displaying a sample figure. If possible, figure files should
-% be included in EPS format.
-%
-% If you use the hyperref package, please uncomment the following line
-% to display URLs in blue roman font according to Springer's eBook style:
-% \renewcommand\UrlFont{\color{blue}\rmfamily}
+
 \AtBeginDocument{%
   \providecommand\BibTeX{{%
     \normalfont B\kern-0.5em{\scshape i\kern-0.25em b}\kern-0.8em\TeX}}}
@@ -78,7 +70,7 @@
            <concept_desc>Theory of computation~Dynamic graph algorithms</concept_desc>
            <concept_significance>500</concept_significance>
            </concept>
-           <concept>
+       <concept>
            <concept_id>10003752.10010124.10010138.10010142</concept_id>
            <concept_desc>Theory of computation~Program verification</concept_desc>
            <concept_significance>500</concept_significance>
@@ -95,11 +87,7 @@
 \begin{document}
 \settopmatter{printacmref=true}
 \title{Online Verification of Commutativity}
-%
-%\titlerunning{Abbreviated paper title}
-% If the paper title is too long for the running head, you can set
-% an abbreviated paper title here
-%
+
 \author{Aditi Kabra}
 \affiliation{%
   \institution{Carnegie Mellon University}
@@ -134,8 +122,6 @@ Systems of transformations arise in many programming systems, such as in graphs 
 It is important to ensure that these diagrams commute: that composing any path of transformations from the same source to the same destination yields the same result.
 However, a straightforward approach to verifying commutativity must contend with cycles, and even so it runs in exponential time.
 Previous work has shown how to verify commutativity in the special case of acyclic diagrams in $O(|V|^4|E|^2)$ time,
-% I think this is clear enough (at least for the abstract). --AS
-% where V is the set of vertices in the diagram, and E, the set of edges.
 but this is a \emph{batch} algorithm: the entire diagram must be known ahead of time.
 We present an \emph{online} algorithm that efficiently verifies that a commutative diagram remains commutative when adding a new edge.
 The new incremental algorithm runs in $O(|V|^2(|E| + |V|))$ time.
@@ -256,7 +242,7 @@ A semigroup consists of a set and an associative binary operation, which we use 
 %
 The correspondence between edges and functions is stored as a mapping $f:E\rightarrow F$, where $f$ maps each edge to the function it represents.
 
-A path is a sequence of edges. The edge-to-function mapping $f$ can be naturally extended to paths: if path $p=e_1 ; e_2 ; \cdots ; e_n$ then $f(p)=f(e_1) ; f(e_2) ; \cdots ; f(e_n)$.
+A path is a sequence of edges. The edge-to-function mapping $f$ can be naturally extended to paths: if path $p$=$e_1 ; \cdots ; e_n$ then $f(p)=f(e_1) ; f(e_2) ; \cdots ; f(e_n)$.
 %
 We write $\partial(p)^{+}$ for $p$'s start node, $\partial(p)^{-}$ for its end node, and $\partial(p)$ to denote the pair
 $(\partial(p)^{+}, \partial(p)^{-})$.
@@ -532,12 +518,10 @@ parallelPairs $\gets$ \{\}\;
         \try{}{
             \tcc{Use any standard path finding algorithm such as BFS to find a path in the existing graph from the specified source to sink.}
             Path pathWithNewEdge $\gets$ FindPath(
-                % graph: existingGraph, 
                 sourceNode: src,
                 sinkNode: newEdge.Source) +\;
             newEdge +\;
             FindPath(
-                % graph: exisingGraph, 
                 sourceNode: newEdge.Sink, 
                 sinkNode: snk)\;
             \If{src == snk}{
@@ -546,7 +530,6 @@ parallelPairs $\gets$ \{\}\;
             }
             \Else(){
                 Path pathInOldGraph $\gets$ FindPath(
-                    % graph: existingGraph, 
                     sourceNode: src, 
                     sinkNode: snk)\;
             }
@@ -646,7 +629,6 @@ The proof holds if any of the paths used are the identity, e.g., if $f_1$ is the
 
 We conclude that verifying a comparable pair of paths with end points ($P_1$, $P_2$) implies the verification of all path pairs ($Q_1$, $Q_2$) such that $Q_1$ is a successor of $P_1$ and $P_2$ is a successor of $Q_2$. A successor $S$ to node $N$ is any node such that there exists a path from $N$ to $S$. Nodes are also their own successors and predecessors.
 The rule effectively places an ordering on the informativeness of path pairs based on their terminal nodes.
-% If it is possible to draw a path from node $P_1$ to $P_2$ that passes through $Q_1$ and $Q_2$ then verifying a parallel pair from $Q_1$ to $Q_2$ implies that parallel pairs from $P_1$ to $P_2$ commute as well.
 
 Given that a set of path pairs are equal, suppose we attempt to derive the proposition that a different parallel pair of paths is equal with a step-by-step application of inference rules.
  Under the assumption that edges are generic functions, and no other information is available, $\mathcal{F}$ is a semi-group.
@@ -773,11 +755,26 @@ The average time taken by each algorithm over the course of 10 runs over randoml
     ~\ref{algo_online_minimal} & 0.00086 \\
     \bottomrule
 \end{tabular}
-\label{tab:times} %TODO debug and fix label not working.
+\label{tab:times}
+\end{table}
+
+\begin{table}
+    \caption{Output size for 9 node graph of density 0.4, averaged over ten runs.}
+\begin{tabular}{cc}
+    \toprule
+    Algorithm & Average number of output pairs \\
+    \midrule
+    Na\"{i}ve baseline & 39754.9 \\
+    Two Flip tolerant & 748.9 \\
+    Batch algorithm & 23 \\
+    ~\ref{algo_online_polynomial} & 78.3 \\
+    ~\ref{algo_online_minimal} & 1 \\
+    \bottomrule
+\end{tabular}
+\label{tab:sizes}
 \end{table}
 
 \begin{figure*}
-    % TODO format nicely.
     \begin{subfigure}{0.35\linewidth}
       \includegraphics[width=\linewidth,trim=0 0 5 30,clip]{timeVsSize_10_OptimalSet.pdf}
       \caption{~\ref{algo_online_minimal}.}
@@ -800,9 +797,6 @@ The average time taken by each algorithm over the course of 10 runs over randoml
       \label{fig:sfigNaiveTvsS}
     \end{subfigure}
 
-% \end{figure}
-% \begin{figure}\ContinuedFloat
-
     \begin{subfigure}{0.35\linewidth}
       \includegraphics[width=\linewidth,trim=0 0 5 30,clip]{timeVsSize_10_TwoFlipPathChecker.pdf}
       \caption{Two flip tolerant baseline.}
@@ -819,6 +813,23 @@ The average time taken by each algorithm over the course of 10 runs over randoml
     \caption{Running time for various algorithms as input graph size and density scale.}
     \label{fig:timeVsSize}
 \end{figure*}
+
+\begin{figure}
+    \begin{subfigure}{\linewidth}
+      \includegraphics[width=\linewidth]{variance_10_OptimalSet.pdf}
+      \caption{~\ref{algo_online_minimal}.}
+      \label{fig:sfigOptimalSpread}
+    \end{subfigure}
+
+    \begin{subfigure}{\linewidth}
+      \includegraphics[width=\linewidth]{variance_10_Polynomial.pdf}
+      \caption{~\ref{algo_online_polynomial}.}
+      \label{fig:sfigPolynomialSpread}
+    \end{subfigure}
+
+    \caption{Spreads of algorithm running times.}
+    \label{fig:variance}
+\end{figure}
     
 The na\"{i}ve baseline performs poorly, taking well over a thousand seconds for even small graphs of 10 nodes.
 While the batch algorithm improves on this, it still does not scale very well, with computation for a graph with 14 nodes and 0.4 density taking hours.
@@ -840,8 +851,6 @@ Run time relates to the density of edges in the input graph.
 The degree of the effect differs with the algorithms, as Figure~\ref{fig:timeVsSize} shows.
 Generally, denser graphs entail longer computation time.
 For the batch algorithm we use lower densities since the input graph must be acyclic. This puts an upper bound on density that approaches 0.5 in large graphs.
-% Our proposed algorithms, ~\ref{algo_minimal_spanning_set} and ~\ref{algo_online_polynomial} are less affected because they aggressively remove redundancies.
-
 
 \subsection{Variance}
 The periodic spikes in Figure ~\ref{fig:sfigOptimalTvsS} are striking. 
@@ -853,57 +862,17 @@ The outliers themselves follow a polynomial curve, appearing almost periodically
 We have not yet identified the cause of the behavior.
 Figure ~\ref{fig:variance} depicts the situation for ~\ref{algo_online_polynomial}, where no such effect is observed.
 
-\begin{figure}
-    % TODO format nicely.
-    \begin{subfigure}{\linewidth}
-      \includegraphics[width=\linewidth]{variance_10_OptimalSet.pdf}
-      \caption{~\ref{algo_online_minimal}.}
-      \label{fig:sfigOptimalSpread}
-    \end{subfigure}
-
-    \begin{subfigure}{\linewidth}
-      \includegraphics[width=\linewidth]{variance_10_Polynomial.pdf}
-      \caption{~\ref{algo_online_polynomial}.}
-      \label{fig:sfigPolynomialSpread}
-    \end{subfigure}
-    
-    % \begin{subfigure}{\linewidth}
-    %   \includegraphics[width=\linewidth]{variance_10_TwoFlip.pdf}
-    %   \caption{Two flip tolerant baseline}
-    %   \label{fig:sfigTwoFlipSpread}
-    % \end{subfigure}
-
-    \caption{Spreads of algorithm running times.}
-    \label{fig:variance}
-\end{figure}
-
 \subsection{Size of Output}
 Output size is a metric of interest, should the equality checking oracle be expensive.
 Table ~\ref{tab:sizes}, summarizes the number of output pairs that the algorithms returned on average over 10 runs, for graphs with 9 nodes and 32 edges.
 These results are essentially as expected, although it is interesting to note that Algorithm 3 produces around triple the number of pairs compared to the batch algorithm.
 Also note that Algorithm 4 produces the minimal number of paths, showing why it is the minimal set algorithm.
 
-\begin{table}
-    \caption{Output size for 9 node graph of density 0.4, averaged over ten runs.}
-\begin{tabular}{cc}
-    \toprule
-    Algorithm & Average number of output pairs \\
-    \midrule
-    Na\"{i}ve baseline & 39754.9 \\
-    Two Flip tolerant & 748.9 \\
-    Batch algorithm & 23 \\
-    ~\ref{algo_online_polynomial} & 78.3 \\
-    ~\ref{algo_online_minimal} & 1 \\
-    \bottomrule
-\end{tabular}
-\label{tab:sizes}
-\end{table}
-
 \section{Related Work}
 
 Section ~\ref{sec:batchBaseline} describes Murota's solution to efficiently finding the minimal set of path pairs that need to be compared to check if a given acyclic graph commutes ~\cite{commutative}.
 We did not find any other work that solves the question of verifying that diagrams commute.
-
+\balance
 However, the question of commuting does come up in programming languages with implicit type conversion.
 Gator ~\cite{gator}, as described in Section ~\ref{sec:gator}, supports automatic type conversion between geometry types.
 The language implements some restrictions to eliminate obvious cases of non-commuting graphs, but does not verify that defined graphs commute, allowing scope for non-commuting graph definitions.
@@ -911,7 +880,6 @@ Frink ~\cite{frink} is a language that supports automatic conversion between uni
 It does not appear to support the implicit definition of conversion between units \xxx[AK]{Need to spend some time confirming this} but if extended to do so, would need to contend with the problem of commuting graphs.
 The same is true for F\# which has support for units of measure ~\cite{unitsOfMeasure} and Ada's GNAT compiler~\cite{gnat}.
 
-% Units of measure work resource: https://gmpreussner.com/research/dimensional-analysis-in-programming-languages
 \section{Conclusion}
 
 Being able to verify if diagrams commute allows a compiler to make
